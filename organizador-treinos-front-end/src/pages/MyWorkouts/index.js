@@ -1,9 +1,9 @@
 import NavBar from "../../components/NavBar";
 
-function HomePage() {
+function MyWorkoutPage() {
   return (
     <NavBar></NavBar>
   );
 }
 
-export default HomePage;
+export default MyWorkoutPage;

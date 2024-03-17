@@ -1,9 +1,9 @@
 import NavBar from "../../components/NavBar";
 
-function HomePage() {
+function AccountPage() {
   return (
     <NavBar></NavBar>
   );
 }
 
-export default HomePage;
+export default AccountPage;

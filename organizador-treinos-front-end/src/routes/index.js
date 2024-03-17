@@ -2,6 +2,9 @@ import { Fragment } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import Home from "../pages/Home";
+import Account from "../pages/Account";
+import MyWorkouts from "../pages/MyWorkouts";
+import NewWorkout from "../pages/NewWorkout";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 
@@ -17,6 +20,9 @@ const RoutesApp = () => {
       <Fragment>
         <Routes>
           <Route exact path="/home" element={<Private Item={Home} />} />
+          <Route exact path="/account" element={<Private Item={Account} />} />
+          <Route exact path="/myworkouts" element={<Private Item={MyWorkouts} />} />
+          <Route exact path="/newworkout" element={<Private Item={NewWorkout} />} />
           <Route path="/" element={<Signin />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route path="*" element={<Signin />} />
