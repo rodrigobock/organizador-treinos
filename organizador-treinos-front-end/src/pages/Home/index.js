@@ -30,9 +30,9 @@ function HomePage() {
     <>
       <NavBar />
       <C.ContainerCabecalhoMobile>
-            <h3 style={{ marginTop: '20px' }}>Bem vindo(a)!</h3>
-            <h5>Esse é o seu treino do dia:</h5>
-          </C.ContainerCabecalhoMobile>
+        <h3 style={{ marginTop: '20px' }}>Bem vindo(a)!</h3>
+        <h5>Esse é o seu treino do dia:</h5>
+      </C.ContainerCabecalhoMobile>
       <Card style={{ marginTop: '20px' }}>
         <Card.Body>
           <Card.Title>Treino de ombros e biceps</Card.Title>
@@ -119,7 +119,8 @@ function HomePage() {
             />
             {/* Adicione mais checkboxes conforme necessário */}
 
-<br></br>
+            <br></br>
+            
             <Row className="justify-content-center">
               <Col xs={12}>
                 <Button variant="primary" type="submit" style={{ width: '100%' }}>
@@ -130,7 +131,7 @@ function HomePage() {
 
           </Form>
         </Card.Body>
-      </Card>
+      </Card>+
     </>
   );
 }
