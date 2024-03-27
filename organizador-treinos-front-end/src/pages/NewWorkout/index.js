@@ -1,81 +1,64 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import NavBar from "../../components/NavBar";
 
 function NewWorkoutPage() {
-  const [itemsOrcamento, setItemsOrcamento] = useState([]);
+  const [exercises, setExercises] = useState([{ exerciseName: '' }]);
 
-  useEffect(() => {
-    // Adicionar um item vazio se a lista estiver vazia no carregamento da página
-    if (itemsOrcamento.length === 0) {
-      addItemListaMateriasProprios();
-    }
-  }, []); // Executa apenas uma vez no carregamento do componente
-
-  const addItemListaMateriasProprios = () => {
-    const newItem = {
-      quantidade: '',
-      material: {
-        unidadeMedida: '',
-        valor: ''
-      },
-      total: ''
-    };
-    setItemsOrcamento([...itemsOrcamento, newItem]);
+  const handleAddExercise = () => {
+    setExercises([...exercises, { exerciseName: '' }]);
   };
 
-  const removeItemListaMateriasProprios = (index) => {
-    const updatedItems = [...itemsOrcamento];
-    updatedItems.splice(index, 1);
-    setItemsOrcamento(updatedItems);
+  const handleDeleteExercise = (index) => {
+    const newExercises = [...exercises];
+    newExercises.splice(index, 1);
+    setExercises(newExercises);
   };
 
-  const handleChangeQuantidade = (event, index) => {
-    const { value } = event.target;
-    const updatedItems = [...itemsOrcamento];
-    updatedItems[index].quantidade = value;
-    setItemsOrcamento(updatedItems);
+  const handleChangeExerciseName = (index, event) => {
+    const newExercises = [...exercises];
+    newExercises[index].exerciseName = event.target.value;
+    setExercises(newExercises);
   };
 
-  // Outras funções de manipulação de dados podem ser adicionadas conforme necessário
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // Aqui você pode enviar os dados do formulário para o servidor ou fazer o que for necessário
+    console.log('Exercícios cadastrados:', exercises);
+  };
 
   return (
-    <div>
-      <table className="custom-table">
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'center' }}>Quantidade</th>
-            <th style={{ textAlign: 'center' }}>Unidade Medida</th>
-            <th style={{ textAlign: 'center' }}>Material</th>
-            <th style={{ textAlign: 'center' }}>Valor R$</th>
-            <th style={{ textAlign: 'center' }}>Total R$</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {itemsOrcamento.map((item, index) => (
-            <tr key={index}>
-              <td>
-                <input
-                  style={{ width: '100%' }}
-                  type="text"
-                  value={item.quantidade}
-                  onChange={(e) => handleChangeQuantidade(e, index)}
-                // Adicione outras propriedades de acordo com suas necessidades
-                />
-              </td>
-              {/* Adicione outras colunas conforme necessário */}
-              <td>
-                <button type="button" onClick={() => addItemListaMateriasProprios()} className="btn btn-success">
-                  <i className="pi pi-plus"></i> Adicionar
-                </button>
-                <button type="button" onClick={() => removeItemListaMateriasProprios(index)} className="btn btn-danger mt-2">
-                  <i className="pi pi-trash"></i> Remover
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <><NavBar /><div className="container">
+      <h2 className="my-4">Cadastro de Exercícios para Treino</h2>
+      <form onSubmit={handleSubmit}>
+        {exercises.map((exercise, index) => (
+          <div key={index} className="form-group d-flex align-items-center">
+            <input
+              type="text"
+              className="form-control mb-2 mr-2"
+              placeholder="Nome do exercício"
+              value={exercise.exerciseName}
+              onChange={(event) => handleChangeExerciseName(index, event)} />
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={() => handleDeleteExercise(index)}
+            >
+              Excluir
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="btn btn-primary mr-2"
+          onClick={handleAddExercise}
+        >
+          Adicionar Novo Exercício
+        </button>
+        <button type="submit" className="btn btn-success">
+          Salvar
+        </button>
+      </form>
+    </div></>
   );
 }
 
