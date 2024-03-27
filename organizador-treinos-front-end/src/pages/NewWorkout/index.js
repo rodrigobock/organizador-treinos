@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import NavBar from "../../components/NavBar";
 
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+
 function NewWorkoutPage() {
   const [exercises, setExercises] = useState([{ exerciseName: '' }]);
 
@@ -27,38 +32,43 @@ function NewWorkoutPage() {
   };
 
   return (
-    <><NavBar /><div className="container">
-      <h2 className="my-4">Cadastro de Exercícios para Treino</h2>
-      <form onSubmit={handleSubmit}>
-        {exercises.map((exercise, index) => (
-          <div key={index} className="form-group d-flex align-items-center">
-            <input
-              type="text"
-              className="form-control mb-2 mr-2"
-              placeholder="Nome do exercício"
-              value={exercise.exerciseName}
-              onChange={(event) => handleChangeExerciseName(index, event)} />
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => handleDeleteExercise(index)}
-            >
-              Excluir
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="btn btn-primary mr-2"
-          onClick={handleAddExercise}
-        >
-          Adicionar Novo Exercício
-        </button>
-        <button type="submit" className="btn btn-success">
-          Salvar
-        </button>
-      </form>
-    </div></>
+    <>
+      <NavBar />
+      <div className="container">
+        <h2 className="my-4">Cadastro de Exercícios para Treino</h2>
+        <Form onSubmit={handleSubmit}>
+          {exercises.map((exercise, index) => (
+            <div key={index} className="form-group">
+              <Row>
+                <Col xs={9} sm={9}>
+                  <Form.Control
+                    type="text"
+                    value={exercise.exerciseName}
+                    placeholder="Nome do exercício"
+                    onChange={(event) => handleChangeExerciseName(index, event)}
+                  />
+                </Col>
+                <Col xs={3} sm={3}>
+                  <Button variant="danger" style={{ width: '100%' }} onClick={() => handleDeleteExercise(index)}>
+                    Excluir
+                  </Button>
+                </Col>
+              </Row>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="btn btn-primary mr-2"
+            onClick={handleAddExercise}
+          >
+            Adicionar Novo Exercício
+          </button>
+          <button type="submit" className="btn btn-success">
+            Salvar
+          </button>
+        </Form>
+      </div>
+    </>
   );
 }
 
