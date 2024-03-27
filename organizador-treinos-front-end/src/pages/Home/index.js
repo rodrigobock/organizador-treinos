@@ -131,7 +131,7 @@ function HomePage() {
 
           </Form>
         </Card.Body>
-      </Card>+
+      </Card>
     </>
   );
 }

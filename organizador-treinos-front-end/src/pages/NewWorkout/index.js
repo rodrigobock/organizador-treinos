@@ -8,26 +8,43 @@ import Row from 'react-bootstrap/Row';
 
 function NewWorkoutPage() {
   const [exercises, setExercises] = useState([{ exerciseName: '' }]);
+  const [workoutName, setWorkoutName] = useState('');
+  const [disableSave, setDisableSave] = useState(true);
 
   const handleAddExercise = () => {
     setExercises([...exercises, { exerciseName: '' }]);
+    setDisableSave(true); // Reabilitar o botão de salvar quando um novo exercício é adicionado
   };
 
   const handleDeleteExercise = (index) => {
-    const newExercises = [...exercises];
-    newExercises.splice(index, 1);
-    setExercises(newExercises);
+    if (exercises.length > 1) {
+      const newExercises = [...exercises];
+      newExercises.splice(index, 1);
+      setExercises(newExercises);
+    } else {
+      // Limpar o texto do exercício em vez de remover se houver apenas um item na lista
+      const updatedExercises = [{ exerciseName: '' }];
+      setExercises(updatedExercises);
+    }
+    setDisableSave(true); // Reabilitar o botão de salvar ao remover um exercício
   };
 
   const handleChangeExerciseName = (index, event) => {
     const newExercises = [...exercises];
     newExercises[index].exerciseName = event.target.value;
     setExercises(newExercises);
+    setDisableSave(false); // Habilitar o botão de salvar quando o texto do exercício é alterado
+  };
+
+  const handleChangeWorkoutName = (event) => {
+    setWorkoutName(event.target.value);
+    setDisableSave(false); // Habilitar o botão de salvar quando o nome do treino é alterado
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     // Aqui você pode enviar os dados do formulário para o servidor ou fazer o que for necessário
+    console.log('Nome do Treino:', workoutName);
     console.log('Exercícios cadastrados:', exercises);
   };
 
@@ -35,10 +52,21 @@ function NewWorkoutPage() {
     <>
       <NavBar />
       <div className="container">
-        <h2 className="my-4">Cadastro de Exercícios para Treino</h2>
+        <h2 style={{ textAlign: 'center'}} className="my-4">Cadastro de Exercícios</h2>
         <Form onSubmit={handleSubmit}>
+          <Form.Group controlId="formWorkoutName">
+            <Form.Label>Nome do Treino</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Digite o nome do treino"
+              value={workoutName}
+              onChange={handleChangeWorkoutName}
+            />
+          </Form.Group>
+          <br />
+          <p>Lista de Exercícios:</p>
           {exercises.map((exercise, index) => (
-            <div key={index} className="form-group">
+            <div key={index} className="form-group mb-3">
               <Row>
                 <Col xs={9} sm={9}>
                   <Form.Control
@@ -56,16 +84,28 @@ function NewWorkoutPage() {
               </Row>
             </div>
           ))}
-          <button
-            type="button"
-            className="btn btn-primary mr-2"
-            onClick={handleAddExercise}
-          >
-            Adicionar Novo Exercício
-          </button>
-          <button type="submit" className="btn btn-success">
-            Salvar
-          </button>
+          <div className="fixed-bottom mb-4 mx-4">
+            <div className="w-100 mb-2">
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={handleAddExercise}
+              >
+                Adicionar Novo Exercício
+              </Button>
+            </div>
+            <div className="w-100">
+              <Button
+                type="submit"
+                variant="success"
+                className="w-100"
+                onClick={handleSubmit}
+                disabled={!workoutName || exercises.every(exercise => !exercise.exerciseName)}
+              >
+                Salvar
+              </Button>
+            </div>
+          </div>
         </Form>
       </div>
     </>
