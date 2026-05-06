@@ -16,12 +16,7 @@ function NavBar() {
   };
 
   const initials = user?.name
-    ? user.name
-        .split(" ")
-        .slice(0, 2)
-        .map(w => w[0])
-        .join("")
-        .toUpperCase()
+    ? user.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase()
     : "?";
 
   const firstName = user?.name?.split(" ")[0] || "";
@@ -42,7 +37,53 @@ function NavBar() {
         >
           💪 Treinos
         </Navbar.Brand>
+
+        {/* Always visible on mobile: theme toggle + user */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto", marginRight: 8 }}>
+          <button
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Mudar para Light" : "Mudar para Dark"}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: 16,
+              cursor: "pointer",
+              padding: "4px 6px",
+              borderRadius: 6,
+            }}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+
+          <div
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: "50%",
+              background: "var(--nav-active-bg)",
+              color: "var(--accent)",
+              border: "1px solid var(--border)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 11,
+              fontWeight: 700,
+              flexShrink: 0,
+            }}
+          >
+            {initials}
+          </div>
+
+          {firstName && (
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              {firstName}
+            </span>
+          )}
+        </div>
+
         <Navbar.Toggle aria-controls="nav-main" />
+
+        {/* Hamburger content: nav links + sair */}
         <Navbar.Collapse id="nav-main">
           <Nav className="me-auto" style={{ gap: 4 }}>
             <Nav.Link href="/home" style={{ color: "var(--text-muted)", fontSize: 13 }}>
@@ -56,47 +97,7 @@ function NavBar() {
             </Nav.Link>
           </Nav>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button
-              onClick={toggleTheme}
-              title={theme === "dark" ? "Mudar para Light" : "Mudar para Dark"}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 16,
-                cursor: "pointer",
-                padding: "4px 6px",
-                borderRadius: 6,
-              }}
-            >
-              {theme === "dark" ? "☀️" : "🌙"}
-            </button>
-
-            <div
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: "50%",
-                background: "var(--nav-active-bg)",
-                color: "var(--accent)",
-                border: "1px solid var(--border)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 11,
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </div>
-
-            {firstName && (
-              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                {firstName}
-              </span>
-            )}
-
+          <div style={{ padding: "8px 0" }}>
             <button
               onClick={handleLogout}
               style={{
