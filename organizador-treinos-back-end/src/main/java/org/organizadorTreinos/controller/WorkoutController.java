@@ -8,6 +8,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.organizadorTreinos.dto.request.CreateWorkoutRequest;
+import org.organizadorTreinos.dto.request.ImportAnalyzeRequest;
+import org.organizadorTreinos.dto.request.ImportConfirmItem;
+import org.organizadorTreinos.dto.response.ImportAnalyzeResultItem;
+import org.organizadorTreinos.dto.response.ImportResultResponse;
 import org.organizadorTreinos.dto.response.WorkoutResponse;
 import org.organizadorTreinos.entity.User;
 import org.organizadorTreinos.repository.UserRepository;
@@ -93,5 +97,23 @@ public class WorkoutController {
         User user = getCurrentUser();
         workoutService.deleteWorkout(id, user);
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/import/analyze")
+    @RolesAllowed("users")
+    public Response analyzeImport(@Valid ImportAnalyzeRequest request) {
+        User user = getCurrentUser();
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, request);
+        return Response.ok(results).build();
+    }
+
+    @POST
+    @Path("/import/confirm")
+    @RolesAllowed("users")
+    public Response confirmImport(@Valid List<ImportConfirmItem> items) {
+        User user = getCurrentUser();
+        ImportResultResponse result = workoutService.confirmImport(user, items);
+        return Response.ok(result).build();
     }
 }

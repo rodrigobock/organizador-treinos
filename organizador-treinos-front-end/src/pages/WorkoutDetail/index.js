@@ -9,6 +9,7 @@ import Col from "react-bootstrap/Col";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
 import useAuth from "../../hooks/useAuth";
+import { downloadJson } from "../../utils/downloadJson";
 import "./styles.css";
 
 function WorkoutDetailPage() {
@@ -117,6 +118,17 @@ function WorkoutDetailPage() {
     }
   };
 
+  const handleExportJson = () => {
+    const data = {
+      version: 1,
+      workouts: [{
+        name: workout.name,
+        exercises: (workout.exercises || []).map(e => ({ name: e.name, completed: e.completed })),
+      }],
+    };
+    downloadJson(`${workout.name.replace(/\s+/g, '-').toLowerCase()}.json`, data);
+  };
+
   if (loading) {
     return (
       <>
@@ -154,10 +166,10 @@ function WorkoutDetailPage() {
               <span className="badge bg-info">Público</span>
             )}
           </div>
-          <Button
-            Text="Voltar"
-            onClick={() => navigate("/myworkouts")}
-          />
+          <div className="d-flex gap-2">
+            <Button Text="Exportar JSON" onClick={handleExportJson} />
+            <Button Text="Voltar" onClick={() => navigate("/myworkouts")} />
+          </div>
         </div>
 
         {error && (

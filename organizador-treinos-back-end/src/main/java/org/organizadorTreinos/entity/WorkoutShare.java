@@ -2,9 +2,15 @@ package org.organizadorTreinos.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "workout_share",
     uniqueConstraints = {
@@ -43,48 +49,7 @@ public class WorkoutShare {
     }
 
     public enum Permission {
-        READ,   // View only
-        EDIT    // Can modify
-    }
-
-    // Getters and Setters
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public Workout getWorkout() {
-        return workout;
-    }
-
-    public void setWorkout(Workout workout) {
-        this.workout = workout;
-    }
-
-    public User getSharedWithUser() {
-        return sharedWithUser;
-    }
-
-    public void setSharedWithUser(User sharedWithUser) {
-        this.sharedWithUser = sharedWithUser;
-    }
-
-    public Permission getPermission() {
-        return permission;
-    }
-
-    public void setPermission(Permission permission) {
-        this.permission = permission;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+        READ,
+        EDIT
     }
 }

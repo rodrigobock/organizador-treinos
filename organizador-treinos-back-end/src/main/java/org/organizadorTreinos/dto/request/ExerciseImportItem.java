@@ -6,8 +6,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class CreateExerciseRequest {
+public class ExerciseImportItem {
 
     @NotBlank(message = "Exercise name is required")
     private String name;
+
+    private Boolean completed = false;
 }

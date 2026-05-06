@@ -99,6 +99,26 @@ const workoutService = {
       throw error.message || 'Erro ao revogar compartilhamento';
     }
   },
+
+  // POST /workouts/import/analyze - Verificar duplicatas antes de importar
+  analyzeImport: async (workouts) => {
+    try {
+      const response = await api.post('/workouts/import/analyze', { workouts });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.message || error.message || 'Erro ao analisar importação';
+    }
+  },
+
+  // POST /workouts/import/confirm - Executar importação com decisões do usuário
+  confirmImport: async (items) => {
+    try {
+      const response = await api.post('/workouts/import/confirm', items);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.message || error.message || 'Erro ao importar treinos';
+    }
+  },
 };
 
 export default workoutService;
