@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavBar from "../../components/NavBar";
-
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import workoutService from '../../services/workoutService';
+import exerciseService from '../../services/exerciseService';
 
 function NewWorkoutPage() {
+  const navigate = useNavigate();
+
   const [exercises, setExercises] = useState([{ exerciseName: '' }]);
   const [workoutName, setWorkoutName] = useState('');
-  const [disableSave, setDisableSave] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleAddExercise = () => {
     setExercises([...exercises, { exerciseName: '' }]);
-    setDisableSave(true); // Reabilitar o botão de salvar quando um novo exercício é adicionado
   };
 
   const handleDeleteExercise = (index) => {
@@ -22,89 +27,142 @@ function NewWorkoutPage() {
       newExercises.splice(index, 1);
       setExercises(newExercises);
     } else {
-      // Limpar o texto do exercício em vez de remover se houver apenas um item na lista
       const updatedExercises = [{ exerciseName: '' }];
       setExercises(updatedExercises);
     }
-    setDisableSave(true); // Reabilitar o botão de salvar ao remover um exercício
   };
 
   const handleChangeExerciseName = (index, event) => {
     const newExercises = [...exercises];
     newExercises[index].exerciseName = event.target.value;
     setExercises(newExercises);
-    setDisableSave(false); // Habilitar o botão de salvar quando o texto do exercício é alterado
   };
 
   const handleChangeWorkoutName = (event) => {
     setWorkoutName(event.target.value);
-    setDisableSave(false); // Habilitar o botão de salvar quando o nome do treino é alterado
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Aqui você pode enviar os dados do formulário para o servidor ou fazer o que for necessário
-    console.log('Nome do Treino:', workoutName);
-    console.log('Exercícios cadastrados:', exercises);
+
+    if (!workoutName.trim()) {
+      setError('Nome do treino é obrigatório');
+      return;
+    }
+
+    const validExercises = exercises.filter(ex => ex.exerciseName.trim());
+    if (validExercises.length === 0) {
+      setError('Adicione pelo menos um exercício');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const workoutResponse = await workoutService.createWorkout(workoutName, isPublic);
+
+      for (const exercise of validExercises) {
+        await exerciseService.createExercise(workoutResponse.id, exercise.exerciseName);
+      }
+
+      navigate('/myworkouts');
+    } catch (err) {
+      setError(err.message || 'Erro ao criar treino');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <NavBar />
-      <div className="container">
-        <h2 style={{ textAlign: 'center'}} className="my-4">Cadastro de Exercícios</h2>
+      <div className="container" style={{ marginTop: "20px" }}>
+        <h2 className="mb-4">Novo Treino</h2>
+
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
+
         <Form onSubmit={handleSubmit}>
-          <Form.Group controlId="formWorkoutName">
+          <Form.Group controlId="formWorkoutName" className="mb-3">
             <Form.Label>Nome do Treino</Form.Label>
             <Form.Control
               type="text"
               placeholder="Digite o nome do treino"
               value={workoutName}
               onChange={handleChangeWorkoutName}
+              disabled={loading}
             />
           </Form.Group>
-          <br />
-          <p>Lista de Exercícios:</p>
-          {exercises.map((exercise, index) => (
-            <div key={index} className="form-group mb-3">
-              <Row>
-                <Col xs={9} sm={9}>
-                  <Form.Control
-                    type="text"
-                    value={exercise.exerciseName}
-                    placeholder="Nome do exercício"
-                    onChange={(event) => handleChangeExerciseName(index, event)}
-                  />
-                </Col>
-                <Col xs={3} sm={3}>
-                  <Button variant="danger" style={{ width: '100%' }} onClick={() => handleDeleteExercise(index)}>
-                    Excluir
-                  </Button>
-                </Col>
-              </Row>
-            </div>
-          ))}
-          <div className="fixed-bottom mb-4 mx-4">
-            <div className="w-100 mb-2">
-              <Button
-                variant="primary"
-                className="w-100"
-                onClick={handleAddExercise}
-              >
-                Adicionar Novo Exercício
-              </Button>
-            </div>
-            <div className="w-100">
-              <Button
-                type="submit"
-                variant="success"
-                className="w-100"
-                onClick={handleSubmit}
-                disabled={!workoutName || exercises.every(exercise => !exercise.exerciseName)}
-              >
-                Salvar
-              </Button>
-            </div>
+
+          <Form.Group controlId="formIsPublic" className="mb-3">
+            <Form.Check
+              type="checkbox"
+              label="Treino Público"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              disabled={loading}
+            />
+          </Form.Group>
+
+          <div className="mb-3">
+            <Form.Label>Exercícios</Form.Label>
+            {exercises.map((exercise, index) => (
+              <div key={index} className="mb-2">
+                <Row>
+                  <Col xs={9} sm={9}>
+                    <Form.Control
+                      type="text"
+                      value={exercise.exerciseName}
+                      placeholder="Nome do exercício"
+                      onChange={(event) => handleChangeExerciseName(index, event)}
+                      disabled={loading}
+                    />
+                  </Col>
+                  <Col xs={3} sm={3}>
+                    <Button
+                      variant="danger"
+                      className="w-100"
+                      onClick={() => handleDeleteExercise(index)}
+                      disabled={loading}
+                    >
+                      Remover
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            ))}
+          </div>
+
+          <div className="d-flex gap-2 mb-5">
+            <Button
+              variant="secondary"
+              onClick={handleAddExercise}
+              disabled={loading}
+            >
+              + Exercício
+            </Button>
+          </div>
+
+          <div className="d-flex gap-2">
+            <Button
+              variant="success"
+              type="submit"
+              className="flex-grow-1"
+              disabled={loading || !workoutName.trim() || exercises.every(ex => !ex.exerciseName.trim())}
+            >
+              {loading ? "Salvando..." : "Salvar Treino"}
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => navigate('/myworkouts')}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
           </div>
         </Form>
       </div>

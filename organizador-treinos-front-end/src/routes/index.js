@@ -5,6 +5,7 @@ import Home from "../pages/Home";
 import Account from "../pages/Account";
 import MyWorkouts from "../pages/MyWorkouts";
 import NewWorkout from "../pages/NewWorkout";
+import WorkoutDetail from "../pages/WorkoutDetail";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 
@@ -23,6 +24,7 @@ const RoutesApp = () => {
           <Route exact path="/account" element={<Private Item={Account} />} />
           <Route exact path="/myworkouts" element={<Private Item={MyWorkouts} />} />
           <Route exact path="/newworkout" element={<Private Item={NewWorkout} />} />
+          <Route exact path="/workout/:id" element={<Private Item={WorkoutDetail} />} />
           <Route path="/" element={<Signin />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route path="*" element={<Signin />} />

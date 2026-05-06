@@ -1,27 +1,121 @@
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+import { useNavigate } from "react-router-dom";
+import Container from "react-bootstrap/Container";
+import Nav from "react-bootstrap/Nav";
+import Navbar from "react-bootstrap/Navbar";
+import useAuth from "../../hooks/useAuth";
+import { useTheme } from "../../contexts/theme";
 
-function BasicExample() {
+function NavBar() {
+  const { user, signout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    signout();
+    navigate("/");
+  };
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .slice(0, 2)
+        .map(w => w[0])
+        .join("")
+        .toUpperCase()
+    : "?";
+
+  const firstName = user?.name?.split(" ")[0] || "";
+
   return (
-    <Navbar expand="lg" className="bg-body-tertiary">
+    <Navbar
+      expand="lg"
+      style={{
+        backgroundColor: "var(--bg-surface)",
+        borderBottom: "1px solid var(--border)",
+        padding: "0",
+      }}
+    >
       <Container>
-        <Navbar.Brand href="/home">Organizador de Treinos</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link href="/account">Minha conta</Nav.Link>
-            <NavDropdown title="Meus treinos" id="basic-nav-dropdown">
-              <NavDropdown.Item href="/newworkout">Cadastrar novo</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="/myworkouts">Consultar treinos</NavDropdown.Item>
-            </NavDropdown>
+        <Navbar.Brand
+          href="/home"
+          style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 15 }}
+        >
+          💪 Treinos
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="nav-main" />
+        <Navbar.Collapse id="nav-main">
+          <Nav className="me-auto" style={{ gap: 4 }}>
+            <Nav.Link href="/home" style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              Dashboard
+            </Nav.Link>
+            <Nav.Link href="/myworkouts" style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              Meus Treinos
+            </Nav.Link>
+            <Nav.Link href="/account" style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              Conta
+            </Nav.Link>
           </Nav>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Mudar para Light" : "Mudar para Dark"}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 16,
+                cursor: "pointer",
+                padding: "4px 6px",
+                borderRadius: 6,
+              }}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                background: "var(--nav-active-bg)",
+                color: "var(--accent)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 11,
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {initials}
+            </div>
+
+            {firstName && (
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+                {firstName}
+              </span>
+            )}
+
+            <button
+              onClick={handleLogout}
+              style={{
+                background: "none",
+                border: "1px solid var(--border)",
+                borderRadius: 6,
+                padding: "5px 12px",
+                fontSize: 12,
+                color: "var(--text-muted)",
+                cursor: "pointer",
+              }}
+            >
+              Sair
+            </button>
+          </div>
         </Navbar.Collapse>
       </Container>
     </Navbar>
   );
 }
 
-export default BasicExample;
+export default NavBar;

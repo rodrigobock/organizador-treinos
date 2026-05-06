@@ -10,23 +10,34 @@ const Signin = () => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!email | !senha) {
+  const handleLogin = async () => {
+    if (!email || !password) {
       setError("Preencha todos os campos");
       return;
     }
 
-    const res = signin(email, senha);
+    setLoading(true);
+    setError("");
 
-    if (res) {
-      setError(res);
+    const errorMsg = await signin(email, password);
+
+    if (errorMsg) {
+      setError(errorMsg);
+      setLoading(false);
       return;
     }
 
     navigate("/home");
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
   };
 
   return (
@@ -37,16 +48,30 @@ const Signin = () => {
           type="email"
           placeholder="Digite seu E-mail"
           value={email}
-          onChange={(e) => [setEmail(e.target.value), setError("")]}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
+          onKeyPress={handleKeyPress}
+          disabled={loading}
         />
         <Input
           type="password"
           placeholder="Digite sua Senha"
-          value={senha}
-          onChange={(e) => [setSenha(e.target.value), setError("")]}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
+          onKeyPress={handleKeyPress}
+          disabled={loading}
         />
         <C.labelError>{error}</C.labelError>
-        <Button Text="Entrar" onClick={handleLogin} />
+        <Button
+          Text={loading ? "Entrando..." : "Entrar"}
+          onClick={handleLogin}
+          disabled={loading}
+        />
         <C.LabelSignup>
           Não tem uma conta?
           <C.Strong>

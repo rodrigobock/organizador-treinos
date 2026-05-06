@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: organizador-treinos-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: organizador_treinos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - treinos-net
+
+  backend:
+    build:
+      context: ./organizador-treinos-back-end
+      dockerfile: Dockerfile
+    container_name: organizador-treinos-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      QUARKUS_PROFILE: dev
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://db:5432/organizador_treinos
+      QUARKUS_DATASOURCE_USERNAME: postgres
+      QUARKUS_DATASOURCE_PASSWORD: postgres
+      QUARKUS_HTTP_CORS_ORIGINS: "http://localhost:3000,http://localhost:5173"
+    ports:
+      - "8080:8080"
+    networks:
+      - treinos-net
+    volumes:
+      - ./organizador-treinos-back-end/src/test/resources:/app/keys:ro
+
+  frontend:
+    build:
+      context: ./organizador-treinos-front-end
+      dockerfile: Dockerfile
+    container_name: organizador-treinos-frontend
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    networks:
+      - treinos-net
+    volumes:
+      - ./organizador-treinos-front-end/src:/app/src:ro
+      - ./organizador-treinos-front-end/public:/app/public:ro
+
+volumes:
+  postgres_data:
+
+networks:
+  treinos-net:
+    driver: bridge

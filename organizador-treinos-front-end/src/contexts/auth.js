@@ -1,72 +1,86 @@
 import { createContext, useEffect, useState } from "react";
+import authService from "../services/authService";
 
 export const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const userToken = localStorage.getItem("user_token");
-    const usersStorage = localStorage.getItem("users_bd");
+    const checkAuth = async () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const currentUser = await authService.getCurrentUser();
+          setUser(currentUser);
+        }
+      } catch (err) {
+        console.error("Erro ao verificar autenticação:", err);
+        authService.logout();
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (userToken && usersStorage) {
-      const hasUser = JSON.parse(usersStorage)?.filter(
-        (user) => user.email === JSON.parse(userToken).email
-      );
-
-      if (hasUser) setUser(hasUser[0]);
-    }
+    checkAuth();
   }, []);
 
-  const signin = (email, password) => {
-    const usersStorage = JSON.parse(localStorage.getItem("users_bd"));
-
-    const hasUser = usersStorage?.filter((user) => user.email === email);
-
-    if (hasUser?.length) {
-      if (hasUser[0].email === email && hasUser[0].password === password) {
-        const token = Math.random().toString(36).substring(2);
-        localStorage.setItem("user_token", JSON.stringify({ email, token }));
-        setUser({ email, password });
-        return;
-      } else {
-        return "E-mail ou senha incorretos";
-      }
-    } else {
-      return "Usuário não cadastrado";
+  const signin = async (email, password) => {
+    try {
+      setError(null);
+      const response = await authService.login(email, password);
+      authService.setToken(response.token);
+      setUser(response.user);
+      return null;
+    } catch (err) {
+      const errorMsg = err.message || "Erro ao fazer login";
+      setError(errorMsg);
+      return errorMsg;
     }
   };
 
-  const signup = (email, password) => {
-    const usersStorage = JSON.parse(localStorage.getItem("users_bd"));
-
-    const hasUser = usersStorage?.filter((user) => user.email === email);
-
-    if (hasUser?.length) {
-      return "Já tem uma conta com esse E-mail";
+  const signup = async (name, email, password) => {
+    try {
+      setError(null);
+      const response = await authService.signup(name, email, password);
+      authService.setToken(response.token);
+      setUser(response.user);
+      return null;
+    } catch (err) {
+      const errorMsg = err.message || "Erro ao registrar";
+      setError(errorMsg);
+      return errorMsg;
     }
-
-    let newUser;
-
-    if (usersStorage) {
-      newUser = [...usersStorage, { email, password }];
-    } else {
-      newUser = [{ email, password }];
-    }
-
-    localStorage.setItem("users_bd", JSON.stringify(newUser));
-
-    return;
   };
 
   const signout = () => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem("user_token");
+    setError(null);
+  };
+
+  const updateUser = (updatedFields) => {
+    setUser(prev => ({ ...prev, ...updatedFields }));
+  };
+
+  const clearError = () => {
+    setError(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, signed: !!user, signin, signup, signout }}
+      value={{
+        user,
+        signed: !!user,
+        loading,
+        error,
+        signin,
+        signup,
+        signout,
+        updateUser,
+        clearError,
+      }}
     >
       {children}
     </AuthContext.Provider>

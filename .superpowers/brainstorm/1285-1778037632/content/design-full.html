@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Preview — Organizador de Treinos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e2e8f0; }
+
+  /* ── Layout ── */
+  .preview-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 100vh; }
+  .preview-col { padding: 32px 24px; border-right: 1px solid #1e2330; }
+  .preview-col:last-child { border-right: none; }
+  .col-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: #64748b; text-transform: uppercase; margin-bottom: 20px; }
+
+  /* ── Design tokens ── */
+  :root {
+    --dk-bg:        #0b0e17;
+    --dk-surface:   #131720;
+    --dk-card:      #1a2035;
+    --dk-border:    #242d45;
+    --dk-text:      #e2e8f0;
+    --dk-muted:     #64748b;
+    --dk-accent:    #f59e0b;
+    --dk-accent2:   #ef4444;
+    --dk-success:   #10b981;
+
+    --lt-bg:        #f0f4f8;
+    --lt-surface:   #ffffff;
+    --lt-card:      #ffffff;
+    --lt-border:    #e2e8f0;
+    --lt-text:      #0f172a;
+    --lt-muted:     #64748b;
+    --lt-accent:    #6366f1;
+    --lt-accent2:   #8b5cf6;
+    --lt-success:   #10b981;
+  }
+
+  /* ── App Shell ── */
+  .app { border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); border: 1px solid var(--border); }
+
+  /* ── NavBar ── */
+  .navbar { display: flex; align-items: center; padding: 0 20px; height: 56px; border-bottom: 1px solid var(--border); background: var(--surface); gap: 8px; }
+  .nav-brand { display: flex; align-items: center; gap: 8px; }
+  .nav-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .nav-brand-text { font-weight: 700; font-size: 14px; }
+  .nav-links { display: flex; gap: 4px; margin-left: 24px; }
+  .nav-link { font-size: 13px; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+  .nav-link.active { font-weight: 600; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .nav-user { font-size: 12px; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .theme-toggle { width: 32px; height: 18px; border-radius: 9px; cursor: pointer; position: relative; border: none; transition: background .2s; }
+  .theme-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .logout-btn { font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); background: transparent; }
+
+  /* ── Page body ── */
+  .page { padding: 24px 20px; background: var(--bg); min-height: 320px; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-title { font-size: 18px; font-weight: 700; }
+  .page-subtitle { font-size: 12px; margin-top: 2px; }
+
+  /* ── Cards ── */
+  .card { border-radius: 10px; border: 1px solid var(--border); background: var(--card); padding: 16px; }
+  .card + .card { margin-top: 10px; }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .card-meta { font-size: 11px; }
+
+  /* ── Badge ── */
+  .badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+
+  /* ── Progress bar ── */
+  .progress-bar-wrap { height: 4px; border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* ── Exercise list ── */
+  .exercise-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .exercise-item:last-child { border-bottom: none; }
+  .checkbox { width: 16px; height: 16px; border-radius: 4px; border: 2px solid var(--border-accent); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .checkbox.checked { border-color: var(--success); background: var(--success); }
+  .checkmark { color: #fff; font-size: 9px; }
+  .ex-name.done { text-decoration: line-through; opacity: .45; }
+
+  /* ── Stat cards ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .stat-card { border-radius: 10px; border: 1px solid var(--border); background: var(--card); padding: 12px; }
+  .stat-label { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .stat-value { font-size: 20px; font-weight: 800; margin-top: 2px; }
+
+  /* ── Buttons ── */
+  .btn-primary { border: none; border-radius: 7px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-ghost { border-radius: 7px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; border: 1px solid var(--border); }
+
+  /* ── Input ── */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 5px; }
+  .field input { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; outline: none; }
+  .field input:focus { border-color: var(--accent); }
+  .field input:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── Empty state ── */
+  .empty-state { text-align: center; padding: 40px 20px; }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .empty-desc { font-size: 12px; margin-bottom: 16px; }
+
+  /* ── Section label ── */
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ──────────────────────────────────────────────
+     DARK THEME
+  ────────────────────────────────────────────── */
+  .dark {
+    --bg: var(--dk-bg); --surface: var(--dk-surface); --card: var(--dk-card);
+    --border: var(--dk-border); --text: var(--dk-text); --muted: var(--dk-muted);
+    --accent: var(--dk-accent); --accent2: var(--dk-accent2); --success: var(--dk-success);
+    --border-accent: #2e3a52;
+    color: var(--text);
+  }
+  .dark .nav-icon { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+  .dark .nav-brand-text { color: #fff; }
+  .dark .nav-link { color: #94a3b8; }
+  .dark .nav-link:hover { background: #1a2035; color: #e2e8f0; }
+  .dark .nav-link.active { color: #f59e0b; background: rgba(245,158,11,.08); }
+  .dark .nav-user { color: #94a3b8; }
+  .dark .nav-avatar { background: linear-gradient(135deg, #f59e0b44, #ef444433); color: #f59e0b; border: 1px solid #f59e0b44; }
+  .dark .theme-toggle { background: #f59e0b; }
+  .dark .logout-btn { color: #64748b; border-color: #242d45; }
+  .dark .logout-btn:hover { color: #ef4444; border-color: #ef444455; }
+  .dark .page-title { color: #f1f5f9; }
+  .dark .page-subtitle { color: #64748b; }
+  .dark .card-title { color: #e2e8f0; }
+  .dark .card-meta { color: #64748b; }
+  .dark .badge.amber { background: rgba(245,158,11,.15); color: #f59e0b; }
+  .dark .badge.green { background: rgba(16,185,129,.15); color: #10b981; }
+  .dark .badge.gray { background: #1a2035; color: #94a3b8; }
+  .dark .progress-bar-wrap { background: #1a2035; }
+  .dark .progress-bar-fill { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+  .dark .stat-label { color: #64748b; }
+  .dark .stat-value { color: #f1f5f9; }
+  .dark .stat-value.accent { color: #f59e0b; }
+  .dark .btn-primary { background: linear-gradient(135deg, #f59e0b, #f97316); color: #000; }
+  .dark .btn-ghost { color: #94a3b8; border-color: #242d45; }
+  .dark .section-label { color: #475569; }
+  .dark .field label { color: #94a3b8; }
+  .dark .field input { background: #131720; border-color: #242d45; color: #e2e8f0; }
+  .dark .field input::placeholder { color: #475569; }
+  .dark .empty-title { color: #e2e8f0; }
+  .dark .empty-desc { color: #64748b; }
+  .dark .exercise-item { border-color: #1a2035; }
+
+  /* ──────────────────────────────────────────────
+     LIGHT THEME
+  ────────────────────────────────────────────── */
+  .light {
+    --bg: var(--lt-bg); --surface: var(--lt-surface); --card: var(--lt-card);
+    --border: var(--lt-border); --text: var(--lt-text); --muted: var(--lt-muted);
+    --accent: var(--lt-accent); --accent2: var(--lt-accent2); --success: var(--lt-success);
+    --border-accent: #cbd5e1;
+    color: var(--text);
+  }
+  .light .app { box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+  .light .nav-icon { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .light .nav-brand-text { color: #0f172a; }
+  .light .nav-link { color: #64748b; }
+  .light .nav-link:hover { background: #f1f5f9; color: #0f172a; }
+  .light .nav-link.active { color: #6366f1; background: #eef2ff; }
+  .light .nav-user { color: #64748b; }
+  .light .nav-avatar { background: #eef2ff; color: #6366f1; border: 1px solid #c7d2fe; }
+  .light .theme-toggle { background: #cbd5e1; }
+  .light .theme-toggle::after { transform: translateX(0); }
+  .light .logout-btn { color: #94a3b8; border-color: #e2e8f0; }
+  .light .page-title { color: #0f172a; }
+  .light .page-subtitle { color: #64748b; }
+  .light .card-title { color: #0f172a; }
+  .light .card-meta { color: #64748b; }
+  .light .badge.amber { background: #fef3c7; color: #d97706; }
+  .light .badge.green { background: #d1fae5; color: #059669; }
+  .light .badge.gray { background: #f1f5f9; color: #64748b; }
+  .light .progress-bar-wrap { background: #e2e8f0; }
+  .light .progress-bar-fill { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+  .light .stat-value { color: #0f172a; }
+  .light .stat-value.accent { color: #6366f1; }
+  .light .stat-label { color: #94a3b8; }
+  .light .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+  .light .btn-ghost { color: #64748b; border-color: #e2e8f0; }
+  .light .section-label { color: #94a3b8; }
+  .light .field label { color: #475569; }
+  .light .field input { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+  .light .field input::placeholder { color: #94a3b8; }
+  .light .empty-title { color: #0f172a; }
+  .light .empty-desc { color: #64748b; }
+  .light .exercise-item { border-color: #f1f5f9; }
+</style>
+</head>
+<body>
+
+<div style="padding:24px 32px;background:#0a0c14;border-bottom:1px solid #1e2330">
+  <h1 style="font-size:16px;font-weight:700;color:#e2e8f0">Design Preview — Organizador de Treinos</h1>
+  <p style="font-size:12px;color:#64748b;margin-top:4px">Esquerda: Dark (padrão) &nbsp;·&nbsp; Direita: Light (toggle)</p>
+</div>
+
+<div class="preview-wrapper">
+
+  <!-- ══════════════ DARK ══════════════ -->
+  <div class="preview-col dark" style="background:#0a0c14">
+    <div class="col-label">🌑 Dark Mode (padrão)</div>
+
+    <!-- NavBar -->
+    <div style="margin-bottom:10px">
+      <div class="app dark">
+        <div class="navbar">
+          <div class="nav-brand">
+            <div class="nav-icon">💪</div>
+            <span class="nav-brand-text">Treinos</span>
+          </div>
+          <div class="nav-links">
+            <div class="nav-link active">Dashboard</div>
+            <div class="nav-link">Meus Treinos</div>
+            <div class="nav-link">Conta</div>
+          </div>
+          <div class="nav-right">
+            <button class="theme-toggle"></button>
+            <span class="nav-user">Rodrigo</span>
+            <div class="nav-avatar">RC</div>
+            <button class="logout-btn">Sair</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME / Dashboard -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">HOME — DASHBOARD</div>
+      <div class="app dark">
+        <div class="page" style="min-height:auto">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Olá, Rodrigo 👋</div>
+              <div class="page-subtitle">Aqui está o seu treino mais recente</div>
+            </div>
+            <button class="btn-primary">+ Novo Treino</button>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card dark">
+              <div class="stat-label">Meus Treinos</div>
+              <div class="stat-value">4</div>
+            </div>
+            <div class="stat-card dark">
+              <div class="stat-label">Exercícios</div>
+              <div class="stat-value accent">12</div>
+            </div>
+            <div class="stat-card dark">
+              <div class="stat-label">Compartilhados</div>
+              <div class="stat-value">1</div>
+            </div>
+          </div>
+          <div class="section-label">Último treino</div>
+          <div class="card dark">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="card-title">Costas e Bíceps</div>
+              <span class="badge amber">3 / 5</span>
+            </div>
+            <div class="exercise-item dark">
+              <div class="checkbox checked dark"><span class="checkmark">✓</span></div>
+              <span class="ex-name done">Pulldown Hummer</span>
+            </div>
+            <div class="exercise-item dark">
+              <div class="checkbox checked dark"><span class="checkmark">✓</span></div>
+              <span class="ex-name done">Remada Baixa</span>
+            </div>
+            <div class="exercise-item dark">
+              <div class="checkbox checked dark"><span class="checkmark">✓</span></div>
+              <span class="ex-name done">Remada Curvada</span>
+            </div>
+            <div class="exercise-item dark">
+              <div class="checkbox dark"></div>
+              <span class="ex-name">Rosca Direta</span>
+            </div>
+            <div class="exercise-item dark">
+              <div class="checkbox dark"></div>
+              <span class="ex-name">Rosca 21</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:60%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MINHA CONTA -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">MINHA CONTA</div>
+      <div class="app dark">
+        <div class="page" style="min-height:auto">
+          <div class="page-header" style="margin-bottom:16px">
+            <div>
+              <div class="page-title">Minha Conta</div>
+              <div class="page-subtitle">Gerencie seus dados</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nome</label>
+            <input type="text" value="Rodrigo Bock" />
+          </div>
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" value="rodrigo@email.com" disabled />
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn-primary" style="flex:1">Salvar alterações</button>
+            <button class="btn-ghost" style="flex:1">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME — EMPTY STATE -->
+    <div>
+      <div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">HOME — SEM TREINOS</div>
+      <div class="app dark">
+        <div class="page" style="min-height:auto">
+          <div class="empty-state">
+            <div class="empty-icon">🏋️</div>
+            <div class="empty-title">Nenhum treino criado ainda</div>
+            <div class="empty-desc">Crie seu primeiro treino e comece a organizar seus exercícios</div>
+            <button class="btn-primary">Criar primeiro treino</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ LIGHT ══════════════ -->
+  <div class="preview-col light" style="background:#e8edf5">
+    <div class="col-label" style="color:#94a3b8">☀️ Light Mode (toggle)</div>
+
+    <!-- NavBar -->
+    <div style="margin-bottom:10px">
+      <div class="app light">
+        <div class="navbar">
+          <div class="nav-brand">
+            <div class="nav-icon">💪</div>
+            <span class="nav-brand-text">Treinos</span>
+          </div>
+          <div class="nav-links">
+            <div class="nav-link active">Dashboard</div>
+            <div class="nav-link">Meus Treinos</div>
+            <div class="nav-link">Conta</div>
+          </div>
+          <div class="nav-right">
+            <button class="theme-toggle light"></button>
+            <span class="nav-user">Rodrigo</span>
+            <div class="nav-avatar">RC</div>
+            <button class="logout-btn">Sair</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME / Dashboard -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">HOME — DASHBOARD</div>
+      <div class="app light">
+        <div class="page" style="min-height:auto">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Olá, Rodrigo 👋</div>
+              <div class="page-subtitle">Aqui está o seu treino mais recente</div>
+            </div>
+            <button class="btn-primary">+ Novo Treino</button>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card light">
+              <div class="stat-label">Meus Treinos</div>
+              <div class="stat-value">4</div>
+            </div>
+            <div class="stat-card light">
+              <div class="stat-label">Exercícios</div>
+              <div class="stat-value accent">12</div>
+            </div>
+            <div class="stat-card light">
+              <div class="stat-label">Compartilhados</div>
+              <div class="stat-value">1</div>
+            </div>
+          </div>
+          <div class="section-label">Último treino</div>
+          <div class="card light">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="card-title">Costas e Bíceps</div>
+              <span class="badge amber">3 / 5</span>
+            </div>
+            <div class="exercise-item light">
+              <div class="checkbox checked light"><span class="checkmark">✓</span></div>
+              <span class="ex-name done">Pulldown Hummer</span>
+            </div>
+            <div class="exercise-item light">
+              <div class="checkbox checked light"><span class="checkmark">✓</span></div>
+              <span class="ex-name done">Remada Baixa</span>
+            </div>
+            <div class="exercise-item light">
+              <div class="checkbox checked light"><span class="checkmark">✓</span></div>
+              <span class="ex-name done">Remada Curvada</span>
+            </div>
+            <div class="exercise-item light">
+              <div class="checkbox light" style="border-color:#cbd5e1"></div>
+              <span class="ex-name">Rosca Direta</span>
+            </div>
+            <div class="exercise-item light">
+              <div class="checkbox light" style="border-color:#cbd5e1"></div>
+              <span class="ex-name">Rosca 21</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:60%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MINHA CONTA -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">MINHA CONTA</div>
+      <div class="app light">
+        <div class="page" style="min-height:auto">
+          <div class="page-header" style="margin-bottom:16px">
+            <div>
+              <div class="page-title">Minha Conta</div>
+              <div class="page-subtitle">Gerencie seus dados</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nome</label>
+            <input type="text" value="Rodrigo Bock" style="background:#f8fafc;border-color:#e2e8f0;color:#0f172a" />
+          </div>
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" value="rodrigo@email.com" disabled style="background:#f1f5f9;border-color:#e2e8f0;color:#64748b" />
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn-primary" style="flex:1">Salvar alterações</button>
+            <button class="btn-ghost" style="flex:1">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME — EMPTY STATE -->
+    <div>
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">HOME — SEM TREINOS</div>
+      <div class="app light">
+        <div class="page" style="min-height:auto">
+          <div class="empty-state">
+            <div class="empty-icon">🏋️</div>
+            <div class="empty-title">Nenhum treino criado ainda</div>
+            <div class="empty-desc">Crie seu primeiro treino e comece a organizar seus exercícios</div>
+            <button class="btn-primary">Criar primeiro treino</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// inject helper stub so page doesn't error
+window.toggleSelect = function(){};
+</script>
+</html>

@@ -1,231 +1,196 @@
-import Button from 'react-bootstrap/Button';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
-
+import React, { useState } from "react";
 import NavBar from "../../components/NavBar";
-import * as C from "../Signin/styles";
+import useAuth from "../../hooks/useAuth";
+import authService from "../../services/authService";
 
 function AccountPage() {
-  // Verifica se a tela é de um dispositivo móvel
-  const isMobile = window.matchMedia("(max-width: 767px)").matches;
+  const { user, updateUser } = useAuth();
+  const [name, setName] = useState(user?.name || "");
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("O nome não pode estar vazio");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    setSuccess(false);
+    try {
+      const updated = await authService.updateUser(name.trim());
+      updateUser(updated);
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message || "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setName(user?.name || "");
+    setError("");
+    setSuccess(false);
+  };
 
   return (
     <>
       <NavBar />
-      {isMobile ? (
-        <C.ContainerMobile>
+      <div
+        style={{
+          minHeight: "calc(100vh - 56px)",
+          backgroundColor: "var(--bg-primary)",
+          padding: "32px 16px",
+        }}
+      >
+        <div style={{ maxWidth: 480, margin: "0 auto" }}>
+          <div style={{ marginBottom: 24 }}>
+            <h1
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                marginBottom: 4,
+              }}
+            >
+              Minha Conta
+            </h1>
+            <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
+              Gerencie seus dados
+            </p>
+          </div>
 
-          <C.ContainerCabecalhoMobile>
-            <h3 style={{ marginTop: '20px' }}>Perfil do usuário</h3>
-            <h5>Bem vindo(a)!</h5>
-          </C.ContainerCabecalhoMobile>
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              padding: 24,
+            }}
+          >
+            <form onSubmit={handleSave}>
+              <div style={{ marginBottom: 16 }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    color: "var(--text-muted)",
+                    marginBottom: 6,
+                  }}
+                >
+                  Nome
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setError("");
+                    setSuccess(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-surface)",
+                    color: "var(--text-primary)",
+                    fontSize: 14,
+                    outline: "none",
+                  }}
+                />
+              </div>
 
-          <Form>
+              <div style={{ marginBottom: 24 }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    color: "var(--text-muted)",
+                    marginBottom: 6,
+                  }}
+                >
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={user?.email || ""}
+                  disabled
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-primary)",
+                    color: "var(--text-muted)",
+                    fontSize: 14,
+                    cursor: "not-allowed",
+                    opacity: 0.7,
+                  }}
+                />
+              </div>
 
-            <Row className="mb-3">
+              {error && (
+                <p style={{ color: "var(--accent-alt)", fontSize: 13, marginBottom: 12 }}>
+                  {error}
+                </p>
+              )}
+              {success && (
+                <p style={{ color: "var(--success)", fontSize: 13, marginBottom: 12 }}>
+                  Dados atualizados com sucesso!
+                </p>
+              )}
 
-              <Form.Group as={Col} controlId="formGridNome" xs={12} sm={6}>
-                <Form.Label>Nome:</Form.Label>
-                <Form.Control type="nome" placeholder="Nome" />
-              </Form.Group>
-
-            </Row>
-
-            <Row className="mb-3">
-
-              <Form.Group as={Col} controlId="formGridSobrenome" xs={12} sm={6}>
-                <Form.Label>Sobrenome:</Form.Label>
-                <Form.Control type="sobrenome" placeholder="Sobrenome" />
-              </Form.Group>
-
-            </Row>
-
-            <Form.Group className="mb-3" controlId="formGridEmail">
-              <Form.Label>E-mail:</Form.Label>
-              <Form.Control type="email" placeholder="email@email.com" />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formGridPassword">
-              <Form.Label>Senha:</Form.Label>
-              <Form.Control type="password" placeholder="Password" />
-            </Form.Group>
-
-            <Row className="mb-3">
-              <Form.Group as={Col} controlId="formGridState" xs={12} sm={6}>
-                <Form.Label>Estado</Form.Label>
-                <Form.Select defaultValue="Escolha">
-                  <option>Escolha...</option>
-                  <option>Acre</option>
-                  <option>Alagoas</option>
-                  <option>Amapá</option>
-                  <option>Amazonas</option>
-                  <option>Bahia</option>
-                  <option>Ceará</option>
-                  <option>Distrito Federal</option>
-                  <option>Espírito Santo</option>
-                  <option>Goiás</option>
-                  <option>Maranhão</option>
-                  <option>Mato Grosso</option>
-                  <option>Mato Grosso do Sul</option>
-                  <option>Minas Gerais</option>
-                  <option>Pará</option>
-                  <option>Paraíba</option>
-                  <option>Paraná</option>
-                  <option>Pernambuco</option>
-                  <option>Piauí</option>
-                  <option>Rio de Janeiro</option>
-                  <option>Rio Grande do Norte</option>
-                  <option>Rio Grande do Sul</option>
-                  <option>Rondônia</option>
-                  <option>Roraima</option>
-                  <option>Santa Catarina</option>
-                  <option>São Paulo</option>
-                  <option>Sergipe</option>
-                  <option>Tocantins</option>
-                </Form.Select>
-              </Form.Group>
-            </Row>
-
-            <Row className="mb-3">
-              <Form.Group as={Col} controlId="formGridCEP" xs={12} sm={6}>
-                <Form.Label>CEP:</Form.Label>
-                <Form.Control />
-              </Form.Group>
-
-            </Row>
-
-            <Form.Group className="mb-3" controlId="formGridCidade">
-              <Form.Label>Cidade:</Form.Label>
-              <Form.Control />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formGridAddress">
-              <Form.Label>Endereço:</Form.Label>
-              <Form.Control placeholder="Endereço" />
-            </Form.Group>
-
-
-            <Row className="justify-content-center">
-              <Col xs={12}>
-                <Button variant="primary" type="submit" style={{ width: '100%' }}>
-                  Salvar
-                </Button>
-              </Col>
-            </Row>
-
-            <Row className="justify-content-center mt-3">
-              <Col xs={12}>
-                <Button variant="danger" style={{ width: '100%' }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "var(--btn-primary-bg)",
+                    color: "var(--btn-primary-text)",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: saving ? "not-allowed" : "pointer",
+                    opacity: saving ? 0.7 : 1,
+                  }}
+                >
+                  {saving ? "Salvando..." : "Salvar alterações"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "transparent",
+                    color: "var(--text-muted)",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
                   Cancelar
-                </Button>
-              </Col>
-            </Row>
-
-            {/* Espaço em branco para melhorar a visibilidade */}
-            <div style={{ height: '40px' }}></div>
-
-          </Form>
-        </C.ContainerMobile >
-      ) : (
-        <C.Container>
-          <Form>
-            <Row className="mb-3">
-
-              <Form.Group as={Col} controlId="formGridNome" xs={12} sm={6}>
-                <Form.Label>Nome:</Form.Label>
-                <Form.Control type="nome" placeholder="Nome" />
-              </Form.Group>
-
-              <Form.Group as={Col} controlId="formGridSobrenome" xs={12} sm={6}>
-                <Form.Label>Sobrenome:</Form.Label>
-                <Form.Control type="sobrenome" placeholder="Sobrenome" />
-              </Form.Group>
-
-            </Row>
-
-            <Form.Group className="mb-3" controlId="formGridEmail">
-              <Form.Label>E-mail:</Form.Label>
-              <Form.Control type="email" placeholder="email@email.com" />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formGridPassword">
-              <Form.Label>Senha:</Form.Label>
-              <Form.Control type="password" placeholder="Password" />
-            </Form.Group>
-
-            <Row className="mb-3">
-              <Form.Group as={Col} controlId="formGridCEP" xs={12} sm={6}>
-                <Form.Label>CEP:</Form.Label>
-                <Form.Control />
-              </Form.Group>
-
-              <Form.Group as={Col} controlId="formGridState" xs={12} sm={6}>
-                <Form.Label>Estado</Form.Label>
-                <Form.Select defaultValue="Escolha">
-                  <option>Escolha...</option>
-                  <option>Acre</option>
-                  <option>Alagoas</option>
-                  <option>Amapá</option>
-                  <option>Amazonas</option>
-                  <option>Bahia</option>
-                  <option>Ceará</option>
-                  <option>Distrito Federal</option>
-                  <option>Espírito Santo</option>
-                  <option>Goiás</option>
-                  <option>Maranhão</option>
-                  <option>Mato Grosso</option>
-                  <option>Mato Grosso do Sul</option>
-                  <option>Minas Gerais</option>
-                  <option>Pará</option>
-                  <option>Paraíba</option>
-                  <option>Paraná</option>
-                  <option>Pernambuco</option>
-                  <option>Piauí</option>
-                  <option>Rio de Janeiro</option>
-                  <option>Rio Grande do Norte</option>
-                  <option>Rio Grande do Sul</option>
-                  <option>Rondônia</option>
-                  <option>Roraima</option>
-                  <option>Santa Catarina</option>
-                  <option>São Paulo</option>
-                  <option>Sergipe</option>
-                  <option>Tocantins</option>
-                </Form.Select>
-              </Form.Group>
-            </Row>
-
-            <Form.Group className="mb-3" controlId="formGridCidade">
-              <Form.Label>Cidade:</Form.Label>
-              <Form.Control />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formGridAddress">
-              <Form.Label>Endereço:</Form.Label>
-              <Form.Control placeholder="Endereço" />
-            </Form.Group>
-
-
-            <Row className="justify-content-center">
-              <Col xs={12}>
-                <Button variant="primary" type="submit" style={{ width: '100%' }}>
-                  Salvar
-                </Button>
-              </Col>
-            </Row>
-
-            <Row className="justify-content-center mt-3">
-              <Col xs={12}>
-                <Button variant="danger" style={{ width: '100%' }}>
-                  Cancelar
-                </Button>
-              </Col>
-            </Row>
-
-          </Form>
-        </C.Container>
-      )
-      }
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

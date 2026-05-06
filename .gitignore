@@ -1,0 +1,45 @@
+# Claude Code / IDE files
+.claude/
+.mcp.json
+CLAUDE.md
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Backend
+organizador-treinos-back-end/target/
+organizador-treinos-back-end/.idea/
+organizador-treinos-back-end/*.iml
+organizador-treinos-back-end/.vscode/
+organizador-treinos-back-end/.DS_Store
+organizador-treinos-back-end/.m2/
+
+# Frontend
+organizador-treinos-front-end/node_modules/
+organizador-treinos-front-end/build/
+organizador-treinos-front-end/dist/
+organizador-treinos-front-end/.idea/
+organizador-treinos-front-end/*.iml
+organizador-treinos-front-end/.vscode/
+organizador-treinos-front-end/.DS_Store
+organizador-treinos-front-end/npm-debug.log
+organizador-treinos-front-end/yarn-error.log
+organizador-treinos-front-end/.eslintcache
+
+# Docker
+postgres_data/
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
