@@ -167,8 +167,8 @@ function WorkoutDetailPage() {
             )}
           </div>
           <div className="d-flex gap-2">
-            <Button Text="Exportar JSON" onClick={handleExportJson} />
-            <Button Text="Voltar" onClick={() => navigate("/myworkouts")} />
+            <Button Text="Exportar JSON" onClick={handleExportJson} size="sm" />
+            <Button Text="Voltar" onClick={() => navigate("/myworkouts")} size="sm" />
           </div>
         </div>
 

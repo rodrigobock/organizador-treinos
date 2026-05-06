@@ -12,9 +12,10 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 
 const Private = ({ Item }) => {
-  const { signed } = useAuth();
+  const { signed, loading } = useAuth();
 
-  return signed > 0 ? <Item /> : <Signin />;
+  if (loading) return null;
+  return signed ? <Item /> : <Signin />;
 };
 
 const RoutesApp = () => {

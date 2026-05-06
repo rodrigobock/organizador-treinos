@@ -175,11 +175,13 @@ function MyWorkoutsPage() {
               Text={exportingAll ? "Exportando..." : "Exportar JSON"}
               onClick={handleExportAll}
               disabled={exportingAll || workouts.length === 0}
+              size="sm"
             />
             <Button
               Text={importing ? "Importando..." : "Importar JSON"}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
               disabled={importing}
+              size="sm"
             />
             <input
               ref={fileInputRef}
@@ -191,6 +193,7 @@ function MyWorkoutsPage() {
             <Button
               Text="+ Novo Treino"
               onClick={() => navigate("/newworkout")}
+              size="sm"
             />
           </div>
         </div>
