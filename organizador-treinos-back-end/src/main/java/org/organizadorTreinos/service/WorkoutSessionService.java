@@ -27,7 +27,7 @@ public class WorkoutSessionService {
 
     @Transactional
     public WorkoutSessionResponse startSession(UUID workoutId, User user) {
-        Workout workout = workoutRepository.findByIdOptional(workoutId)
+        Workout workout = workoutRepository.find("id", workoutId).firstResultOptional()
                 .orElseThrow(() -> new NotFoundException("Treino não encontrado"));
 
         sessionRepository.findActiveSession(workoutId, user.getId())
@@ -44,7 +44,7 @@ public class WorkoutSessionService {
 
     @Transactional
     public WorkoutSessionResponse endSession(UUID workoutId, UUID sessionId, User user) {
-        WorkoutSession session = sessionRepository.findByIdOptional(sessionId)
+        WorkoutSession session = sessionRepository.find("id", sessionId).firstResultOptional()
                 .orElseThrow(() -> new NotFoundException("Sessão não encontrada"));
 
         if (!session.getWorkout().getId().equals(workoutId)) {
