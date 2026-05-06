@@ -5,7 +5,9 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.organizadorTreinos.dto.request.ForgotPasswordRequest;
 import org.organizadorTreinos.dto.request.LoginRequest;
+import org.organizadorTreinos.dto.request.ResetPasswordRequest;
 import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
 import org.organizadorTreinos.service.AuthService;
@@ -30,5 +32,19 @@ public class AuthController {
     public Response login(@Valid LoginRequest request) {
         AuthResponse response = authService.login(request);
         return Response.ok(response).build();
+    }
+
+    @POST
+    @Path("/forgot-password")
+    public Response forgotPassword(@Valid ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/reset-password")
+    public Response resetPassword(@Valid ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return Response.ok().build();
     }
 }

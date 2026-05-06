@@ -72,6 +72,11 @@ const Signin = () => {
           onClick={handleLogin}
           disabled={loading}
         />
+        <C.LabelForgot>
+          <C.Strong>
+            <Link to="/forgot-password">Esqueceu a senha?</Link>
+          </C.Strong>
+        </C.LabelForgot>
         <C.LabelSignup>
           Não tem uma conta?
           <C.Strong>

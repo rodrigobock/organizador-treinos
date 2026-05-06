@@ -50,6 +50,24 @@ const authService = {
     }
   },
 
+  // POST /auth/forgot-password
+  forgotPassword: async (email) => {
+    try {
+      await api.post('/auth/forgot-password', { email });
+    } catch (error) {
+      throw error.message || 'Erro ao solicitar redefinição de senha';
+    }
+  },
+
+  // POST /auth/reset-password
+  resetPassword: async (token, newPassword) => {
+    try {
+      await api.post('/auth/reset-password', { token, newPassword });
+    } catch (error) {
+      throw error.message || 'Erro ao redefinir senha';
+    }
+  },
+
   // Logout (local)
   logout: () => {
     localStorage.removeItem('user_token');

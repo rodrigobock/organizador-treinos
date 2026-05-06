@@ -8,6 +8,8 @@ import NewWorkout from "../pages/NewWorkout";
 import WorkoutDetail from "../pages/WorkoutDetail";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 const Private = ({ Item }) => {
   const { signed } = useAuth();
@@ -27,6 +29,8 @@ const RoutesApp = () => {
           <Route exact path="/workout/:id" element={<Private Item={WorkoutDetail} />} />
           <Route path="/" element={<Signin />} />
           <Route exact path="/signup" element={<Signup />} />
+          <Route exact path="/forgot-password" element={<ForgotPassword />} />
+          <Route exact path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<Signin />} />
         </Routes>
       </Fragment>

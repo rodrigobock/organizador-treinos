@@ -1,16 +1,24 @@
 package org.organizadorTreinos.service;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.organizadorTreinos.dto.request.ForgotPasswordRequest;
 import org.organizadorTreinos.dto.request.LoginRequest;
+import org.organizadorTreinos.dto.request.ResetPasswordRequest;
 import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
+import org.organizadorTreinos.entity.PasswordResetToken;
+import org.organizadorTreinos.repository.PasswordResetTokenRepository;
 import org.organizadorTreinos.repository.UserRepository;
+
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,24 +32,30 @@ class AuthServiceTest {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    PasswordResetTokenRepository tokenRepository;
+
+    @InjectMock
+    EmailService emailService;
+
     @BeforeEach
+    @Transactional
     void setUp() {
+        tokenRepository.deleteAll();
         userRepository.deleteAll();
+        Mockito.reset(emailService);
     }
 
     @Test
     @DisplayName("Should signup new user successfully")
     void testSignupSuccess() {
-        // Arrange
         SignupRequest request = new SignupRequest();
         request.setName("João Silva");
         request.setEmail("joao@test.com");
         request.setPassword("SecurePass123");
 
-        // Act
         AuthResponse response = authService.signup(request);
 
-        // Assert
         assertNotNull(response);
         assertNotNull(response.getToken());
         assertNotNull(response.getUser());
@@ -51,26 +65,21 @@ class AuthServiceTest {
     @Test
     @DisplayName("🔥 Should generate valid JWT token on signup")
     void testSignupGeneratesValidToken() {
-        // Arrange
         SignupRequest request = new SignupRequest();
         request.setName("User");
         request.setEmail("test@test.com");
         request.setPassword("ValidPass123");
 
-        // Act
         AuthResponse response = authService.signup(request);
 
-        // Assert
         assertNotNull(response.getToken());
         assertFalse(response.getToken().isEmpty());
-        // Token should contain JWT format (3 parts separated by dots)
         assertTrue(response.getToken().contains("."));
     }
 
     @Test
     @DisplayName("Should reject signup with duplicate email")
     void testSignupDuplicateEmail() {
-        // Arrange
         SignupRequest request1 = new SignupRequest();
         request1.setName("User 1");
         request1.setEmail("duplicate@test.com");
@@ -82,7 +91,6 @@ class AuthServiceTest {
         request2.setEmail("duplicate@test.com");
         request2.setPassword("Password456");
 
-        // Act & Assert
         assertThrows(BadRequestException.class, () -> {
             authService.signup(request2);
         });
@@ -91,13 +99,11 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should reject weak passwords")
     void testSignupWeakPassword() {
-        // Arrange
         SignupRequest request = new SignupRequest();
         request.setName("User");
         request.setEmail("weak@test.com");
-        request.setPassword("weak");  // Too short, no uppercase, no number
+        request.setPassword("weak");
 
-        // Act & Assert
         assertThrows(Exception.class, () -> {
             authService.signup(request);
         });
@@ -106,7 +112,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should login with valid credentials")
     void testLoginSuccess() {
-        // Arrange
         SignupRequest signupRequest = new SignupRequest();
         signupRequest.setName("User");
         signupRequest.setEmail("login@test.com");
@@ -117,10 +122,8 @@ class AuthServiceTest {
         loginRequest.setEmail("login@test.com");
         loginRequest.setPassword("ValidPass123");
 
-        // Act
         AuthResponse response = authService.login(loginRequest);
 
-        // Assert
         assertNotNull(response);
         assertNotNull(response.getToken());
         assertEquals("login@test.com", response.getUser().getEmail());
@@ -129,7 +132,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("🔥 Should generate JWT token on successful login")
     void testLoginGeneratesToken() {
-        // Arrange
         SignupRequest signupRequest = new SignupRequest();
         signupRequest.setName("User");
         signupRequest.setEmail("token@test.com");
@@ -140,10 +142,8 @@ class AuthServiceTest {
         loginRequest.setEmail("token@test.com");
         loginRequest.setPassword("ValidPass123");
 
-        // Act
         AuthResponse response = authService.login(loginRequest);
 
-        // Assert
         assertNotNull(response.getToken());
         assertTrue(response.getToken().contains("."));
     }
@@ -151,7 +151,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should reject login with wrong password")
     void testLoginWrongPassword() {
-        // Arrange
         SignupRequest signupRequest = new SignupRequest();
         signupRequest.setName("User");
         signupRequest.setEmail("wrong@test.com");
@@ -162,7 +161,6 @@ class AuthServiceTest {
         loginRequest.setEmail("wrong@test.com");
         loginRequest.setPassword("WrongPassword456");
 
-        // Act & Assert
         assertThrows(BadRequestException.class, () -> {
             authService.login(loginRequest);
         });
@@ -171,13 +169,11 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should reject login with non-existent user")
     void testLoginNonExistentUser() {
-        // Arrange
         LoginRequest request = new LoginRequest();
         request.setEmail("nonexistent@test.com");
         request.setPassword("SomePass123");
 
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
+        assertThrows(BadRequestException.class, () -> {
             authService.login(request);
         });
     }
@@ -185,19 +181,171 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should hash passwords with BCrypt (never plaintext)")
     void testPasswordIsHashed() {
-        // Arrange
         SignupRequest request = new SignupRequest();
         request.setName("User");
         request.setEmail("hash@test.com");
         request.setPassword("MyPassword123");
 
-        // Act
         authService.signup(request);
         String storedHash = userRepository.findByEmail("hash@test.com").get().getPasswordHash();
 
-        // Assert
         assertNotNull(storedHash);
-        assertNotEquals("MyPassword123", storedHash);  // Should NOT be plaintext
-        assertTrue(storedHash.startsWith("$2a$"));  // BCrypt format
+        assertNotEquals("MyPassword123", storedHash);
+        assertTrue(storedHash.startsWith("$2a$"));
+    }
+
+    @Test
+    @DisplayName("Should send welcome email after successful signup")
+    void testSignupSendsWelcomeEmail() {
+        SignupRequest request = new SignupRequest();
+        request.setName("Maria");
+        request.setEmail("maria@test.com");
+        request.setPassword("ValidPass123");
+
+        authService.signup(request);
+
+        Mockito.verify(emailService, Mockito.times(1)).sendWelcome(Mockito.any());
+    }
+
+    @Test
+    @DisplayName("Should send reset email when user exists")
+    void testForgotPasswordSendsEmail() {
+        SignupRequest signup = new SignupRequest();
+        signup.setName("User");
+        signup.setEmail("user@test.com");
+        signup.setPassword("ValidPass123");
+        authService.signup(signup);
+        Mockito.reset(emailService);
+
+        ForgotPasswordRequest request = new ForgotPasswordRequest();
+        request.setEmail("user@test.com");
+
+        authService.forgotPassword(request);
+
+        Mockito.verify(emailService, Mockito.times(1))
+                .sendPasswordReset(Mockito.eq("user@test.com"), Mockito.anyString());
+    }
+
+    @Test
+    @DisplayName("Should return silently when email not found (no enumeration)")
+    void testForgotPasswordUnknownEmailSilent() {
+        ForgotPasswordRequest request = new ForgotPasswordRequest();
+        request.setEmail("nobody@test.com");
+
+        assertDoesNotThrow(() -> authService.forgotPassword(request));
+        Mockito.verify(emailService, Mockito.never()).sendPasswordReset(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    @DisplayName("Should invalidate previous tokens when new reset is requested")
+    void testForgotPasswordInvalidatesPreviousTokens() {
+        SignupRequest signup = new SignupRequest();
+        signup.setName("User");
+        signup.setEmail("user2@test.com");
+        signup.setPassword("ValidPass123");
+        authService.signup(signup);
+        Mockito.reset(emailService);
+
+        ForgotPasswordRequest request = new ForgotPasswordRequest();
+        request.setEmail("user2@test.com");
+
+        authService.forgotPassword(request);
+        authService.forgotPassword(request);
+
+        long unusedCount = tokenRepository.find("user.email = ?1 and used = false", "user2@test.com").count();
+        assertEquals(1, unusedCount);
+    }
+
+    @Test
+    @DisplayName("Should reset password with valid token")
+    void testResetPasswordSuccess() {
+        SignupRequest signup = new SignupRequest();
+        signup.setName("User");
+        signup.setEmail("reset@test.com");
+        signup.setPassword("OldPass123");
+        authService.signup(signup);
+        Mockito.reset(emailService);
+
+        ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
+        forgotRequest.setEmail("reset@test.com");
+        authService.forgotPassword(forgotRequest);
+
+        PasswordResetToken prt = tokenRepository.find("user.email = ?1 and used = false", "reset@test.com")
+                .firstResult();
+
+        ResetPasswordRequest resetRequest = new ResetPasswordRequest();
+        resetRequest.setToken(prt.getToken());
+        resetRequest.setNewPassword("NewPass456");
+
+        assertDoesNotThrow(() -> authService.resetPassword(resetRequest));
+
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("reset@test.com");
+        loginRequest.setPassword("NewPass456");
+        AuthResponse response = authService.login(loginRequest);
+        assertNotNull(response.getToken());
+    }
+
+    @Test
+    @DisplayName("Should reject reset with invalid token")
+    void testResetPasswordInvalidToken() {
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setToken("nonexistent-token");
+        request.setNewPassword("NewPass456");
+
+        assertThrows(BadRequestException.class, () -> authService.resetPassword(request));
+    }
+
+    @Test
+    @DisplayName("Should reject reset with used token")
+    void testResetPasswordUsedToken() {
+        SignupRequest signup = new SignupRequest();
+        signup.setName("User");
+        signup.setEmail("used@test.com");
+        signup.setPassword("OldPass123");
+        authService.signup(signup);
+        Mockito.reset(emailService);
+
+        ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
+        forgotRequest.setEmail("used@test.com");
+        authService.forgotPassword(forgotRequest);
+
+        PasswordResetToken prt = tokenRepository.find("user.email = ?1 and used = false", "used@test.com")
+                .firstResult();
+
+        ResetPasswordRequest resetRequest = new ResetPasswordRequest();
+        resetRequest.setToken(prt.getToken());
+        resetRequest.setNewPassword("NewPass456");
+
+        authService.resetPassword(resetRequest);
+
+        assertThrows(BadRequestException.class, () -> authService.resetPassword(resetRequest));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Should reject reset with expired token")
+    void testResetPasswordExpiredToken() {
+        SignupRequest signup = new SignupRequest();
+        signup.setName("User");
+        signup.setEmail("expired@test.com");
+        signup.setPassword("OldPass123");
+        authService.signup(signup);
+        Mockito.reset(emailService);
+
+        ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
+        forgotRequest.setEmail("expired@test.com");
+        authService.forgotPassword(forgotRequest);
+
+        PasswordResetToken prt = tokenRepository.find("user.email = ?1 and used = false", "expired@test.com")
+                .firstResult();
+        prt.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+        tokenRepository.persist(prt);
+
+        ResetPasswordRequest resetRequest = new ResetPasswordRequest();
+        resetRequest.setToken(prt.getToken());
+        resetRequest.setNewPassword("NewPass456");
+
+        assertThrows(BadRequestException.class, () -> authService.resetPassword(resetRequest));
     }
 }

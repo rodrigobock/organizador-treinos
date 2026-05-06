@@ -9,24 +9,6 @@ export const Container = styled.div`
   height: 100vh;
 `;
 
-export const ContainerMobile = styled.div`
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 10px;
-  height: 100vh;
-  margin: 10px;
-`;
-
-export const ContainerCabecalhoMobile = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 10px;
-  margin: 10px;
-`;
-
 export const Content = styled.div`
   gap: 15px;
   display: flex;
@@ -47,7 +29,7 @@ export const Label = styled.label`
   color: #676767;
 `;
 
-export const LabelSignup = styled.label`
+export const LabelLink = styled.label`
   font-size: 16px;
   color: #676767;
 `;
@@ -55,12 +37,6 @@ export const LabelSignup = styled.label`
 export const labelError = styled.label`
   font-size: 14px;
   color: red;
-`;
-
-export const LabelForgot = styled.label`
-  font-size: 14px;
-  color: #676767;
-  align-self: flex-end;
 `;
 
 export const Strong = styled.strong`
