@@ -211,6 +211,7 @@ function WorkoutDetailPage() {
                         <Button
                           Text="Deletar"
                           onClick={() => handleDeleteExercise(exercise.id)}
+                          size="sm"
                           style={{ backgroundColor: "#dc3545", color: "white" }}
                         />
                       </Col>

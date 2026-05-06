@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../../components/NavBar";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
+import sessionService from "../../services/sessionService";
 import useAuth from "../../hooks/useAuth";
 
 function HomePage() {
@@ -12,6 +13,13 @@ function HomePage() {
   const [latestWorkout, setLatestWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeSession, setActiveSession] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(false);
+
+  const loadActiveSession = useCallback(async (workoutId) => {
+    const session = await sessionService.getActiveSession(workoutId);
+    setActiveSession(session);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -24,6 +32,7 @@ function HomePage() {
           );
           const detail = await workoutService.getWorkout(sorted[0].id);
           setLatestWorkout(detail);
+          await loadActiveSession(sorted[0].id);
         }
       } catch (err) {
         setError(err.message || "Erro ao carregar dados");
@@ -32,7 +41,7 @@ function HomePage() {
       }
     };
     load();
-  }, []);
+  }, [loadActiveSession]);
 
   const handleToggle = async (exerciseId) => {
     if (!latestWorkout) return;
@@ -43,6 +52,32 @@ function HomePage() {
         exercises: prev.exercises.map(ex => (ex.id === exerciseId ? updated : ex)),
       }));
     } catch (_) {}
+  };
+
+  const handleStartSession = async () => {
+    if (!latestWorkout) return;
+    setSessionLoading(true);
+    try {
+      const session = await sessionService.startSession(latestWorkout.id);
+      setActiveSession(session);
+    } catch (err) {
+      setError(err.response?.data?.message || "Erro ao iniciar treino");
+    } finally {
+      setSessionLoading(false);
+    }
+  };
+
+  const handleEndSession = async () => {
+    if (!latestWorkout || !activeSession) return;
+    setSessionLoading(true);
+    try {
+      await sessionService.endSession(latestWorkout.id, activeSession.id);
+      setActiveSession(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Erro ao finalizar treino");
+    } finally {
+      setSessionLoading(false);
+    }
   };
 
   const firstName = user?.name?.split(" ")[0] || "você";
@@ -85,7 +120,7 @@ function HomePage() {
                 Olá, {firstName} 👋
               </h1>
               <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
-                {loading ? "Carregando..." : "Aqui está o seu treino mais recente"}
+                {loading ? "Carregando..." : "Aqui está o seu próximo treino"}
               </p>
             </div>
             <button
@@ -214,7 +249,7 @@ function HomePage() {
             </div>
           )}
 
-          {/* Latest workout */}
+          {/* Próximo treino */}
           {!loading && latestWorkout && (
             <div>
               <div
@@ -227,14 +262,17 @@ function HomePage() {
                   marginBottom: 10,
                 }}
               >
-                Último treino
+                Próximo treino
               </div>
               <div
                 style={{
                   background: "var(--bg-card)",
-                  border: "1px solid var(--border)",
+                  border: activeSession
+                    ? "1px solid var(--success)"
+                    : "1px solid var(--border)",
                   borderRadius: 12,
                   padding: "18px 18px 14px",
+                  transition: "border-color 0.2s",
                 }}
               >
                 <div
@@ -349,22 +387,77 @@ function HomePage() {
                   </div>
                 )}
 
-                <button
-                  onClick={() => navigate(`/workout/${latestWorkout.id}`)}
-                  style={{
-                    marginTop: 14,
-                    width: "100%",
-                    padding: "9px",
-                    borderRadius: 8,
-                    border: "1px solid var(--border)",
-                    background: "transparent",
-                    color: "var(--text-muted)",
-                    fontSize: 12,
-                    cursor: "pointer",
-                  }}
-                >
-                  Ver treino completo →
-                </button>
+                {/* Botões Iniciar / Finalizar */}
+                <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                  {activeSession ? (
+                    <button
+                      onClick={handleEndSession}
+                      disabled={sessionLoading}
+                      style={{
+                        flex: 1,
+                        padding: "10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "#dc3545",
+                        color: "#fff",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: sessionLoading ? "not-allowed" : "pointer",
+                        opacity: sessionLoading ? 0.7 : 1,
+                      }}
+                    >
+                      {sessionLoading ? "Finalizando..." : "⏹ Finalizar Treino"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleStartSession}
+                      disabled={sessionLoading}
+                      style={{
+                        flex: 1,
+                        padding: "10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "var(--success, #22c55e)",
+                        color: "#fff",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: sessionLoading ? "not-allowed" : "pointer",
+                        opacity: sessionLoading ? 0.7 : 1,
+                      }}
+                    >
+                      {sessionLoading ? "Iniciando..." : "▶ Iniciar Treino"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => navigate(`/workout/${latestWorkout.id}`)}
+                    style={{
+                      padding: "10px 14px",
+                      borderRadius: 8,
+                      border: "1px solid var(--border)",
+                      background: "transparent",
+                      color: "var(--text-muted)",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Ver completo →
+                  </button>
+                </div>
+
+                {activeSession && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 12,
+                      color: "var(--success, #22c55e)",
+                      textAlign: "center",
+                      fontWeight: 500,
+                    }}
+                  >
+                    🟢 Treino em andamento
+                  </div>
+                )}
               </div>
             </div>
           )}
