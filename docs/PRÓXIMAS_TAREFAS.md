@@ -7,7 +7,7 @@
 ## Phase 5: Polishing
 
 ### OT-1: Sucesso na redefinição de senha
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: Low  
 **Esforço**: 30min
 
@@ -20,7 +20,7 @@ Adicionar em `Signin.js`: ler `useLocation()` e exibir mensagem de sucesso no to
 ---
 
 ### OT-2: Rate limiting endpoints auth
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: High (security)  
 **Esforço**: 2-3h
 
@@ -36,7 +36,7 @@ Usar Quarkus Bucket4j extension. Retornar 429 Too Many Requests.
 ---
 
 ### OT-3: Paginação lista de treinos
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: Medium  
 **Esforço**: 2-3h
 
@@ -51,7 +51,7 @@ Usar Quarkus Bucket4j extension. Retornar 429 Too Many Requests.
 ---
 
 ### OT-4: Token refresh/rotation
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: High (security)  
 **Esforço**: 2-3h
 
@@ -68,7 +68,7 @@ Ou usar short-lived tokens + automatic refresh on 401.
 ## Account Page Features
 
 ### OT-5: Endpoint mudar senha
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: Medium  
 **Esforço**: 1h
 
@@ -83,7 +83,7 @@ Validar `oldPassword` contra hash. Hash `newPassword` com BCrypt. Retornar 200 o
 ---
 
 ### OT-6: Formulário mudar senha
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: Medium  
 **Esforço**: 1h  
 **Bloqueado por**: OT-5
@@ -103,7 +103,7 @@ Chamar `userService.changePassword()`. Exibir sucesso/erro.
 ---
 
 ### OT-7: Endpoint deletar conta
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: Low  
 **Esforço**: 1h
 
@@ -118,7 +118,7 @@ Validar password. Deletar user + cascade (workouts, exercises, sessions, shares)
 ---
 
 ### OT-8: Confirmação deletar conta
-**Status**: `[ ] Pendente`  
+**Status**: `[x] Deployado`  
 **Prioridade**: Low  
 **Esforço**: 1h  
 **Bloqueado por**: OT-7
