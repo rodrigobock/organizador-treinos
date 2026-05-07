@@ -155,6 +155,18 @@ export const ErrorMsg = styled.span`
   color: #ef4444;
 `;
 
+export const SuccessMsg = styled.span`
+  font-family: "Outfit", sans-serif;
+  font-size: 13px;
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 10px 12px;
+  border-radius: 6px;
+  display: block;
+  text-align: center;
+`;
+
 export const FooterLinks = styled.div`
   display: flex;
   flex-direction: column;

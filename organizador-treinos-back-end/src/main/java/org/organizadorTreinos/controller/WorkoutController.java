@@ -13,6 +13,7 @@ import org.organizadorTreinos.dto.request.ImportConfirmItem;
 import org.organizadorTreinos.dto.request.ReorderWorkoutsRequest;
 import org.organizadorTreinos.dto.response.ImportAnalyzeResultItem;
 import org.organizadorTreinos.dto.response.ImportResultResponse;
+import org.organizadorTreinos.dto.response.PagedResponse;
 import org.organizadorTreinos.dto.response.WorkoutResponse;
 import org.organizadorTreinos.entity.User;
 import org.organizadorTreinos.repository.UserRepository;
@@ -51,10 +52,16 @@ public class WorkoutController {
 
     @GET
     @RolesAllowed("users")
-    public Response getUserWorkouts() {
+    public Response getUserWorkouts(
+            @QueryParam("page") @DefaultValue("-1") int page,
+            @QueryParam("size") @DefaultValue("10") int size) {
         User user = getCurrentUser();
-        List<WorkoutResponse> workouts = workoutService.getUserWorkouts(user);
-        return Response.ok(workouts).build();
+        if (page < 0) {
+            List<WorkoutResponse> workouts = workoutService.getUserWorkouts(user);
+            return Response.ok(workouts).build();
+        }
+        PagedResponse<WorkoutResponse> paged = workoutService.getUserWorkoutsPaged(user, page, size);
+        return Response.ok(paged).build();
     }
 
     @GET

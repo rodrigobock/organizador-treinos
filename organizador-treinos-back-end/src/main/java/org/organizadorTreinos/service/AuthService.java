@@ -52,7 +52,7 @@ public class AuthService {
         emailService.sendWelcome(user);
 
         String token = jwtService.generateToken(user.getId());
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
 
         return new AuthResponse(token, userResponse);
     }
@@ -66,7 +66,7 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user.getId());
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
 
         return new AuthResponse(token, userResponse);
     }

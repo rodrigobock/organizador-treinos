@@ -45,6 +45,24 @@ public class UserController {
         return Response.ok(response).build();
     }
 
+    @PUT
+    @Path("/me/password")
+    @RolesAllowed("users")
+    public Response changePassword(ChangePasswordRequest request) {
+        String userId = jwt.getSubject();
+        userService.changePassword(UUID.fromString(userId), request.getOldPassword(), request.getNewPassword());
+        return Response.ok().build();
+    }
+
+    @DELETE
+    @Path("/me")
+    @RolesAllowed("users")
+    public Response deleteCurrentUser(DeleteUserRequest request) {
+        String userId = jwt.getSubject();
+        userService.deleteUser(UUID.fromString(userId), request.getPassword());
+        return Response.noContent().build();
+    }
+
     public static class UserUpdateRequest {
         private String name;
 
@@ -54,6 +72,28 @@ public class UserController {
 
         public void setName(String name) {
             this.name = name;
+        }
+    }
+
+    public static class ChangePasswordRequest {
+        private String oldPassword;
+        private String newPassword;
+
+        public String getOldPassword() { return oldPassword; }
+        public void setOldPassword(String oldPassword) { this.oldPassword = oldPassword; }
+        public String getNewPassword() { return newPassword; }
+        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
+    }
+
+    public static class DeleteUserRequest {
+        private String password;
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 }

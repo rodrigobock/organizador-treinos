@@ -20,6 +20,14 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception exception) {
+        if (exception instanceof RateLimitException rle) {
+            ErrorResponse error = new ErrorResponse(rle.getMessage(), 429);
+            return Response.status(429)
+                    .header("Retry-After", String.valueOf(rle.getRetryAfterSeconds()))
+                    .entity(error)
+                    .build();
+        }
+
         if (exception instanceof ConstraintViolationException cve) {
             String msg = cve.getConstraintViolations().stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())

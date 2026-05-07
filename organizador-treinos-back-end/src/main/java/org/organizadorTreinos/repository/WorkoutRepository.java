@@ -1,6 +1,7 @@
 package org.organizadorTreinos.repository;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.organizadorTreinos.entity.Workout;
 import org.organizadorTreinos.entity.User;
@@ -18,6 +19,12 @@ public class WorkoutRepository implements PanacheRepository<Workout> {
 
     public List<Workout> findByUserOrderedByPosition(User user) {
         return find("user = ?1 order by position asc", user).list();
+    }
+
+    public List<Workout> findByUserOrderedByPositionPaged(User user, int page, int size) {
+        return find("user = ?1 order by position asc", user)
+            .page(Page.of(page, size))
+            .list();
     }
 
     public long countByUser(User user) {

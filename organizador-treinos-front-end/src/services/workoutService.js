@@ -1,11 +1,21 @@
 import api from './api';
 
 const workoutService = {
-  // GET /workouts - Listar meus treinos
+  // GET /workouts - Listar meus treinos (sem paginação)
   getMyWorkouts: async () => {
     try {
       const response = await api.get('/workouts');
-      return response.data; // Array de WorkoutResponse
+      return response.data;
+    } catch (error) {
+      throw error.message || 'Erro ao carregar treinos';
+    }
+  },
+
+  // GET /workouts?page=0&size=10 - Listar meus treinos com paginação
+  getMyWorkoutsPaged: async (page = 0, size = 10) => {
+    try {
+      const response = await api.get('/workouts', { params: { page, size } });
+      return response.data; // PagedResponse { content, page, size, totalElements, totalPages }
     } catch (error) {
       throw error.message || 'Erro ao carregar treinos';
     }

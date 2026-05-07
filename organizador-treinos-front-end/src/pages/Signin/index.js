@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const BarbellIcon = () => (
@@ -20,11 +20,21 @@ const BarbellIcon = () => (
 const Signin = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
+  const [success, setSuccess]   = useState("");
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+      const timer = setTimeout(() => setSuccess(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -95,6 +105,7 @@ const Signin = () => {
             />
           </C.FieldGroup>
 
+          {success && <C.SuccessMsg>{success}</C.SuccessMsg>}
           {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
           <Button

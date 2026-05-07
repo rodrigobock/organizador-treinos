@@ -6,6 +6,7 @@ import Card from "react-bootstrap/Card";
 import Modal from "react-bootstrap/Modal";
 import Table from "react-bootstrap/Table";
 import Form from "react-bootstrap/Form";
+import Pagination from "react-bootstrap/Pagination";
 import workoutService from "../../services/workoutService";
 import { downloadJson } from "../../utils/downloadJson";
 import useAuth from "../../hooks/useAuth";
@@ -13,6 +14,8 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
+
+const PAGE_SIZE = 10;
 
 function SortableWorkoutCard({ workout, onView, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: workout.id });
@@ -57,6 +60,33 @@ function SortableWorkoutCard({ workout, onView, onDelete }) {
   );
 }
 
+function StaticWorkoutCard({ workout, onView, onDelete }) {
+  return (
+    <Card className="workout-card mb-2">
+      <Card.Body className="d-flex align-items-center gap-2 py-2">
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600 }}>{workout.name}</div>
+          {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>Público</span>}
+        </div>
+        <button
+          onClick={() => onView(workout.id)}
+          aria-label="Editar treino"
+          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
+        >
+          <PencilSquare size={17} />
+        </button>
+        <button
+          onClick={() => onDelete(workout.id)}
+          aria-label="Excluir treino"
+          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
+        >
+          <Trash size={17} />
+        </button>
+      </Card.Body>
+    </Card>
+  );
+}
+
 function MyWorkoutsPage() {
   const { signed, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -64,6 +94,10 @@ function MyWorkoutsPage() {
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
   const fileInputRef = useRef(null);
   const [importAnalysis, setImportAnalysis] = useState(null);
@@ -73,29 +107,38 @@ function MyWorkoutsPage() {
 
   const sensors = useSensors(useSensor(PointerSensor));
 
+  const isPaginated = totalPages > 1;
+
+  const loadWorkouts = async (page) => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await workoutService.getMyWorkoutsPaged(page, PAGE_SIZE);
+      setWorkouts(data.content);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
+    } catch (err) {
+      setError(err.message || "Erro ao carregar treinos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && !signed) {
       navigate("/signin");
       return;
     }
 
-    const loadWorkouts = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await workoutService.getMyWorkouts();
-        setWorkouts(data);
-      } catch (err) {
-        setError(err.message || "Erro ao carregar treinos");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (signed) {
-      loadWorkouts();
+      loadWorkouts(currentPage);
     }
-  }, [signed, authLoading, navigate]);
+  }, [signed, authLoading, navigate, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page < 0 || page >= totalPages) return;
+    setCurrentPage(page);
+  };
 
   const handleViewWorkout = (id) => {
     navigate(`/workout/${id}`);
@@ -108,7 +151,7 @@ function MyWorkoutsPage() {
 
     try {
       await workoutService.deleteWorkout(id);
-      setWorkouts(workouts.filter((w) => w.id !== id));
+      await loadWorkouts(currentPage);
     } catch (err) {
       setError(err.message || "Erro ao deletar treino");
     }
@@ -132,11 +175,12 @@ function MyWorkoutsPage() {
   };
 
   const handleExportAll = async () => {
-    if (workouts.length === 0) return;
+    if (totalElements === 0) return;
     try {
       setExportingAll(true);
+      const allWorkouts = await workoutService.getMyWorkouts();
       const workoutsWithExercises = await Promise.all(
-        workouts.map((w) => workoutService.getWorkout(w.id))
+        allWorkouts.map((w) => workoutService.getWorkout(w.id))
       );
       const data = {
         version: 1,
@@ -205,8 +249,8 @@ function MyWorkoutsPage() {
       const result = await workoutService.confirmImport(items);
       setImportAnalysis(null);
       setUserActions({});
-      const updated = await workoutService.getMyWorkouts();
-      setWorkouts(updated);
+      await loadWorkouts(0);
+      setCurrentPage(0);
       const parts = [];
       if (result.created > 0) parts.push(`${result.created} criado(s)`);
       if (result.replaced > 0) parts.push(`${result.replaced} substituído(s)`);
@@ -217,6 +261,56 @@ function MyWorkoutsPage() {
     } finally {
       setImporting(false);
     }
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const items = [];
+    items.push(
+      <Pagination.Prev
+        key="prev"
+        disabled={currentPage === 0}
+        onClick={() => handlePageChange(currentPage - 1)}
+      />
+    );
+
+    for (let i = 0; i < totalPages; i++) {
+      if (
+        i === 0 ||
+        i === totalPages - 1 ||
+        (i >= currentPage - 2 && i <= currentPage + 2)
+      ) {
+        items.push(
+          <Pagination.Item
+            key={i}
+            active={i === currentPage}
+            onClick={() => handlePageChange(i)}
+          >
+            {i + 1}
+          </Pagination.Item>
+        );
+      } else if (i === currentPage - 3 || i === currentPage + 3) {
+        items.push(<Pagination.Ellipsis key={`ellipsis-${i}`} disabled />);
+      }
+    }
+
+    items.push(
+      <Pagination.Next
+        key="next"
+        disabled={currentPage === totalPages - 1}
+        onClick={() => handlePageChange(currentPage + 1)}
+      />
+    );
+
+    return (
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <small className="text-muted">
+          {totalElements} treino{totalElements !== 1 ? "s" : ""} no total
+        </small>
+        <Pagination size="sm" className="mb-0">{items}</Pagination>
+      </div>
+    );
   };
 
   if (authLoading || loading) {
@@ -240,7 +334,7 @@ function MyWorkoutsPage() {
             <Button
               Text={exportingAll ? "Exportando..." : "Exportar JSON"}
               onClick={handleExportAll}
-              disabled={exportingAll || workouts.length === 0}
+              disabled={exportingAll || totalElements === 0}
               size="sm"
             />
             <Button
@@ -279,6 +373,18 @@ function MyWorkoutsPage() {
               </Card.Text>
             </Card.Body>
           </Card>
+        ) : isPaginated ? (
+          <>
+            {workouts.map((workout) => (
+              <StaticWorkoutCard
+                key={workout.id}
+                workout={workout}
+                onView={handleViewWorkout}
+                onDelete={handleDeleteWorkout}
+              />
+            ))}
+            {renderPagination()}
+          </>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={workouts.map(w => w.id)} strategy={verticalListSortingStrategy}>

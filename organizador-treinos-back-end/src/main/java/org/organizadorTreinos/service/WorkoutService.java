@@ -24,6 +24,7 @@ import org.organizadorTreinos.dto.request.ImportConfirmItem;
 import org.organizadorTreinos.dto.request.ImportWorkoutItem;
 import org.organizadorTreinos.dto.response.ImportAnalyzeResultItem;
 import org.organizadorTreinos.dto.response.ImportResultResponse;
+import org.organizadorTreinos.dto.response.PagedResponse;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -84,6 +85,14 @@ public class WorkoutService {
         return workoutRepository.findByUserOrderedByPosition(user).stream()
             .map(this::toResponse)
             .collect(Collectors.toList());
+    }
+
+    public PagedResponse<WorkoutResponse> getUserWorkoutsPaged(User user, int page, int size) {
+        List<WorkoutResponse> content = workoutRepository.findByUserOrderedByPositionPaged(user, page, size).stream()
+            .map(this::toResponse)
+            .collect(Collectors.toList());
+        long total = workoutRepository.countByUser(user);
+        return new PagedResponse<>(content, page, size, total);
     }
 
     public List<WorkoutResponse> getSharedWorkouts(User user) {
