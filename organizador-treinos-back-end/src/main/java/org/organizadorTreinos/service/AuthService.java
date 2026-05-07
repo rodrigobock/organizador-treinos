@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotAuthorizedException;
 import org.organizadorTreinos.dto.request.ForgotPasswordRequest;
 import org.organizadorTreinos.dto.request.LoginRequest;
 import org.organizadorTreinos.dto.request.ResetPasswordRequest;
@@ -83,6 +84,16 @@ public class AuthService {
 
             emailService.sendPasswordReset(user.getEmail(), resetToken.getToken());
         });
+    }
+
+    public AuthResponse refresh(String token) {
+        UUID userId = jwtService.validateExpiredToken(token);
+        User user = userRepository.find("id", userId).firstResultOptional()
+                .orElseThrow(() -> new NotAuthorizedException("User no longer exists"));
+
+        String newToken = jwtService.generateToken(user.getId());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
+        return new AuthResponse(newToken, userResponse);
     }
 
     public void resetPassword(ResetPasswordRequest request) {

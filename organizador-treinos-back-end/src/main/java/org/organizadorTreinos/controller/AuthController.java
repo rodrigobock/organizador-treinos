@@ -8,6 +8,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.organizadorTreinos.dto.request.ForgotPasswordRequest;
 import org.organizadorTreinos.dto.request.LoginRequest;
+import org.organizadorTreinos.dto.request.RefreshTokenRequest;
 import org.organizadorTreinos.dto.request.ResetPasswordRequest;
 import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
@@ -43,6 +44,13 @@ public class AuthController {
     public Response login(@Valid LoginRequest request) {
         rateLimitService.checkLogin(request.getEmail());
         AuthResponse response = authService.login(request);
+        return Response.ok(response).build();
+    }
+
+    @POST
+    @Path("/refresh")
+    public Response refresh(@Valid RefreshTokenRequest request) {
+        AuthResponse response = authService.refresh(request.getToken());
         return Response.ok(response).build();
     }
 

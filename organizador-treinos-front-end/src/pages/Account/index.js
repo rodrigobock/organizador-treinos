@@ -1,11 +1,14 @@
 import React, { useState } from "react";
+import { Modal } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import NavBar from "../../components/NavBar";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import userService from "../../services/userService";
 
 function AccountPage() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, signout } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState(user?.name || "");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -17,6 +20,11 @@ function AccountPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -93,6 +101,38 @@ function AccountPage() {
     setConfirmPassword("");
     setPasswordError("");
     setPasswordSuccess(false);
+  };
+
+  const handleOpenDeleteModal = () => {
+    setShowDeleteModal(true);
+    setDeletePassword("");
+    setDeleteError("");
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (deleting) return;
+    setShowDeleteModal(false);
+    setDeletePassword("");
+    setDeleteError("");
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePassword) {
+      setDeleteError("Digite sua senha");
+      return;
+    }
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await userService.deleteAccount(deletePassword);
+      signout();
+      navigate("/", { state: { message: "Conta deletada com sucesso." } });
+    } catch (err) {
+      setDeleteError(
+        err.response?.data?.message || err.message || "Senha incorreta ou erro ao deletar conta"
+      );
+      setDeleting(false);
+    }
   };
 
   return (
@@ -440,8 +480,143 @@ function AccountPage() {
               </div>
             </form>
           </div>
+
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              padding: 24,
+              marginTop: 24,
+            }}
+          >
+            <h2
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                marginBottom: 8,
+                marginTop: 0,
+              }}
+            >
+              Zona de Perigo
+            </h2>
+            <p
+              style={{
+                color: "var(--text-muted)",
+                fontSize: 13,
+                margin: "0 0 16px",
+              }}
+            >
+              Esta ação remove permanentemente sua conta e todos os seus dados.
+            </p>
+            <button
+              type="button"
+              onClick={handleOpenDeleteModal}
+              style={{
+                padding: "10px 16px",
+                borderRadius: 8,
+                border: "none",
+                background: "#dc3545",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              Deletar Conta
+            </button>
+          </div>
         </div>
       </div>
+
+      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
+        <Modal.Header closeButton={!deleting}>
+          <Modal.Title style={{ fontSize: 18, fontWeight: 700 }}>
+            Deletar Conta Permanentemente
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p style={{ color: "#dc3545", fontSize: 14, marginBottom: 16 }}>
+            Esta ação é irreversível. Todos seus treinos e dados serão removidos.
+          </p>
+          <label
+            style={{
+              display: "block",
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              color: "var(--text-muted)",
+              marginBottom: 6,
+            }}
+          >
+            Digite sua senha para confirmar
+          </label>
+          <input
+            type="password"
+            value={deletePassword}
+            onChange={(e) => {
+              setDeletePassword(e.target.value);
+              setDeleteError("");
+            }}
+            disabled={deleting}
+            autoFocus
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: 8,
+              border: "1px solid var(--border)",
+              background: "var(--bg-surface)",
+              color: "var(--text-primary)",
+              fontSize: 14,
+              outline: "none",
+            }}
+          />
+          {deleteError && (
+            <p style={{ color: "#dc3545", fontSize: 13, marginTop: 12, marginBottom: 0 }}>
+              {deleteError}
+            </p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <button
+            type="button"
+            onClick={handleCloseDeleteModal}
+            disabled={deleting}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              border: "1px solid var(--border)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: deleting ? "not-allowed" : "pointer",
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirmDelete}
+            disabled={deleting || !deletePassword}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 8,
+              border: "none",
+              background: "#dc3545",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: deleting || !deletePassword ? "not-allowed" : "pointer",
+              opacity: deleting || !deletePassword ? 0.6 : 1,
+            }}
+          >
+            {deleting ? "Deletando..." : "Deletar Permanentemente"}
+          </button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
