@@ -39,14 +39,14 @@ public class WorkoutSessionService {
         sessionRepository.findActiveSession(workoutId, user.getId())
                 .ifPresent(s -> { throw new BadRequestException("Já existe uma sessão ativa para este treino"); });
 
-        // Reset exercises completion status for the new session
-        exerciseService.resetExercises(workout);
-
         WorkoutSession session = new WorkoutSession();
         session.setWorkout(workout);
         session.setUser(user);
         session.setStartedAt(LocalDateTime.now());
         sessionRepository.persist(session);
+
+        // Reset exercises completion status for the new session (cleans previous session data)
+        exerciseService.resetExercises(workoutId, user.getId());
 
         return WorkoutSessionResponse.from(session);
     }

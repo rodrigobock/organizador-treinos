@@ -66,7 +66,6 @@ class WorkoutImportServiceTest {
         for (String name : List.of("Bench Press", "Shoulder Press", "Squat")) {
             Exercise ex = new Exercise();
             ex.setName(name);
-            ex.setCompleted(false);
             ex.setWorkout(existingWorkout);
             exerciseRepository.persist(ex);
         }

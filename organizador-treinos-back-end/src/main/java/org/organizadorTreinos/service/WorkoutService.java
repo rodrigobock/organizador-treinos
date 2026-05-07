@@ -44,6 +44,9 @@ public class WorkoutService {
     ExerciseRepository exerciseRepository;
 
     @Inject
+    ExerciseService exerciseService;
+
+    @Inject
     WorkoutShareRepository workoutShareRepository;
 
     @Inject
@@ -110,7 +113,7 @@ public class WorkoutService {
         WorkoutResponse response = toResponse(workout);
         response.setExercises(
             exerciseRepository.findByWorkout(workout).stream()
-                .map(this::toExerciseResponse)
+                .map(exercise -> exerciseService.toExerciseResponse(exercise, user))
                 .collect(Collectors.toList())
         );
 
@@ -273,7 +276,6 @@ public class WorkoutService {
         for (ExerciseImportItem ex : item.getExercises()) {
             Exercise exercise = new Exercise();
             exercise.setName(ex.getName());
-            exercise.setCompleted(ex.getCompleted() != null && ex.getCompleted());
             exercise.setWorkout(workout);
             exerciseRepository.persist(exercise);
         }
@@ -291,7 +293,6 @@ public class WorkoutService {
         for (ExerciseImportItem ex : item.getExercises()) {
             Exercise exercise = new Exercise();
             exercise.setName(ex.getName());
-            exercise.setCompleted(ex.getCompleted() != null && ex.getCompleted());
             exercise.setWorkout(existing);
             exerciseRepository.persist(exercise);
         }
@@ -323,13 +324,4 @@ public class WorkoutService {
         );
     }
 
-    private ExerciseResponse toExerciseResponse(Exercise exercise) {
-        return new ExerciseResponse(
-            exercise.getId(),
-            exercise.getName(),
-            exercise.getCompleted(),
-            exercise.getCreatedAt(),
-            exercise.getUpdatedAt()
-        );
-    }
 }

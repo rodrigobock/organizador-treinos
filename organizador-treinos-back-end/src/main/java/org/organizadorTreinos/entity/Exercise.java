@@ -25,9 +25,6 @@ public class Exercise {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private Boolean completed = false;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workout_id", nullable = false)
     private Workout workout;

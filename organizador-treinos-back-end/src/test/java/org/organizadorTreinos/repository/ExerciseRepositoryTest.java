@@ -54,7 +54,6 @@ class ExerciseRepositoryTest {
         testExercise = new Exercise();
         testExercise.setName("Agachamento");
         testExercise.setWorkout(testWorkout);
-        testExercise.setCompleted(false);
     }
 
     @Test
@@ -67,7 +66,6 @@ class ExerciseRepositoryTest {
         // Assert
         assertTrue(found.isPresent());
         assertEquals("Agachamento", found.get().getName());
-        assertFalse(found.get().getCompleted());
     }
 
     @Test
@@ -79,7 +77,6 @@ class ExerciseRepositoryTest {
         Exercise exercise2 = new Exercise();
         exercise2.setName("Leg Press");
         exercise2.setWorkout(testWorkout);
-        exercise2.setCompleted(false);
         exerciseRepository.persist(exercise2);
 
         // Act
@@ -118,43 +115,6 @@ class ExerciseRepositoryTest {
 
         // Assert
         assertFalse(found.isPresent());
-    }
-
-    @Test
-    @DisplayName("Should find incomplete exercises")
-    void testFindIncompleteByWorkout() {
-        // Arrange
-        exerciseRepository.persist(testExercise);
-
-        Exercise completedExercise = new Exercise();
-        completedExercise.setName("Leg Press");
-        completedExercise.setWorkout(testWorkout);
-        completedExercise.setCompleted(true);
-        exerciseRepository.persist(completedExercise); // Corrected typo here
-
-        // Act
-        List<Exercise> incomplete = exerciseRepository.findIncompleteByWorkout(testWorkout);
-
-        // Assert
-        assertEquals(1, incomplete.size());
-        assertEquals("Agachamento", incomplete.get(0).getName());
-    }
-
-    @Test
-    @DisplayName("Should toggle exercise completion status")
-    void testToggleCompletion() {
-        // Arrange
-        exerciseRepository.persist(testExercise);
-        assertFalse(testExercise.getCompleted());
-
-        // Act
-        testExercise.setCompleted(true);
-        exerciseRepository.persist(testExercise);
-        Optional<Exercise> updated = exerciseRepository.find("id", testExercise.getId().toString()).firstResultOptional();
-
-        // Assert
-        assertTrue(updated.isPresent());
-        assertTrue(updated.get().getCompleted());
     }
 
     @Test

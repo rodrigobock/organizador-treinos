@@ -8,10 +8,14 @@ import jakarta.ws.rs.NotFoundException;
 import org.organizadorTreinos.dto.request.CreateExerciseRequest;
 import org.organizadorTreinos.dto.response.ExerciseResponse;
 import org.organizadorTreinos.entity.Exercise;
+import org.organizadorTreinos.entity.ExerciseSession;
 import org.organizadorTreinos.entity.User;
 import org.organizadorTreinos.entity.Workout;
+import org.organizadorTreinos.entity.WorkoutSession;
 import org.organizadorTreinos.repository.ExerciseRepository;
+import org.organizadorTreinos.repository.ExerciseSessionRepository;
 import org.organizadorTreinos.repository.WorkoutRepository;
+import org.organizadorTreinos.repository.WorkoutSessionRepository;
 import org.organizadorTreinos.repository.WorkoutShareRepository;
 
 import java.util.UUID;
@@ -24,13 +28,18 @@ public class ExerciseService {
     ExerciseRepository exerciseRepository;
 
     @Inject
+    ExerciseSessionRepository exerciseSessionRepository;
+
+    @Inject
     WorkoutRepository workoutRepository;
+
+    @Inject
+    WorkoutSessionRepository workoutSessionRepository;
 
     @Inject
     WorkoutShareRepository workoutShareRepository;
 
     private void checkEditPermission(Workout workout, User user) {
-        // Only owner can edit
         if (!workout.getUser().getId().equals(user.getId())) {
             throw new ForbiddenException("Only the workout owner can edit exercises");
         }
@@ -45,11 +54,10 @@ public class ExerciseService {
         Exercise exercise = new Exercise();
         exercise.setName(request.getName());
         exercise.setWorkout(workout);
-        exercise.setCompleted(false);
 
         exerciseRepository.persist(exercise);
 
-        return toResponse(exercise);
+        return toResponse(exercise, user);
     }
 
     public ExerciseResponse updateExercise(UUID workoutId, UUID exerciseId, User user,
@@ -69,7 +77,7 @@ public class ExerciseService {
         exercise.setName(request.getName());
         exerciseRepository.persist(exercise);
 
-        return toResponse(exercise);
+        return toResponse(exercise, user);
     }
 
     public ExerciseResponse toggleExerciseCompletion(UUID workoutId, UUID exerciseId, User user) {
@@ -89,10 +97,22 @@ public class ExerciseService {
             throw new NotFoundException("Exercise not found in this workout");
         }
 
-        exercise.setCompleted(!exercise.getCompleted());
-        exerciseRepository.persist(exercise);
+        // Get active session
+        WorkoutSession activeSession = workoutSessionRepository.findActiveSession(workoutId, user.getId())
+            .orElseThrow(() -> new NotFoundException("No active session for this workout"));
 
-        return toResponse(exercise);
+        // Toggle: if exists, delete; if not exists, create
+        var existingEntry = exerciseSessionRepository.findByExerciseAndSession(exerciseId, activeSession.getId());
+        if (existingEntry.isPresent()) {
+            exerciseSessionRepository.delete("id", existingEntry.get().getId());
+        } else {
+            ExerciseSession entry = new ExerciseSession();
+            entry.setExercise(exercise);
+            entry.setSession(activeSession);
+            exerciseSessionRepository.persist(entry);
+        }
+
+        return toResponse(exercise, user);
     }
 
     public void deleteExercise(UUID workoutId, UUID exerciseId, User user) {
@@ -111,17 +131,37 @@ public class ExerciseService {
         exerciseRepository.delete("id", exerciseId);
     }
 
-    public void resetExercises(Workout workout) {
-        exerciseRepository.resetCompletionByWorkout(workout);
+    public void resetExercises(UUID workoutId, UUID userId) {
+        WorkoutSession session = workoutSessionRepository.findActiveSession(workoutId, userId)
+            .orElse(null);
+
+        if (session != null) {
+            exerciseSessionRepository.deleteBySessionId(session.getId());
+        }
     }
 
-    private ExerciseResponse toResponse(Exercise exercise) {
+    public ExerciseResponse toExerciseResponse(Exercise exercise, User user) {
+        // Find active session for user on this workout
+        var activeSession = workoutSessionRepository.findActiveSession(exercise.getWorkout().getId(), user.getId());
+
+        // Check if exercise is completed in active session
+        boolean completed = false;
+        if (activeSession.isPresent()) {
+            completed = exerciseSessionRepository.findByExerciseAndSession(
+                exercise.getId(), activeSession.get().getId()
+            ).isPresent();
+        }
+
         return new ExerciseResponse(
             exercise.getId(),
             exercise.getName(),
-            exercise.getCompleted(),
+            completed,
             exercise.getCreatedAt(),
             exercise.getUpdatedAt()
         );
+    }
+
+    private ExerciseResponse toResponse(Exercise exercise, User user) {
+        return toExerciseResponse(exercise, user);
     }
 }
