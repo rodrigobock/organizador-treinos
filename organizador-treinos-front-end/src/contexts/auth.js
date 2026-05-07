@@ -64,6 +64,16 @@ export const AuthProvider = ({ children }) => {
     setUser(prev => ({ ...prev, ...updatedFields }));
   };
 
+  const reloadUser = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+      return currentUser;
+    } catch (err) {
+      console.error("Erro ao recarregar usuário:", err);
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -79,6 +89,7 @@ export const AuthProvider = ({ children }) => {
         signup,
         signout,
         updateUser,
+        reloadUser,
         clearError,
       }}
     >

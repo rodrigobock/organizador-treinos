@@ -16,6 +16,14 @@ public class WorkoutRepository implements PanacheRepository<Workout> {
         return find("user", user).list();
     }
 
+    public List<Workout> findByUserOrderedByPosition(User user) {
+        return find("user = ?1 order by position asc", user).list();
+    }
+
+    public long countByUser(User user) {
+        return count("user", user);
+    }
+
     public Optional<Workout> findByIdAndUser(UUID id, User user) {
         return find("id = ?1 and user = ?2", id, user).firstResultOptional();
     }

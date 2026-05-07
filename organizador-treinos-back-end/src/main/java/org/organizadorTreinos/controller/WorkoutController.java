@@ -10,6 +10,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.organizadorTreinos.dto.request.CreateWorkoutRequest;
 import org.organizadorTreinos.dto.request.ImportAnalyzeRequest;
 import org.organizadorTreinos.dto.request.ImportConfirmItem;
+import org.organizadorTreinos.dto.request.ReorderWorkoutsRequest;
 import org.organizadorTreinos.dto.response.ImportAnalyzeResultItem;
 import org.organizadorTreinos.dto.response.ImportResultResponse;
 import org.organizadorTreinos.dto.response.WorkoutResponse;
@@ -96,6 +97,15 @@ public class WorkoutController {
     public Response deleteWorkout(@PathParam("id") UUID id) {
         User user = getCurrentUser();
         workoutService.deleteWorkout(id, user);
+        return Response.noContent().build();
+    }
+
+    @PUT
+    @Path("/reorder")
+    @RolesAllowed("users")
+    public Response reorderWorkouts(@Valid ReorderWorkoutsRequest request) {
+        User user = getCurrentUser();
+        workoutService.reorderWorkouts(user, request.getWorkoutIds());
         return Response.noContent().build();
     }
 

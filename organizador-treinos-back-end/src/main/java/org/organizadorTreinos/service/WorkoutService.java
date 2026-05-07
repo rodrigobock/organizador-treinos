@@ -62,18 +62,26 @@ public class WorkoutService {
     }
 
     public WorkoutResponse createWorkout(User user, CreateWorkoutRequest request) {
+        long count = workoutRepository.countByUser(user);
+
         Workout workout = new Workout();
         workout.setName(request.getName());
         workout.setUser(user);
         workout.setIsPublic(request.getIsPublic());
+        workout.setPosition((int) count);
 
         workoutRepository.persist(workout);
+
+        if (count == 0) {
+            user.setCurrentWorkoutId(workout.getId());
+            userRepository.persist(user);
+        }
 
         return toResponse(workout);
     }
 
     public List<WorkoutResponse> getUserWorkouts(User user) {
-        return workoutRepository.findByUser(user).stream()
+        return workoutRepository.findByUserOrderedByPosition(user).stream()
             .map(this::toResponse)
             .collect(Collectors.toList());
     }
@@ -124,7 +132,54 @@ public class WorkoutService {
             throw new ForbiddenException("Only the owner can delete this workout");
         }
 
+        if (workoutId.equals(user.getCurrentWorkoutId())) {
+            advanceCurrentWorkout(user, workoutId);
+        }
+
         workoutRepository.delete("id", workoutId);
+    }
+
+    public void reorderWorkouts(User user, List<UUID> workoutIds) {
+        List<Workout> owned = workoutRepository.findByUserOrderedByPosition(user);
+        Set<UUID> ownedIds = owned.stream().map(Workout::getId).collect(Collectors.toSet());
+
+        if (!ownedIds.equals(new HashSet<>(workoutIds)) || workoutIds.size() != owned.size()) {
+            throw new BadRequestException("workoutIds must match exactly the user's workouts");
+        }
+
+        for (int i = 0; i < workoutIds.size(); i++) {
+            UUID id = workoutIds.get(i);
+            Workout w = owned.stream().filter(o -> o.getId().equals(id)).findFirst().get();
+            w.setPosition(i);
+            workoutRepository.persist(w);
+        }
+    }
+
+    public void advanceCurrentWorkout(User user, UUID completedWorkoutId) {
+        List<Workout> ordered = workoutRepository.findByUserOrderedByPosition(user);
+        List<Workout> remaining = ordered.stream()
+            .filter(w -> !w.getId().equals(completedWorkoutId))
+            .collect(Collectors.toList());
+
+        if (remaining.isEmpty()) {
+            user.setCurrentWorkoutId(null);
+        } else {
+            int currentIndex = -1;
+            for (int i = 0; i < ordered.size(); i++) {
+                if (ordered.get(i).getId().equals(completedWorkoutId)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            int nextIndex = currentIndex + 1;
+            if (nextIndex >= ordered.size()) nextIndex = 0;
+            Workout next = ordered.get(nextIndex);
+            if (next.getId().equals(completedWorkoutId)) {
+                next = remaining.get(0);
+            }
+            user.setCurrentWorkoutId(next.getId());
+        }
+        userRepository.persist(user);
     }
 
     public List<WorkoutResponse> getPublicWorkouts() {
@@ -191,11 +246,17 @@ public class WorkoutService {
     }
 
     private void createFromImport(User user, ImportWorkoutItem item) {
+        long count = workoutRepository.countByUser(user);
         Workout workout = new Workout();
         workout.setName(item.getName());
         workout.setUser(user);
         workout.setIsPublic(false);
+        workout.setPosition((int) count);
         workoutRepository.persist(workout);
+        if (count == 0) {
+            user.setCurrentWorkoutId(workout.getId());
+            userRepository.persist(user);
+        }
         for (ExerciseImportItem ex : item.getExercises()) {
             Exercise exercise = new Exercise();
             exercise.setName(ex.getName());

@@ -25,6 +25,9 @@ public class WorkoutSessionService {
     @Inject
     WorkoutRepository workoutRepository;
 
+    @Inject
+    WorkoutService workoutService;
+
     @Transactional
     public WorkoutSessionResponse startSession(UUID workoutId, User user) {
         Workout workout = workoutRepository.find("id", workoutId).firstResultOptional()
@@ -58,6 +61,7 @@ public class WorkoutSessionService {
         }
 
         session.setEndedAt(LocalDateTime.now());
+        workoutService.advanceCurrentWorkout(user, workoutId);
         return WorkoutSessionResponse.from(session);
     }
 

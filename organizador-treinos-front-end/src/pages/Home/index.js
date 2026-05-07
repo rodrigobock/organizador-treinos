@@ -7,7 +7,7 @@ import sessionService from "../../services/sessionService";
 import useAuth from "../../hooks/useAuth";
 
 function HomePage() {
-  const { user } = useAuth();
+  const { user, reloadUser } = useAuth();
   const navigate = useNavigate();
   const [workouts, setWorkouts] = useState([]);
   const [latestWorkout, setLatestWorkout] = useState(null);
@@ -21,18 +21,22 @@ function HomePage() {
     setActiveSession(session);
   }, []);
 
+  const loadWorkoutById = useCallback(async (workoutId) => {
+    const detail = await workoutService.getWorkout(workoutId);
+    setLatestWorkout(detail);
+    await loadActiveSession(workoutId);
+  }, [loadActiveSession]);
+
   useEffect(() => {
     const load = async () => {
       try {
         const all = await workoutService.getMyWorkouts();
         setWorkouts(all);
         if (all.length > 0) {
-          const sorted = [...all].sort(
-            (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-          );
-          const detail = await workoutService.getWorkout(sorted[0].id);
-          setLatestWorkout(detail);
-          await loadActiveSession(sorted[0].id);
+          const targetId = user?.currentWorkoutId || all[0].id;
+          const exists = all.find(w => w.id === targetId);
+          const workoutId = exists ? targetId : all[0].id;
+          await loadWorkoutById(workoutId);
         }
       } catch (err) {
         setError(err.message || "Erro ao carregar dados");
@@ -41,10 +45,10 @@ function HomePage() {
       }
     };
     load();
-  }, [loadActiveSession]);
+  }, [loadWorkoutById, user?.currentWorkoutId]);
 
   const handleToggle = async (exerciseId) => {
-    if (!latestWorkout) return;
+    if (!latestWorkout || !activeSession) return;
     try {
       const updated = await exerciseService.toggleExercise(latestWorkout.id, exerciseId);
       setLatestWorkout(prev => ({
@@ -73,6 +77,15 @@ function HomePage() {
     try {
       await sessionService.endSession(latestWorkout.id, activeSession.id);
       setActiveSession(null);
+      const updatedUser = await reloadUser();
+      const all = await workoutService.getMyWorkouts();
+      setWorkouts(all);
+      if (all.length > 0 && updatedUser?.currentWorkoutId) {
+        const exists = all.find(w => w.id === updatedUser.currentWorkoutId);
+        if (exists) {
+          await loadWorkoutById(updatedUser.currentWorkoutId);
+        }
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Erro ao finalizar treino");
     } finally {
@@ -316,13 +329,15 @@ function HomePage() {
                     <div
                       key={ex.id}
                       onClick={() => handleToggle(ex.id)}
+                      title={!activeSession ? "Inicie o treino para marcar exercícios" : undefined}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         gap: 12,
                         padding: "9px 0",
                         borderBottom: "1px solid var(--border)",
-                        cursor: "pointer",
+                        cursor: activeSession ? "pointer" : "default",
+                        opacity: activeSession ? 1 : 0.5,
                       }}
                     >
                       <div

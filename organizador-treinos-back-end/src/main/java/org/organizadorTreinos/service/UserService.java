@@ -21,7 +21,7 @@ public class UserService {
         User user = userRepository.find("id", userId)
             .firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
 
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
     }
 
     public UserResponse updateUser(UUID userId, String name) {
@@ -31,6 +31,6 @@ public class UserService {
         user.setName(name);
         userRepository.persist(user);
 
-        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
     }
 }

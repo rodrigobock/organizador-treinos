@@ -10,6 +10,7 @@ import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
 import useAuth from "../../hooks/useAuth";
 import { downloadJson } from "../../utils/downloadJson";
+import { Trash } from "react-bootstrap-icons";
 import "./styles.css";
 
 function WorkoutDetailPage() {
@@ -208,12 +209,13 @@ function WorkoutDetailPage() {
                         />
                       </Col>
                       <Col xs={4} className="text-end">
-                        <Button
-                          Text="Deletar"
+                        <button
                           onClick={() => handleDeleteExercise(exercise.id)}
-                          size="sm"
-                          style={{ backgroundColor: "#dc3545", color: "white" }}
-                        />
+                          aria-label="Excluir exercício"
+                          style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#dc3545" }}
+                        >
+                          <Trash size={16} />
+                        </button>
                       </Col>
                     </Row>
                   </div>

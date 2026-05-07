@@ -100,6 +100,16 @@ const workoutService = {
     }
   },
 
+  // PUT /workouts/reorder - Reordenar treinos
+  reorderWorkouts: async (workoutIds) => {
+    try {
+      await api.put('/workouts/reorder', { workoutIds });
+      return true;
+    } catch (error) {
+      throw error.response?.data?.message || error.message || 'Erro ao reordenar treinos';
+    }
+  },
+
   // POST /workouts/import/analyze - Verificar duplicatas antes de importar
   analyzeImport: async (workouts) => {
     try {

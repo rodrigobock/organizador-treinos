@@ -40,6 +40,9 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "current_workout_id")
+    private UUID currentWorkoutId;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

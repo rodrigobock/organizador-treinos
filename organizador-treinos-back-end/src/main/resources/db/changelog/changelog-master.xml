@@ -8,5 +8,6 @@
     <include file="db/changelog/V1__create_initial_schema.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V2__add_password_reset_tokens.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V3__add_workout_sessions.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V4__add_workout_position_and_current.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

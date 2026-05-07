@@ -47,6 +47,9 @@ public class Workout {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "position", nullable = false)
+    private Integer position = 0;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

@@ -9,6 +9,53 @@ import Form from "react-bootstrap/Form";
 import workoutService from "../../services/workoutService";
 import { downloadJson } from "../../utils/downloadJson";
 import useAuth from "../../hooks/useAuth";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
+
+function SortableWorkoutCard({ workout, onView, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: workout.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="workout-card mb-2">
+        <Card.Body className="d-flex align-items-center gap-2 py-2">
+          <span
+            {...attributes}
+            {...listeners}
+            style={{ cursor: "grab", color: "var(--text-muted, #888)", flexShrink: 0 }}
+          >
+            <GripVertical size={18} />
+          </span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600 }}>{workout.name}</div>
+            {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>Público</span>}
+          </div>
+          <button
+            onClick={() => onView(workout.id)}
+            aria-label="Editar treino"
+            style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
+          >
+            <PencilSquare size={17} />
+          </button>
+          <button
+            onClick={() => onDelete(workout.id)}
+            aria-label="Excluir treino"
+            style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
+          >
+            <Trash size={17} />
+          </button>
+        </Card.Body>
+      </Card>
+    </div>
+  );
+}
 
 function MyWorkoutsPage() {
   const { signed, loading: authLoading } = useAuth();
@@ -23,6 +70,8 @@ function MyWorkoutsPage() {
   const [userActions, setUserActions] = useState({});
   const [importing, setImporting] = useState(false);
   const [exportingAll, setExportingAll] = useState(false);
+
+  const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
     if (!authLoading && !signed) {
@@ -62,6 +111,23 @@ function MyWorkoutsPage() {
       setWorkouts(workouts.filter((w) => w.id !== id));
     } catch (err) {
       setError(err.message || "Erro ao deletar treino");
+    }
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = workouts.findIndex(w => w.id === active.id);
+    const newIndex = workouts.findIndex(w => w.id === over.id);
+    const reordered = arrayMove(workouts, oldIndex, newIndex);
+    setWorkouts(reordered);
+
+    try {
+      await workoutService.reorderWorkouts(reordered.map(w => w.id));
+    } catch (err) {
+      setWorkouts(workouts);
+      setError(err.message || "Erro ao reordenar treinos");
     }
   };
 
@@ -214,32 +280,18 @@ function MyWorkoutsPage() {
             </Card.Body>
           </Card>
         ) : (
-          <div className="workouts-grid">
-            {workouts.map((workout) => (
-              <Card key={workout.id} className="workout-card">
-                <Card.Body>
-                  <Card.Title>{workout.name}</Card.Title>
-                  <Card.Text>
-                    {workout.isPublic && (
-                      <span className="badge bg-info">Público</span>
-                    )}
-                  </Card.Text>
-                  <div className="d-flex gap-2">
-                    <Button
-                      Text="Ver"
-                      onClick={() => handleViewWorkout(workout.id)}
-                      style={{ flex: 1 }}
-                    />
-                    <Button
-                      Text="Deletar"
-                      onClick={() => handleDeleteWorkout(workout.id)}
-                      style={{ flex: 1, backgroundColor: "#dc3545" }}
-                    />
-                  </div>
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={workouts.map(w => w.id)} strategy={verticalListSortingStrategy}>
+              {workouts.map((workout) => (
+                <SortableWorkoutCard
+                  key={workout.id}
+                  workout={workout}
+                  onView={handleViewWorkout}
+                  onDelete={handleDeleteWorkout}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 
