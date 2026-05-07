@@ -23,6 +23,7 @@ function WorkoutDetailPage() {
   const [error, setError] = useState("");
   const [newExerciseName, setNewExerciseName] = useState("");
   const [addingExercise, setAddingExercise] = useState(false);
+  const [currentWorkoutId, setCurrentWorkoutId] = useState(id);
 
   useEffect(() => {
     if (!signed) {
@@ -30,20 +31,33 @@ function WorkoutDetailPage() {
       return;
     }
 
+    setCurrentWorkoutId(id);
+    let mounted = true;
+
     const loadWorkout = async () => {
       try {
         setLoading(true);
         setError("");
         const data = await workoutService.getWorkout(id);
-        setWorkout(data);
+        if (mounted) {
+          setWorkout(data);
+        }
       } catch (err) {
-        setError(err.message || "Erro ao carregar treino");
+        if (mounted) {
+          setError(err.message || "Erro ao carregar treino");
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadWorkout();
+
+    return () => {
+      mounted = false;
+    };
   }, [id, signed, navigate]);
 
   const handleAddExercise = async () => {
@@ -56,11 +70,13 @@ function WorkoutDetailPage() {
       setAddingExercise(true);
       setError("");
       const newExercise = await exerciseService.createExercise(id, newExerciseName);
-      setWorkout({
-        ...workout,
-        exercises: [...(workout.exercises || []), newExercise],
-      });
-      setNewExerciseName("");
+      if (currentWorkoutId === id) {
+        setWorkout({
+          ...workout,
+          exercises: [...(workout.exercises || []), newExercise],
+        });
+        setNewExerciseName("");
+      }
     } catch (err) {
       setError(err.message || "Erro ao adicionar exercício");
     } finally {
@@ -72,12 +88,15 @@ function WorkoutDetailPage() {
     try {
       setError("");
       const updatedExercise = await exerciseService.toggleExercise(id, exerciseId);
-      setWorkout({
-        ...workout,
-        exercises: workout.exercises.map((ex) =>
-          ex.id === exerciseId ? updatedExercise : ex
-        ),
-      });
+      // Only update if still on same workout
+      if (currentWorkoutId === id) {
+        setWorkout({
+          ...workout,
+          exercises: workout.exercises.map((ex) =>
+            ex.id === exerciseId ? updatedExercise : ex
+          ),
+        });
+      }
     } catch (err) {
       setError(err.message || "Erro ao atualizar exercício");
     }
@@ -91,10 +110,12 @@ function WorkoutDetailPage() {
     try {
       setError("");
       await exerciseService.deleteExercise(id, exerciseId);
-      setWorkout({
-        ...workout,
-        exercises: workout.exercises.filter((ex) => ex.id !== exerciseId),
-      });
+      if (currentWorkoutId === id) {
+        setWorkout({
+          ...workout,
+          exercises: workout.exercises.filter((ex) => ex.id !== exerciseId),
+        });
+      }
     } catch (err) {
       setError(err.message || "Erro ao deletar exercício");
     }
@@ -108,12 +129,14 @@ function WorkoutDetailPage() {
         exerciseId,
         newName
       );
-      setWorkout({
-        ...workout,
-        exercises: workout.exercises.map((ex) =>
-          ex.id === exerciseId ? updatedExercise : ex
-        ),
-      });
+      if (currentWorkoutId === id) {
+        setWorkout({
+          ...workout,
+          exercises: workout.exercises.map((ex) =>
+            ex.id === exerciseId ? updatedExercise : ex
+          ),
+        });
+      }
     } catch (err) {
       setError(err.message || "Erro ao atualizar exercício");
     }
@@ -190,10 +213,12 @@ function WorkoutDetailPage() {
                   <div key={exercise.id} className="exercise-item mb-3 p-3 border rounded">
                     <Row className="align-items-center">
                       <Col xs={1}>
-                        <Form.Check
+                        <input
+                          key={`${currentWorkoutId}-${exercise.id}`}
                           type="checkbox"
                           checked={exercise.completed || false}
                           onChange={() => handleToggleExercise(exercise.id)}
+                          style={{ width: 18, height: 18, cursor: "pointer" }}
                         />
                       </Col>
                       <Col xs={7}>
