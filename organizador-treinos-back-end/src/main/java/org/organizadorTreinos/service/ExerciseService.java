@@ -111,6 +111,10 @@ public class ExerciseService {
         exerciseRepository.delete("id", exerciseId);
     }
 
+    public void resetExercises(Workout workout) {
+        exerciseRepository.resetCompletionByWorkout(workout);
+    }
+
     private ExerciseResponse toResponse(Exercise exercise) {
         return new ExerciseResponse(
             exercise.getId(),

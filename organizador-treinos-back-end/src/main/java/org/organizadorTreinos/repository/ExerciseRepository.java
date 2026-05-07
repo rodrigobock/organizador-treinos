@@ -27,4 +27,10 @@ public class ExerciseRepository implements PanacheRepository<Exercise> {
     public List<Exercise> findIncompleteByWorkout(Workout workout) {
         return find("workout = ?1 and completed = false", workout).list();
     }
+
+    public void resetCompletionByWorkout(Workout workout) {
+        update("completed = false where workout = ?1", workout);
+        getEntityManager().flush();
+        getEntityManager().clear();
+    }
 }

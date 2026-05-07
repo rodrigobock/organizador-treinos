@@ -38,6 +38,9 @@ class WorkoutFlowIntegrationTest {
     ExerciseService exerciseService;
 
     @Inject
+    org.organizadorTreinos.service.WorkoutSessionService sessionService;
+
+    @Inject
     UserRepository userRepository;
 
     @Inject
@@ -158,5 +161,42 @@ class WorkoutFlowIntegrationTest {
         assertEquals(1, user2Workouts.size());
         assertEquals(response1.getId(), user1Workouts.get(0).getId());
         assertEquals(response2.getId(), user2Workouts.get(0).getId());
+    }
+
+    @Test
+    @DisplayName("Starting a session should reset all exercise completion status")
+    @jakarta.transaction.Transactional
+    void testStartSessionResetsExercises() {
+        // Setup user
+        SignupRequest signup = new SignupRequest();
+        signup.setName("Session User");
+        signup.setEmail("session@test.com");
+        signup.setPassword("Password123");
+        authService.signup(signup);
+        User user = userRepository.findByEmail("session@test.com").orElseThrow();
+
+        // Create workout
+        CreateWorkoutRequest workoutReq = new CreateWorkoutRequest();
+        workoutReq.setName("Workout to Reset");
+        WorkoutResponse workout = workoutService.createWorkout(user.getId(), workoutReq);
+
+        // Add exercise
+        CreateExerciseRequest exerciseReq = new CreateExerciseRequest();
+        exerciseReq.setName("Exercise 1");
+        ExerciseResponse exercise = exerciseService.createExercise(workout.getId(), user, exerciseReq);
+
+        // Mark as completed
+        exerciseService.toggleExerciseCompletion(workout.getId(), exercise.getId(), user);
+        
+        // Verify it's completed
+        WorkoutResponse beforeSession = workoutService.getWorkout(workout.getId(), user);
+        assertTrue(beforeSession.getExercises().get(0).getCompleted());
+
+        // Start session
+        sessionService.startSession(workout.getId(), user);
+
+        // Verify it's reset
+        WorkoutResponse afterSession = workoutService.getWorkout(workout.getId(), user);
+        assertFalse(afterSession.getExercises().get(0).getCompleted());
     }
 }

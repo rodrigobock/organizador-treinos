@@ -28,6 +28,9 @@ public class WorkoutSessionService {
     @Inject
     WorkoutService workoutService;
 
+    @Inject
+    ExerciseService exerciseService;
+
     @Transactional
     public WorkoutSessionResponse startSession(UUID workoutId, User user) {
         Workout workout = workoutRepository.find("id", workoutId).firstResultOptional()
@@ -35,6 +38,9 @@ public class WorkoutSessionService {
 
         sessionRepository.findActiveSession(workoutId, user.getId())
                 .ifPresent(s -> { throw new BadRequestException("Já existe uma sessão ativa para este treino"); });
+
+        // Reset exercises completion status for the new session
+        exerciseService.resetExercises(workout);
 
         WorkoutSession session = new WorkoutSession();
         session.setWorkout(workout);
