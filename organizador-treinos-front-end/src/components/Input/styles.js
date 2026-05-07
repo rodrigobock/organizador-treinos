@@ -4,6 +4,7 @@ export const Input = styled.input`
   outline: none;
   padding: 14px 16px;
   width: 100%;
+  max-width: 350px;
   border-radius: 6px;
   font-size: 15px;
   font-family: "Outfit", -apple-system, sans-serif;
