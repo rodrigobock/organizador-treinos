@@ -70,7 +70,7 @@ class WorkoutServiceTest {
         request.setIsPublic(false);
 
         // Act
-        WorkoutResponse response = workoutService.createWorkout(user1, request);
+        WorkoutResponse response = workoutService.createWorkout(user1.getId(), request);
 
         // Assert
         assertNotNull(response);
@@ -141,7 +141,7 @@ class WorkoutServiceTest {
     void testUserCannotDeleteOtherUserWorkout() {
         // Act & Assert
         assertThrows(ForbiddenException.class, () -> {
-            workoutService.deleteWorkout(user1Workout.getId(), user2);
+            workoutService.deleteWorkout(user1Workout.getId(), user2.getId());
         });
     }
 
@@ -149,7 +149,7 @@ class WorkoutServiceTest {
     @DisplayName("User should be able to delete own workout")
     void testUserCanDeleteOwnWorkout() {
         // Act
-        workoutService.deleteWorkout(user1Workout.getId(), user1);
+        workoutService.deleteWorkout(user1Workout.getId(), user1.getId());
 
         // Assert
         assertFalse(workoutRepository.find("id", user1Workout.getId()).firstResultOptional().isPresent());

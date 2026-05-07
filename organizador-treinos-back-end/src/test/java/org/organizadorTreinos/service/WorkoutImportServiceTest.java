@@ -91,7 +91,7 @@ class WorkoutImportServiceTest {
     void analyzeImport_noNameMatch_returnsClean() {
         ImportAnalyzeRequest req = new ImportAnalyzeRequest();
         req.setWorkouts(List.of(item("Leg Day", "Squat", "Leg Press")));
-        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, req);
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user.getId(), req);
         assertEquals(1, results.size());
         assertEquals("clean", results.get(0).getStatus());
         assertNull(results.get(0).getConflictId());
@@ -102,7 +102,7 @@ class WorkoutImportServiceTest {
     void analyzeImport_highSimilarity_returnsDuplicate() {
         ImportAnalyzeRequest req = new ImportAnalyzeRequest();
         req.setWorkouts(List.of(item("Push Day", "Bench Press", "Shoulder Press", "Squat")));
-        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, req);
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user.getId(), req);
         assertEquals("duplicate", results.get(0).getStatus());
         assertEquals(existingWorkout.getId(), results.get(0).getConflictId());
         assertTrue(results.get(0).getSimilarity() >= 0.75);
@@ -113,7 +113,7 @@ class WorkoutImportServiceTest {
     void analyzeImport_lowSimilarity_returnsClean() {
         ImportAnalyzeRequest req = new ImportAnalyzeRequest();
         req.setWorkouts(List.of(item("Push Day", "Bicep Curl", "Tricep Pushdown")));
-        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, req);
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user.getId(), req);
         assertEquals("clean", results.get(0).getStatus());
     }
 
@@ -122,7 +122,7 @@ class WorkoutImportServiceTest {
     void analyzeImport_caseInsensitive_returnsDuplicate() {
         ImportAnalyzeRequest req = new ImportAnalyzeRequest();
         req.setWorkouts(List.of(item("push day", "Bench Press", "Shoulder Press", "Squat")));
-        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, req);
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user.getId(), req);
         assertEquals("duplicate", results.get(0).getStatus());
     }
 
@@ -134,7 +134,7 @@ class WorkoutImportServiceTest {
             item("Push Day", "Bench Press", "Shoulder Press", "Squat"),
             item("Leg Day", "Squat", "Leg Press")
         ));
-        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, req);
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user.getId(), req);
         assertEquals(2, results.size());
         assertEquals("duplicate", results.get(0).getStatus());
         assertEquals("clean", results.get(1).getStatus());
@@ -149,7 +149,7 @@ class WorkoutImportServiceTest {
         confirmItem.setWorkout(item("New Workout", "Deadlift", "Pull Up"));
         confirmItem.setAction("create");
 
-        ImportResultResponse result = workoutService.confirmImport(user, List.of(confirmItem));
+        ImportResultResponse result = workoutService.confirmImport(user.getId(), List.of(confirmItem));
 
         assertEquals(1, result.getCreated());
         assertEquals(0, result.getReplaced());
@@ -170,7 +170,7 @@ class WorkoutImportServiceTest {
         confirmItem.setAction("replace");
         confirmItem.setConflictId(existingWorkout.getId());
 
-        ImportResultResponse result = workoutService.confirmImport(user, List.of(confirmItem));
+        ImportResultResponse result = workoutService.confirmImport(user.getId(), List.of(confirmItem));
 
         assertEquals(1, result.getReplaced());
         List<Exercise> exercises = exerciseRepository.findByWorkout(existingWorkout);
@@ -186,7 +186,7 @@ class WorkoutImportServiceTest {
         confirmItem.setAction("skip");
         confirmItem.setConflictId(existingWorkout.getId());
 
-        ImportResultResponse result = workoutService.confirmImport(user, List.of(confirmItem));
+        ImportResultResponse result = workoutService.confirmImport(user.getId(), List.of(confirmItem));
 
         assertEquals(1, result.getSkipped());
         assertEquals(3, exerciseRepository.findByWorkout(existingWorkout).size());
@@ -201,6 +201,6 @@ class WorkoutImportServiceTest {
         confirmItem.setConflictId(existingWorkout.getId());
 
         assertThrows(ForbiddenException.class,
-            () -> workoutService.confirmImport(otherUser, List.of(confirmItem)));
+            () -> workoutService.confirmImport(otherUser.getId(), List.of(confirmItem)));
     }
 }

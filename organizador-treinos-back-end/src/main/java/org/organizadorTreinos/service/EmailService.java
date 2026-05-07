@@ -40,7 +40,7 @@ public class EmailService {
                     .html(buildWelcomeHtml(user.getName()))
                     .build();
             resend.emails().send(params);
-        } catch (ResendException e) {
+        } catch (Exception e) {
             LOG.warnf("Failed to send welcome email to %s: %s", user.getEmail(), e.getMessage());
         }
     }
@@ -51,13 +51,12 @@ public class EmailService {
             CreateEmailOptions params = CreateEmailOptions.builder()
                     .from(fromEmail)
                     .to(email)
-                    .subject("Redefinição de senha")
+                    .subject("Redefinição de Senha")
                     .html(buildPasswordResetHtml(resetLink))
                     .build();
             resend.emails().send(params);
-        } catch (ResendException e) {
-            LOG.errorf("Failed to send password reset email to %s: %s", email, e.getMessage());
-            throw new InternalServerErrorException("Falha ao enviar email de recuperação. Tente novamente.");
+        } catch (Exception e) {
+            LOG.warnf("Failed to send password reset email to %s: %s", email, e.getMessage());
         }
     }
 

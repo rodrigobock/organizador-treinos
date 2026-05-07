@@ -42,6 +42,7 @@ class UserDeleteFlowIntegrationTest {
     ExerciseRepository exerciseRepository;
 
     @BeforeEach
+    @jakarta.transaction.Transactional
     void setUp() {
         exerciseRepository.deleteAll();
         workoutRepository.deleteAll();
@@ -68,7 +69,7 @@ class UserDeleteFlowIntegrationTest {
         workoutRequest.setName("Treino Peito");
         workoutRequest.setIsPublic(false);
 
-        WorkoutResponse workoutResponse = workoutService.createWorkout(user, workoutRequest);
+        WorkoutResponse workoutResponse = workoutService.createWorkout(user.getId(), workoutRequest);
         assertNotNull(workoutResponse.getId());
 
         // 3. Verify workout exists

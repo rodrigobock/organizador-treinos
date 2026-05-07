@@ -62,7 +62,8 @@ public class WorkoutService {
         throw new ForbiddenException("You don't have access to this workout");
     }
 
-    public WorkoutResponse createWorkout(User user, CreateWorkoutRequest request) {
+    public WorkoutResponse createWorkout(UUID userId, CreateWorkoutRequest request) {
+        User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
         long count = workoutRepository.countByUser(user);
 
         Workout workout = new Workout();
@@ -75,7 +76,6 @@ public class WorkoutService {
 
         if (count == 0) {
             user.setCurrentWorkoutId(workout.getId());
-            userRepository.persist(user);
         }
 
         return toResponse(workout);
@@ -133,7 +133,8 @@ public class WorkoutService {
         return toResponse(workout);
     }
 
-    public void deleteWorkout(UUID workoutId, User user) {
+    public void deleteWorkout(UUID workoutId, UUID userId) {
+        User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
         Workout workout = workoutRepository.find("id", workoutId)
             .firstResultOptional().orElseThrow(() -> new NotFoundException("Workout not found"));
 
@@ -142,13 +143,14 @@ public class WorkoutService {
         }
 
         if (workoutId.equals(user.getCurrentWorkoutId())) {
-            advanceCurrentWorkout(user, workoutId);
+            advanceCurrentWorkout(userId, workoutId);
         }
 
         workoutRepository.delete("id", workoutId);
     }
 
-    public void reorderWorkouts(User user, List<UUID> workoutIds) {
+    public void reorderWorkouts(UUID userId, List<UUID> workoutIds) {
+        User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
         List<Workout> owned = workoutRepository.findByUserOrderedByPosition(user);
         Set<UUID> ownedIds = owned.stream().map(Workout::getId).collect(Collectors.toSet());
 
@@ -164,7 +166,8 @@ public class WorkoutService {
         }
     }
 
-    public void advanceCurrentWorkout(User user, UUID completedWorkoutId) {
+    public void advanceCurrentWorkout(UUID userId, UUID completedWorkoutId) {
+        User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
         List<Workout> ordered = workoutRepository.findByUserOrderedByPosition(user);
         List<Workout> remaining = ordered.stream()
             .filter(w -> !w.getId().equals(completedWorkoutId))
@@ -188,7 +191,6 @@ public class WorkoutService {
             }
             user.setCurrentWorkoutId(next.getId());
         }
-        userRepository.persist(user);
     }
 
     public List<WorkoutResponse> getPublicWorkouts() {
@@ -198,7 +200,8 @@ public class WorkoutService {
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<ImportAnalyzeResultItem> analyzeImport(User user, ImportAnalyzeRequest request) {
+    public List<ImportAnalyzeResultItem> analyzeImport(UUID userId, ImportAnalyzeRequest request) {
+        User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
         List<Workout> existingWorkouts = workoutRepository.findByUser(user);
         List<ImportAnalyzeResultItem> results = new ArrayList<>();
 
@@ -230,7 +233,8 @@ public class WorkoutService {
         return results;
     }
 
-    public ImportResultResponse confirmImport(User user, List<ImportConfirmItem> items) {
+    public ImportResultResponse confirmImport(UUID userId, List<ImportConfirmItem> items) {
+        User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
         for (ImportConfirmItem item : items) {
             if ("replace".equals(item.getAction())) {
                 if (item.getConflictId() == null) {

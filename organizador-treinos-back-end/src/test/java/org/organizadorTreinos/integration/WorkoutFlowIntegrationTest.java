@@ -47,6 +47,7 @@ class WorkoutFlowIntegrationTest {
     ExerciseRepository exerciseRepository;
 
     @BeforeEach
+    @jakarta.transaction.Transactional
     void setUp() {
         exerciseRepository.deleteAll();
         workoutRepository.deleteAll();
@@ -80,7 +81,7 @@ class WorkoutFlowIntegrationTest {
         workoutRequest.setName("Treino Perna");
         workoutRequest.setIsPublic(false);
 
-        WorkoutResponse workoutResponse = workoutService.createWorkout(user, workoutRequest);
+        WorkoutResponse workoutResponse = workoutService.createWorkout(user.getId(), workoutRequest);
         assertNotNull(workoutResponse.getId());
         assertEquals("Treino Perna", workoutResponse.getName());
 
@@ -118,8 +119,8 @@ class WorkoutFlowIntegrationTest {
         exerciseService.deleteExercise(workoutResponse.getId(), exerciseResponse1.getId(), user);
 
         // 9. DELETE WORKOUT
-        workoutService.deleteWorkout(workoutResponse.getId(), user);
-        assertFalse(workoutRepository.find("id", workoutResponse.getId().toString()).firstResultOptional().isPresent());
+        workoutService.deleteWorkout(workoutResponse.getId(), user.getId());
+        assertFalse(workoutRepository.find("id", workoutResponse.getId()).firstResultOptional().isPresent());
     }
 
     @Test
@@ -135,7 +136,7 @@ class WorkoutFlowIntegrationTest {
 
         CreateWorkoutRequest workout1 = new CreateWorkoutRequest();
         workout1.setName("User 1 Workout");
-        WorkoutResponse response1 = workoutService.createWorkout(user1, workout1);
+        WorkoutResponse response1 = workoutService.createWorkout(user1.getId(), workout1);
 
         // User 2: Signup and create workout
         SignupRequest signup2 = new SignupRequest();
@@ -147,7 +148,7 @@ class WorkoutFlowIntegrationTest {
 
         CreateWorkoutRequest workout2 = new CreateWorkoutRequest();
         workout2.setName("User 2 Workout");
-        WorkoutResponse response2 = workoutService.createWorkout(user2, workout2);
+        WorkoutResponse response2 = workoutService.createWorkout(user2.getId(), workout2);
 
         // Verify each user has only their own workouts
         List<WorkoutResponse> user1Workouts = workoutService.getUserWorkouts(user1);

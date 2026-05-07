@@ -61,7 +61,7 @@ public class WorkoutSessionService {
         }
 
         session.setEndedAt(LocalDateTime.now());
-        workoutService.advanceCurrentWorkout(user, workoutId);
+        workoutService.advanceCurrentWorkout(user.getId(), workoutId);
         return WorkoutSessionResponse.from(session);
     }
 

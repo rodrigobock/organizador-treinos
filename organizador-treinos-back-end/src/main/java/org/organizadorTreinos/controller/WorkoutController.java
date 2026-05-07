@@ -46,7 +46,7 @@ public class WorkoutController {
     @RolesAllowed("users")
     public Response createWorkout(@Valid CreateWorkoutRequest request) {
         User user = getCurrentUser();
-        WorkoutResponse response = workoutService.createWorkout(user, request);
+        WorkoutResponse response = workoutService.createWorkout(user.getId(), request);
         return Response.status(Response.Status.CREATED).entity(response).build();
     }
 
@@ -103,7 +103,7 @@ public class WorkoutController {
     @RolesAllowed("users")
     public Response deleteWorkout(@PathParam("id") UUID id) {
         User user = getCurrentUser();
-        workoutService.deleteWorkout(id, user);
+        workoutService.deleteWorkout(id, user.getId());
         return Response.noContent().build();
     }
 
@@ -112,7 +112,7 @@ public class WorkoutController {
     @RolesAllowed("users")
     public Response reorderWorkouts(@Valid ReorderWorkoutsRequest request) {
         User user = getCurrentUser();
-        workoutService.reorderWorkouts(user, request.getWorkoutIds());
+        workoutService.reorderWorkouts(user.getId(), request.getWorkoutIds());
         return Response.noContent().build();
     }
 
@@ -121,7 +121,7 @@ public class WorkoutController {
     @RolesAllowed("users")
     public Response analyzeImport(@Valid ImportAnalyzeRequest request) {
         User user = getCurrentUser();
-        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user, request);
+        List<ImportAnalyzeResultItem> results = workoutService.analyzeImport(user.getId(), request);
         return Response.ok(results).build();
     }
 
@@ -130,7 +130,7 @@ public class WorkoutController {
     @RolesAllowed("users")
     public Response confirmImport(@Valid List<ImportConfirmItem> items) {
         User user = getCurrentUser();
-        ImportResultResponse result = workoutService.confirmImport(user, items);
+        ImportResultResponse result = workoutService.confirmImport(user.getId(), items);
         return Response.ok(result).build();
     }
 }
