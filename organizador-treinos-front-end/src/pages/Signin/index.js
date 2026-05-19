@@ -5,6 +5,7 @@ import Button from "../../components/Button";
 import * as C from "./styles";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 const BarbellIcon = () => (
   <svg width="220" height="60" viewBox="0 0 220 60" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -91,6 +92,9 @@ const Signin = () => {
 
       <C.FormPanel>
         <C.FormCard>
+          <C.LangRow>
+            <LanguageSwitcher />
+          </C.LangRow>
           <C.AppBrand>{t("common:brand")}</C.AppBrand>
           <C.FormHeading>{t("signin.heading")}</C.FormHeading>
           <C.FormSub>{t("signin.subheading")}</C.FormSub>

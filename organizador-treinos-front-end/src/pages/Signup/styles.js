@@ -162,6 +162,12 @@ export const ErrorMsg = styled.span`
   color: #ef4444;
 `;
 
+export const LangRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+`;
+
 export const SigninLink = styled.div`
   font-family: "Outfit", sans-serif;
   font-size: 14px;

@@ -190,6 +190,12 @@ export const ForgotLink = styled.div`
   }
 `;
 
+export const LangRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+`;
+
 export const SignupLink = styled.div`
   font-family: "Outfit", sans-serif;
   font-size: 14px;
