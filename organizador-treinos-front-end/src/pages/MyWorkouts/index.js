@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
@@ -111,7 +111,7 @@ function MyWorkoutsPage() {
 
   const isPaginated = totalPages > 1;
 
-  const loadWorkouts = async (page) => {
+  const loadWorkouts = useCallback(async (page) => {
     try {
       setLoading(true);
       setError("");
@@ -124,7 +124,7 @@ function MyWorkoutsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     if (!authLoading && !signed) {
@@ -135,7 +135,7 @@ function MyWorkoutsPage() {
     if (signed) {
       loadWorkouts(currentPage);
     }
-  }, [signed, authLoading, navigate, currentPage]);
+  }, [signed, authLoading, navigate, currentPage, loadWorkouts]);
 
   const handlePageChange = (page) => {
     if (page < 0 || page >= totalPages) return;
