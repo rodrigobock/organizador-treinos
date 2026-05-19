@@ -8,6 +8,7 @@ import Modal from "react-bootstrap/Modal";
 import Table from "react-bootstrap/Table";
 import Form from "react-bootstrap/Form";
 import Pagination from "react-bootstrap/Pagination";
+import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
 import { downloadJson } from "../../utils/downloadJson";
 import useAuth from "../../hooks/useAuth";
@@ -120,7 +121,7 @@ function MyWorkoutsPage() {
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch (err) {
-      setError(err.message || t("myWorkouts.errorLoading"));
+      setError(err.response?.data?.message || err.message || t("myWorkouts.errorLoading"));
     } finally {
       setLoading(false);
     }
@@ -155,7 +156,7 @@ function MyWorkoutsPage() {
       await workoutService.deleteWorkout(id);
       await loadWorkouts(currentPage);
     } catch (err) {
-      setError(err.message || t("myWorkouts.errorDeleting"));
+      setError(err.response?.data?.message || err.message || t("myWorkouts.errorDeleting"));
     }
   };
 
@@ -172,7 +173,7 @@ function MyWorkoutsPage() {
       await workoutService.reorderWorkouts(reordered.map(w => w.id));
     } catch (err) {
       setWorkouts(workouts);
-      setError(err.message || t("myWorkouts.errorReordering"));
+      setError(err.response?.data?.message || err.message || t("myWorkouts.errorReordering"));
     }
   };
 
@@ -321,8 +322,10 @@ function MyWorkoutsPage() {
     return (
       <>
         <NavBar />
-        <div className="container" style={{ marginTop: "20px" }}>
-          <p>{t("myWorkouts.loadingWorkouts")}</p>
+        <div className="container" style={{ marginTop: "20px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px" }}>
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">{t("myWorkouts.loadingWorkouts")}</span>
+          </Spinner>
         </div>
       </>
     );
@@ -369,11 +372,16 @@ function MyWorkoutsPage() {
         )}
 
         {workouts.length === 0 ? (
-          <Card>
-            <Card.Body>
-              <Card.Text>
+          <Card className="text-center">
+            <Card.Body style={{ padding: "60px 20px" }}>
+              <Card.Title className="mb-3">{t("myWorkouts.emptyMessage")}</Card.Title>
+              <Card.Text className="text-muted mb-4">
                 {t("myWorkouts.emptyMessage")}
               </Card.Text>
+              <Button
+                Text={t("myWorkouts.emptyButton")}
+                onClick={() => navigate("/newworkout")}
+              />
             </Card.Body>
           </Card>
         ) : isPaginated ? (

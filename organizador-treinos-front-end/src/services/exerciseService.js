@@ -9,7 +9,10 @@ const exerciseService = {
       });
       return response.data; // ExerciseResponse
     } catch (error) {
-      throw error.message || 'Erro ao criar exercício';
+      throw {
+        message: error.message || 'Erro ao criar exercício',
+        response: error.response,
+      };
     }
   },
 
@@ -22,7 +25,10 @@ const exerciseService = {
       );
       return response.data; // ExerciseResponse
     } catch (error) {
-      throw error.message || 'Erro ao atualizar exercício';
+      throw {
+        message: error.message || 'Erro ao atualizar exercício',
+        response: error.response,
+      };
     }
   },
 
@@ -34,7 +40,10 @@ const exerciseService = {
       );
       return response.data; // ExerciseResponse com status atualizado
     } catch (error) {
-      throw error.message || 'Erro ao marcar exercício';
+      throw {
+        message: error.message || 'Erro ao marcar exercício',
+        response: error.response,
+      };
     }
   },
 
@@ -44,7 +53,10 @@ const exerciseService = {
       await api.delete(`/workouts/${workoutId}/exercises/${exerciseId}`);
       return true;
     } catch (error) {
-      throw error.message || 'Erro ao deletar exercício';
+      throw {
+        message: error.message || 'Erro ao deletar exercício',
+        response: error.response,
+      };
     }
   },
 };

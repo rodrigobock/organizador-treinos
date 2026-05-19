@@ -2,7 +2,6 @@ package org.organizadorTreinos.service;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
-import io.smallrye.jwt.build.Jwt;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotAuthorizedException;
@@ -12,12 +11,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
+import org.organizadorTreinos.entity.RefreshToken;
 import org.organizadorTreinos.repository.PasswordResetTokenRepository;
+import org.organizadorTreinos.repository.RefreshTokenRepository;
 import org.organizadorTreinos.repository.UserRepository;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Set;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,13 +29,13 @@ class TokenRefreshTest {
     AuthService authService;
 
     @Inject
-    JwtService jwtService;
-
-    @Inject
     UserRepository userRepository;
 
     @Inject
     PasswordResetTokenRepository tokenRepository;
+
+    @Inject
+    RefreshTokenRepository refreshTokenRepository;
 
     @InjectMock
     EmailService emailService;
@@ -44,101 +43,100 @@ class TokenRefreshTest {
     @BeforeEach
     @Transactional
     void setUp() {
+        refreshTokenRepository.deleteAll();
         tokenRepository.deleteAll();
         userRepository.deleteAll();
         Mockito.reset(emailService);
     }
 
-    private UUID signupUser() {
+    private AuthResponse signupUser() {
         SignupRequest request = new SignupRequest();
         request.setName("Refresh User");
         request.setEmail("refresh@test.com");
         request.setPassword("ValidPass123");
-        AuthResponse response = authService.signup(request, "pt-BR");
-        return response.getUser().getId();
-    }
-
-    private String makeExpiredToken(UUID userId, long expiredSecondsAgo) {
-        Instant expiresAt = Instant.now().minusSeconds(expiredSecondsAgo);
-        Instant issuedAt = expiresAt.minus(Duration.ofMinutes(15));
-        return Jwt.issuer("https://organizador-treinos.com")
-                .subject(userId.toString())
-                .groups(Set.of("users"))
-                .issuedAt(issuedAt)
-                .expiresAt(expiresAt)
-                .sign();
+        return authService.signup(request, "pt-BR");
     }
 
     @Test
-    @DisplayName("Should refresh expired token and return a new valid token")
-    void testRefreshExpiredToken() {
-        UUID userId = signupUser();
-        String expiredToken = makeExpiredToken(userId, 60);
+    @DisplayName("Should return new access token and refresh token on valid refresh")
+    void testRefreshWithValidOpaqueToken() {
+        AuthResponse signup = signupUser();
 
-        AuthResponse response = authService.refresh(expiredToken);
+        AuthResponse response = authService.refresh(signup.getRefreshToken());
 
         assertNotNull(response.getToken());
-        assertNotEquals(expiredToken, response.getToken());
-        assertEquals(userId, response.getUser().getId());
+        assertNotNull(response.getRefreshToken());
+        assertNotEquals(signup.getToken(), response.getToken());
+        assertEquals("refresh@test.com", response.getUser().getEmail());
     }
 
     @Test
-    @DisplayName("Should reject token with invalid signature")
-    void testRefreshRejectsForgedToken() {
-        UUID userId = signupUser();
-        String validToken = makeExpiredToken(userId, 60);
-        // Tamper with payload byte
-        String[] parts = validToken.split("\\.");
-        String tampered = parts[0] + "." + parts[1] + "." + parts[2].substring(0, parts[2].length() - 4) + "AAAA";
+    @DisplayName("Should rotate refresh token on use (old token no longer valid)")
+    void testRefreshTokenRotation() {
+        AuthResponse signup = signupUser();
+        String originalRefreshToken = signup.getRefreshToken();
 
-        assertThrows(NotAuthorizedException.class, () -> authService.refresh(tampered));
+        authService.refresh(originalRefreshToken);
+
+        assertThrows(NotAuthorizedException.class, () -> authService.refresh(originalRefreshToken));
     }
 
     @Test
-    @DisplayName("Should reject malformed token")
-    void testRefreshRejectsMalformed() {
-        assertThrows(NotAuthorizedException.class, () -> authService.refresh("not-a-jwt"));
+    @DisplayName("Should reject unknown refresh token")
+    void testRefreshRejectsUnknownToken() {
+        assertThrows(NotAuthorizedException.class, () -> authService.refresh(UUID.randomUUID().toString()));
     }
 
     @Test
-    @DisplayName("Should reject blank token")
-    void testRefreshRejectsBlank() {
-        assertThrows(NotAuthorizedException.class, () -> authService.refresh(""));
-        assertThrows(NotAuthorizedException.class, () -> authService.refresh(null));
+    @DisplayName("Should reject expired refresh token")
+    @Transactional
+    void testRefreshRejectsExpiredToken() {
+        AuthResponse signup = signupUser();
+
+        RefreshToken stored = refreshTokenRepository.findByToken(signup.getRefreshToken()).orElseThrow();
+        stored.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+        refreshTokenRepository.persist(stored);
+
+        assertThrows(NotAuthorizedException.class, () -> authService.refresh(signup.getRefreshToken()));
     }
 
     @Test
-    @DisplayName("Should reject token whose user no longer exists")
-    void testRefreshRejectsDeletedUser() {
-        UUID userId = signupUser();
-        String token = makeExpiredToken(userId, 30);
-
-        // delete user
-        userRepository.getEntityManager().createNativeQuery("DELETE FROM users WHERE id = :id")
-                .setParameter("id", userId).executeUpdate();
-
-        assertThrows(NotAuthorizedException.class, () -> authService.refresh(token));
-    }
-
-    @Test
-    @DisplayName("Should reject token expired beyond max refresh window")
-    void testRefreshRejectsTooOldToken() {
-        UUID userId = signupUser();
-        // 8 days past expiration (max-expired-age default is 7 days = 604800s)
-        String veryOldToken = makeExpiredToken(userId, 8L * 24 * 3600);
-
-        assertThrows(NotAuthorizedException.class, () -> authService.refresh(veryOldToken));
-    }
-
-    @Test
-    @DisplayName("Should accept currently-valid token (not expired) for refresh")
-    void testRefreshAcceptsValidToken() {
-        UUID userId = signupUser();
-        String validToken = jwtService.generateToken(userId);
-
-        AuthResponse response = authService.refresh(validToken);
+    @DisplayName("Signup should return both access token and refresh token")
+    void testSignupReturnsBothTokens() {
+        AuthResponse response = signupUser();
 
         assertNotNull(response.getToken());
-        assertEquals(userId, response.getUser().getId());
+        assertNotNull(response.getRefreshToken());
+        assertFalse(response.getToken().isEmpty());
+        assertFalse(response.getRefreshToken().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Login should return both access token and refresh token")
+    void testLoginReturnsBothTokens() {
+        signupUser();
+
+        org.organizadorTreinos.dto.request.LoginRequest loginRequest = new org.organizadorTreinos.dto.request.LoginRequest();
+        loginRequest.setEmail("refresh@test.com");
+        loginRequest.setPassword("ValidPass123");
+
+        AuthResponse response = authService.login(loginRequest);
+
+        assertNotNull(response.getToken());
+        assertNotNull(response.getRefreshToken());
+    }
+
+    @Test
+    @DisplayName("New login should replace previous refresh token for same user")
+    void testNewLoginInvalidatesPreviousRefreshToken() {
+        AuthResponse first = signupUser();
+        String firstRefreshToken = first.getRefreshToken();
+
+        org.organizadorTreinos.dto.request.LoginRequest loginRequest = new org.organizadorTreinos.dto.request.LoginRequest();
+        loginRequest.setEmail("refresh@test.com");
+        loginRequest.setPassword("ValidPass123");
+        authService.login(loginRequest);
+
+        assertThrows(NotAuthorizedException.class, () -> authService.refresh(firstRefreshToken));
     }
 }

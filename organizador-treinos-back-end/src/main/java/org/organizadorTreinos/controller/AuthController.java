@@ -5,13 +5,15 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.organizadorTreinos.dto.request.ForgotPasswordRequest;
 import org.organizadorTreinos.dto.request.LoginRequest;
-import org.organizadorTreinos.dto.request.RefreshTokenRequest;
 import org.organizadorTreinos.dto.request.ResetPasswordRequest;
 import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
+import org.organizadorTreinos.dto.response.UserResponse;
 import org.organizadorTreinos.service.AuthService;
 import org.organizadorTreinos.service.RateLimitService;
 
@@ -22,6 +24,9 @@ import io.vertx.core.http.HttpServerRequest;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AuthController {
 
+    private static final int ACCESS_TOKEN_MAX_AGE = 1800;
+    private static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 3600;
+
     @Inject
     AuthService authService;
 
@@ -31,29 +36,45 @@ public class AuthController {
     @Context
     HttpServerRequest httpRequest;
 
+    @ConfigProperty(name = "app.cookie.secure", defaultValue = "true")
+    boolean cookieSecure;
+
     @POST
     @Path("/signup")
     public Response signup(@Valid SignupRequest request,
                            @HeaderParam("Accept-Language") String acceptLanguage) {
         rateLimitService.checkSignup(resolveClientIp());
         String locale = resolveLocale(acceptLanguage, request.getPreferredLocale());
-        AuthResponse response = authService.signup(request, locale);
-        return Response.status(Response.Status.CREATED).entity(response).build();
+        AuthResponse authResponse = authService.signup(request, locale);
+        return buildAuthResponse(Response.status(Response.Status.CREATED), authResponse);
     }
 
     @POST
     @Path("/login")
     public Response login(@Valid LoginRequest request) {
         rateLimitService.checkLogin(request.getEmail());
-        AuthResponse response = authService.login(request);
-        return Response.ok(response).build();
+        AuthResponse authResponse = authService.login(request);
+        return buildAuthResponse(Response.ok(), authResponse);
     }
 
     @POST
     @Path("/refresh")
-    public Response refresh(@Valid RefreshTokenRequest request) {
-        AuthResponse response = authService.refresh(request.getToken());
-        return Response.ok(response).build();
+    public Response refresh(@CookieParam("refresh_token") String refreshTokenCookie) {
+        if (refreshTokenCookie == null || refreshTokenCookie.isBlank()) {
+            throw new NotAuthorizedException("Missing refresh token");
+        }
+        AuthResponse authResponse = authService.refresh(refreshTokenCookie);
+        return buildAuthResponse(Response.ok(), authResponse);
+    }
+
+    @POST
+    @Path("/logout")
+    public Response logout() {
+        NewCookie clearAccess = new NewCookie.Builder("access_token")
+                .value("").httpOnly(true).secure(cookieSecure).path("/").maxAge(0).build();
+        NewCookie clearRefresh = new NewCookie.Builder("refresh_token")
+                .value("").httpOnly(true).secure(cookieSecure).path("/auth/refresh").maxAge(0).build();
+        return Response.ok().cookie(clearAccess, clearRefresh).build();
     }
 
     @POST
@@ -71,12 +92,33 @@ public class AuthController {
         return Response.ok().build();
     }
 
+    private Response buildAuthResponse(Response.ResponseBuilder builder, AuthResponse authResponse) {
+        NewCookie accessCookie = new NewCookie.Builder("access_token")
+                .value(authResponse.getToken())
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(NewCookie.SameSite.LAX)
+                .path("/")
+                .maxAge(ACCESS_TOKEN_MAX_AGE)
+                .build();
+
+        NewCookie refreshCookie = new NewCookie.Builder("refresh_token")
+                .value(authResponse.getRefreshToken())
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(NewCookie.SameSite.LAX)
+                .path("/auth/refresh")
+                .maxAge(REFRESH_TOKEN_MAX_AGE)
+                .build();
+
+        UserResponse userResponse = authResponse.getUser();
+        return builder.cookie(accessCookie, refreshCookie).entity(userResponse).build();
+    }
+
     private String resolveLocale(String acceptLanguage, String preferredLocale) {
-        // Explicit preferredLocale from request body takes priority
         if (preferredLocale != null && !preferredLocale.isBlank()) {
             return preferredLocale.trim().startsWith("en") ? "en" : "pt-BR";
         }
-        // Fall back to Accept-Language header
         if (acceptLanguage != null && !acceptLanguage.isBlank()) {
             return acceptLanguage.trim().startsWith("en") ? "en" : "pt-BR";
         }

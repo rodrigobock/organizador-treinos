@@ -16,6 +16,7 @@ import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
 import org.organizadorTreinos.entity.PasswordResetToken;
 import org.organizadorTreinos.repository.PasswordResetTokenRepository;
+import org.organizadorTreinos.repository.RefreshTokenRepository;
 import org.organizadorTreinos.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -35,12 +36,16 @@ class AuthServiceTest {
     @Inject
     PasswordResetTokenRepository tokenRepository;
 
+    @Inject
+    RefreshTokenRepository refreshTokenRepository;
+
     @InjectMock
     EmailService emailService;
 
     @BeforeEach
     @Transactional
     void setUp() {
+        refreshTokenRepository.deleteAll();
         tokenRepository.deleteAll();
         userRepository.deleteAll();
         Mockito.reset(emailService);

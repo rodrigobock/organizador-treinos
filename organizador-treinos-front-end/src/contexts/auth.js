@@ -11,13 +11,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (authService.isAuthenticated()) {
-          const currentUser = await authService.getCurrentUser();
-          setUser(currentUser);
-        }
-      } catch (err) {
-        console.error("Erro ao verificar autenticação:", err);
-        authService.logout();
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+      } catch {
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -29,33 +26,31 @@ export const AuthProvider = ({ children }) => {
   const signin = async (email, password) => {
     try {
       setError(null);
-      const response = await authService.login(email, password);
-      authService.setToken(response.token);
-      setUser(response.user);
+      const userResponse = await authService.login(email, password);
+      setUser(userResponse);
       return null;
     } catch (err) {
       const errorMsg = err.message || "Erro ao fazer login";
       setError(errorMsg);
-      return errorMsg;
+      return err;
     }
   };
 
   const signup = async (name, email, password) => {
     try {
       setError(null);
-      const response = await authService.signup(name, email, password);
-      authService.setToken(response.token);
-      setUser(response.user);
+      const userResponse = await authService.signup(name, email, password);
+      setUser(userResponse);
       return null;
     } catch (err) {
       const errorMsg = err.message || "Erro ao registrar";
       setError(errorMsg);
-      return errorMsg;
+      return err;
     }
   };
 
-  const signout = () => {
-    authService.logout();
+  const signout = async () => {
+    await authService.logout();
     setUser(null);
     setError(null);
   };

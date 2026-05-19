@@ -51,7 +51,7 @@ const Signin = () => {
     const errorMsg = await signin(email, password);
 
     if (errorMsg) {
-      setError(errorMsg);
+      setError(errorMsg.response?.data?.message || errorMsg.message || errorMsg || t("signin.error"));
       setLoading(false);
       return;
     }

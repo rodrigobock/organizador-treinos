@@ -1,7 +1,6 @@
 import api from './api';
 
 const authService = {
-  // POST /auth/signup
   signup: async (name, email, password) => {
     const preferredLocale = localStorage.getItem('i18n_lang') || 'pt-BR';
     try {
@@ -11,36 +10,39 @@ const authService = {
         password,
         preferredLocale,
       });
-      return response.data; // { token, user: { id, name, email } }
+      return response.data;
     } catch (error) {
-      throw error.message || 'Erro ao registrar';
+      throw {
+        message: error.message || 'Erro ao registrar',
+        response: error.response,
+      };
     }
   },
 
-  // POST /auth/login
   login: async (email, password) => {
     try {
       const response = await api.post('/auth/login', {
         email,
         password,
       });
-      return response.data; // { token, user: { id, name, email } }
+      return response.data;
     } catch (error) {
-      throw error.message || 'Erro ao fazer login';
+      throw {
+        message: error.message || 'Erro ao fazer login',
+        response: error.response,
+      };
     }
   },
 
-  // GET /users/me
   getCurrentUser: async () => {
     try {
       const response = await api.get('/users/me');
-      return response.data; // { id, name, email }
+      return response.data;
     } catch (error) {
       throw error.message || 'Erro ao obter usuário';
     }
   },
 
-  // PUT /users/me
   updateUser: async (name) => {
     try {
       const response = await api.put('/users/me', {
@@ -48,49 +50,39 @@ const authService = {
       });
       return response.data;
     } catch (error) {
-      throw error.message || 'Erro ao atualizar usuário';
+      throw {
+        message: error.message || 'Erro ao atualizar usuário',
+        response: error.response,
+      };
     }
   },
 
-  // POST /auth/forgot-password
   forgotPassword: async (email) => {
     try {
       await api.post('/auth/forgot-password', { email });
     } catch (error) {
-      throw error.message || 'Erro ao solicitar redefinição de senha';
+      throw {
+        message: error.message || 'Erro ao solicitar redefinição de senha',
+        response: error.response,
+      };
     }
   },
 
-  // POST /auth/reset-password
   resetPassword: async (token, newPassword) => {
     try {
       await api.post('/auth/reset-password', { token, newPassword });
     } catch (error) {
-      throw error.message || 'Erro ao redefinir senha';
+      throw {
+        message: error.message || 'Erro ao redefinir senha',
+        response: error.response,
+      };
     }
   },
 
-  // Logout (local)
-  logout: () => {
-    localStorage.removeItem('user_token');
-  },
-
-  // Verificar se está autenticado
-  isAuthenticated: () => {
-    return !!localStorage.getItem('user_token');
-  },
-
-  // Obter token armazenado
-  getToken: () => {
-    return localStorage.getItem('user_token');
-  },
-
-  // Armazenar token
-  setToken: (token) => {
-    if (token) {
-      localStorage.setItem('user_token', token);
-    } else {
-      localStorage.removeItem('user_token');
+  logout: async () => {
+    try {
+      await api.post('/auth/logout', {});
+    } catch {
     }
   },
 };

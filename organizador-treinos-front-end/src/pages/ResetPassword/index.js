@@ -63,8 +63,8 @@ const ResetPassword = () => {
     try {
       await authService.resetPassword(token, newPassword);
       navigate("/", { state: { message: t("resetPassword.successMessage") } });
-    } catch {
-      setError(t("resetPassword.expiredLink"));
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || t("resetPassword.expiredLink"));
       setLoading(false);
     }
   };

@@ -58,7 +58,7 @@ const Signup = () => {
     const errorMsg = await signup(name, email, password);
 
     if (errorMsg) {
-      setError(errorMsg);
+      setError(errorMsg.response?.data?.message || errorMsg.message || errorMsg || t("signup.error"));
       setLoading(false);
       return;
     }

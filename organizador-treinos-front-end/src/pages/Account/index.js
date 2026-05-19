@@ -42,7 +42,7 @@ function AccountPage() {
       updateUser(updated);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || t("errorSaving"));
+      setError(err.response?.data?.message || err.message || t("errorSaving"));
     } finally {
       setSaving(false);
     }

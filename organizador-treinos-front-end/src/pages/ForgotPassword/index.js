@@ -32,8 +32,8 @@ const ForgotPassword = () => {
     try {
       await authService.forgotPassword(email);
       setSuccess(true);
-    } catch {
-      setError(t("forgotPassword.errorSending"));
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || t("forgotPassword.errorSending"));
     } finally {
       setLoading(false);
     }

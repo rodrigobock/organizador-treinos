@@ -63,6 +63,8 @@ public class UserService {
             throw new BadRequestException("Invalid password");
         }
 
+        user.setCurrentWorkoutId(null);
+        userRepository.persist(user);
         userRepository.delete(user);
     }
 }

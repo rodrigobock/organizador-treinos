@@ -7,10 +7,12 @@ import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
 import useAuth from "../../hooks/useAuth";
 import { downloadJson } from "../../utils/downloadJson";
+import { downloadWorkoutAsPdf } from "../../utils/downloadPdf";
 import { Trash } from "react-bootstrap-icons";
 import "./styles.css";
 
@@ -46,7 +48,7 @@ function WorkoutDetailPage() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || t("workoutDetail.errorLoading"));
+          setError(err.response?.data?.message || err.message || t("workoutDetail.errorLoading"));
         }
       } finally {
         if (mounted) {
@@ -80,7 +82,7 @@ function WorkoutDetailPage() {
         setNewExerciseName("");
       }
     } catch (err) {
-      setError(err.message || t("workoutDetail.errorAdding"));
+      setError(err.response?.data?.message || err.message || t("workoutDetail.errorAdding"));
     } finally {
       setAddingExercise(false);
     }
@@ -99,7 +101,7 @@ function WorkoutDetailPage() {
         });
       }
     } catch (err) {
-      setError(err.message || t("workoutDetail.errorToggling"));
+      setError(err.response?.data?.message || err.message || t("workoutDetail.errorToggling"));
     }
   };
 
@@ -118,7 +120,7 @@ function WorkoutDetailPage() {
         });
       }
     } catch (err) {
-      setError(err.message || t("workoutDetail.errorDeleting"));
+      setError(err.response?.data?.message || err.message || t("workoutDetail.errorDeleting"));
     }
   };
 
@@ -139,7 +141,7 @@ function WorkoutDetailPage() {
         });
       }
     } catch (err) {
-      setError(err.message || t("workoutDetail.errorUpdating"));
+      setError(err.response?.data?.message || err.message || t("workoutDetail.errorUpdating"));
     }
   };
 
@@ -154,12 +156,18 @@ function WorkoutDetailPage() {
     downloadJson(`${workout.name.replace(/\s+/g, '-').toLowerCase()}.json`, data);
   };
 
+  const handleExportPdf = () => {
+    downloadWorkoutAsPdf(workout);
+  };
+
   if (loading) {
     return (
       <>
         <NavBar />
-        <div className="container" style={{ marginTop: "20px" }}>
-          <p>{t("workoutDetail.loadingWorkout")}</p>
+        <div className="container" style={{ marginTop: "20px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px" }}>
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">{t("workoutDetail.loadingWorkout")}</span>
+          </Spinner>
         </div>
       </>
     );
@@ -193,6 +201,7 @@ function WorkoutDetailPage() {
           </div>
           <div className="d-flex gap-2">
             <Button Text={t("workoutDetail.exportJson")} onClick={handleExportJson} size="sm" />
+            <Button Text={t("workoutDetail.exportPdf")} onClick={handleExportPdf} size="sm" />
             <Button Text={t("workoutDetail.back")} onClick={() => navigate("/myworkouts")} size="sm" />
           </div>
         </div>

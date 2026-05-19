@@ -12,8 +12,10 @@ import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
 import org.organizadorTreinos.dto.response.UserResponse;
 import org.organizadorTreinos.entity.PasswordResetToken;
+import org.organizadorTreinos.entity.RefreshToken;
 import org.organizadorTreinos.entity.User;
 import org.organizadorTreinos.repository.PasswordResetTokenRepository;
+import org.organizadorTreinos.repository.RefreshTokenRepository;
 import org.organizadorTreinos.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -38,6 +40,9 @@ public class AuthService {
     @Inject
     PasswordResetTokenRepository tokenRepository;
 
+    @Inject
+    RefreshTokenRepository refreshTokenRepository;
+
     public AuthResponse signup(SignupRequest request, String locale) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email already registered");
@@ -53,10 +58,11 @@ public class AuthService {
 
         emailService.sendWelcome(user);
 
-        String token = jwtService.generateToken(user.getId());
+        String accessToken = jwtService.generateToken(user.getId());
+        String refreshTokenValue = createRefreshToken(user);
         UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
 
-        return new AuthResponse(token, userResponse);
+        return new AuthResponse(accessToken, refreshTokenValue, userResponse);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -67,10 +73,31 @@ public class AuthService {
             throw new BadRequestException("Invalid email or password");
         }
 
-        String token = jwtService.generateToken(user.getId());
+        String accessToken = jwtService.generateToken(user.getId());
+        String refreshTokenValue = createRefreshToken(user);
         UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
 
-        return new AuthResponse(token, userResponse);
+        return new AuthResponse(accessToken, refreshTokenValue, userResponse);
+    }
+
+    public AuthResponse refresh(String rawRefreshToken) {
+        RefreshToken stored = refreshTokenRepository.findByToken(rawRefreshToken)
+                .orElseThrow(() -> new NotAuthorizedException("Invalid or expired refresh token"));
+
+        if (stored.getExpiresAt().isBefore(LocalDateTime.now())) {
+            refreshTokenRepository.delete(stored);
+            throw new NotAuthorizedException("Refresh token expired");
+        }
+
+        User user = stored.getUser();
+
+        refreshTokenRepository.delete(stored);
+
+        String accessToken = jwtService.generateToken(user.getId());
+        String newRefreshToken = createRefreshToken(user);
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
+
+        return new AuthResponse(accessToken, newRefreshToken, userResponse);
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -87,16 +114,6 @@ public class AuthService {
         });
     }
 
-    public AuthResponse refresh(String token) {
-        UUID userId = jwtService.validateExpiredToken(token);
-        User user = userRepository.find("id", userId).firstResultOptional()
-                .orElseThrow(() -> new NotAuthorizedException("User no longer exists"));
-
-        String newToken = jwtService.generateToken(user.getId());
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
-        return new AuthResponse(newToken, userResponse);
-    }
-
     public void resetPassword(ResetPasswordRequest request) {
         PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
                 .orElseThrow(() -> new BadRequestException("Invalid or expired token"));
@@ -107,5 +124,17 @@ public class AuthService {
 
         resetToken.getUser().setPasswordHash(passwordService.hash(request.getNewPassword()));
         resetToken.setUsed(true);
+    }
+
+    private String createRefreshToken(User user) {
+        refreshTokenRepository.deleteByUserId(user.getId());
+
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setUser(user);
+        refreshToken.setToken(UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString());
+        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(7));
+        refreshTokenRepository.persist(refreshToken);
+
+        return refreshToken.getToken();
     }
 }
