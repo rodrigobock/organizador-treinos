@@ -7,6 +7,7 @@ CLAUDE.md
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Backend
 organizador-treinos-back-end/target/
@@ -43,3 +44,6 @@ Thumbs.db
 *.swo
 *~
 *.iml
+
+.vercel
+.env*.local
