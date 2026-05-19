@@ -3,11 +3,13 @@ import api from './api';
 const authService = {
   // POST /auth/signup
   signup: async (name, email, password) => {
+    const preferredLocale = localStorage.getItem('i18n_lang') || 'pt-BR';
     try {
       const response = await api.post('/auth/signup', {
         name,
         email,
         password,
+        preferredLocale,
       });
       return response.data; // { token, user: { id, name, email } }
     } catch (error) {

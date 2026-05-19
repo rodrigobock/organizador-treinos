@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import NavBar from "../../components/NavBar";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -10,6 +11,7 @@ import exerciseService from '../../services/exerciseService';
 
 function NewWorkoutPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation('workouts');
 
   const [exercises, setExercises] = useState([{ exerciseName: '' }]);
   const [workoutName, setWorkoutName] = useState('');
@@ -46,13 +48,13 @@ function NewWorkoutPage() {
     event.preventDefault();
 
     if (!workoutName.trim()) {
-      setError('Nome do treino é obrigatório');
+      setError(t('newWorkout.nameRequired'));
       return;
     }
 
     const validExercises = exercises.filter(ex => ex.exerciseName.trim());
     if (validExercises.length === 0) {
-      setError('Adicione pelo menos um exercício');
+      setError(t('newWorkout.addAtLeastOne'));
       return;
     }
 
@@ -68,7 +70,7 @@ function NewWorkoutPage() {
 
       navigate('/myworkouts');
     } catch (err) {
-      setError(err.message || 'Erro ao criar treino');
+      setError(err.message || t('newWorkout.errorCreating'));
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ function NewWorkoutPage() {
     <>
       <NavBar />
       <div className="container" style={{ marginTop: "20px" }}>
-        <h2 className="mb-4">Novo Treino</h2>
+        <h2 className="mb-4">{t('newWorkout.title')}</h2>
 
         {error && (
           <div className="alert alert-danger" role="alert">
@@ -88,10 +90,10 @@ function NewWorkoutPage() {
 
         <Form onSubmit={handleSubmit}>
           <Form.Group controlId="formWorkoutName" className="mb-3">
-            <Form.Label>Nome do Treino</Form.Label>
+            <Form.Label>{t('newWorkout.workoutNameLabel')}</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Digite o nome do treino"
+              placeholder={t('newWorkout.workoutNamePlaceholder')}
               value={workoutName}
               onChange={handleChangeWorkoutName}
               disabled={loading}
@@ -101,7 +103,7 @@ function NewWorkoutPage() {
           <Form.Group controlId="formIsPublic" className="mb-3">
             <Form.Check
               type="checkbox"
-              label="Treino Público"
+              label={t('newWorkout.publicCheckbox')}
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
               disabled={loading}
@@ -109,7 +111,7 @@ function NewWorkoutPage() {
           </Form.Group>
 
           <div className="mb-3">
-            <Form.Label>Exercícios</Form.Label>
+            <Form.Label>{t('newWorkout.exercisesLabel')}</Form.Label>
             {exercises.map((exercise, index) => (
               <div key={index} className="mb-2">
                 <Row>
@@ -117,7 +119,7 @@ function NewWorkoutPage() {
                     <Form.Control
                       type="text"
                       value={exercise.exerciseName}
-                      placeholder="Nome do exercício"
+                      placeholder={t('newWorkout.exerciseNamePlaceholder')}
                       onChange={(event) => handleChangeExerciseName(index, event)}
                       disabled={loading}
                     />
@@ -129,7 +131,7 @@ function NewWorkoutPage() {
                       onClick={() => handleDeleteExercise(index)}
                       disabled={loading}
                     >
-                      Remover
+                      {t('newWorkout.removeExercise')}
                     </Button>
                   </Col>
                 </Row>
@@ -143,7 +145,7 @@ function NewWorkoutPage() {
               onClick={handleAddExercise}
               disabled={loading}
             >
-              + Exercício
+              {t('newWorkout.addExercise')}
             </Button>
           </div>
 
@@ -154,14 +156,14 @@ function NewWorkoutPage() {
               className="flex-grow-1"
               disabled={loading || !workoutName.trim() || exercises.every(ex => !ex.exerciseName.trim())}
             >
-              {loading ? "Salvando..." : "Salvar Treino"}
+              {loading ? t('newWorkout.saving') : t('newWorkout.saveWorkout')}
             </Button>
             <Button
               variant="outline-secondary"
               onClick={() => navigate('/myworkouts')}
               disabled={loading}
             >
-              Cancelar
+              {t('newWorkout.cancel')}
             </Button>
           </div>
         </Form>

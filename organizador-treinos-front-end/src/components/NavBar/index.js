@@ -1,13 +1,16 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import Container from "react-bootstrap/Container";
 import useAuth from "../../hooks/useAuth";
 import { useTheme } from "../../contexts/theme";
+import LanguageSwitcher from "../LanguageSwitcher";
 import * as S from "./styles";
 
 function NavBar() {
   const { user, signout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,21 +40,23 @@ function NavBar() {
         <S.NavbarContent>
           {/* Left: Brand only */}
           <S.NavbarBrand href="/home">
-            💪 Treinos
+            {t("brand")}
           </S.NavbarBrand>
 
           {/* Center: Nav links (hidden on mobile) */}
           <S.NavLinksCenter>
-            <S.NavLink href="/home">Dashboard</S.NavLink>
-            <S.NavLink href="/myworkouts">Meus Treinos</S.NavLink>
-            <S.NavLink href="/account">Conta</S.NavLink>
+            <S.NavLink href="/home">{t("navbar.dashboard")}</S.NavLink>
+            <S.NavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.NavLink>
+            <S.NavLink href="/account">{t("navbar.account")}</S.NavLink>
           </S.NavLinksCenter>
 
-          {/* Right: Theme toggle + user + logout */}
+          {/* Right: Language + Theme toggle + user + logout */}
           <S.NavRightSection>
+            <LanguageSwitcher />
+
             <S.ThemeToggle
               onClick={toggleTheme}
-              title={theme === "dark" ? "Mudar para Light" : "Mudar para Dark"}
+              title={theme === "dark" ? t("navbar.themeLight") : t("navbar.themeDark")}
             >
               {theme === "dark" ? "☀️" : "🌙"}
             </S.ThemeToggle>
@@ -63,7 +68,7 @@ function NavBar() {
             )}
 
             <S.LogoutButton onClick={handleLogout}>
-              Sair
+              {t("navbar.logout")}
             </S.LogoutButton>
           </S.NavRightSection>
 
@@ -78,11 +83,11 @@ function NavBar() {
             </S.MobileMenuButton>
 
             <S.MobileNavContent isOpen={mobileMenuOpen}>
-              <S.MobileNavLink href="/home">Dashboard</S.MobileNavLink>
-              <S.MobileNavLink href="/myworkouts">Meus Treinos</S.MobileNavLink>
-              <S.MobileNavLink href="/account">Conta</S.MobileNavLink>
+              <S.MobileNavLink href="/home">{t("navbar.dashboard")}</S.MobileNavLink>
+              <S.MobileNavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.MobileNavLink>
+              <S.MobileNavLink href="/account">{t("navbar.account")}</S.MobileNavLink>
               <S.MobileLogoutButton onClick={handleLogout}>
-                Sair
+                {t("navbar.logout")}
               </S.MobileLogoutButton>
             </S.MobileNavContent>
           </S.MobileMenu>

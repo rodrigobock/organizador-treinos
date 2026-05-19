@@ -43,6 +43,9 @@ public class User {
     @Column(name = "current_workout_id")
     private UUID currentWorkoutId;
 
+    @Column(name = "preferred_locale", nullable = false)
+    private String preferredLocale = "pt-BR";
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

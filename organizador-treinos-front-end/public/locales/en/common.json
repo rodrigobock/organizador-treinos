@@ -1,0 +1,34 @@
+{
+  "brand": "Workouts",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "loading": "Loading...",
+  "confirm": "Confirm",
+  "back": "Back",
+  "remove": "Remove",
+  "public": "Public",
+  "navbar": {
+    "dashboard": "Dashboard",
+    "myWorkouts": "My Workouts",
+    "account": "Account",
+    "logout": "Logout",
+    "themeLight": "Switch to Light",
+    "themeDark": "Switch to Dark"
+  },
+  "errors": {
+    "auth.email_already_registered": "This email is already registered",
+    "auth.invalid_credentials": "Invalid email or password",
+    "auth.rate_limit_exceeded": "Too many attempts. Please try again in a few minutes",
+    "workout.not_found": "Workout not found",
+    "workout.forbidden": "You do not have access to this workout",
+    "validation.constraint_violation": "Invalid data",
+    "error.connection": "Connection error. Check your internet.",
+    "error.unknown": "Unknown error. Please try again.",
+    "error.processing": "Error processing request",
+    "error.session_expired": "Session expired. Please sign in again.",
+    "error.access_denied": "Access denied",
+    "error.not_found": "Not found"
+  }
+}

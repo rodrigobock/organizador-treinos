@@ -10,5 +10,6 @@
     <include file="db/changelog/V3__add_workout_sessions.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V4__add_workout_position_and_current.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V5__exercise_sessions_refactor.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V6__add_preferred_locale_to_users.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

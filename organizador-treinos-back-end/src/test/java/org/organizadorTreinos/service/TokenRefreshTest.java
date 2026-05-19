@@ -54,7 +54,7 @@ class TokenRefreshTest {
         request.setName("Refresh User");
         request.setEmail("refresh@test.com");
         request.setPassword("ValidPass123");
-        AuthResponse response = authService.signup(request);
+        AuthResponse response = authService.signup(request, "pt-BR");
         return response.getUser().getId();
     }
 

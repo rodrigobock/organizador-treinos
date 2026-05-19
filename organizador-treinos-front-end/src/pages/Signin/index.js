@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
@@ -21,6 +22,7 @@ const Signin = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation("auth");
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +40,7 @@ const Signin = () => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError("Preencha todos os campos");
+      setError(t("signin.fillAllFields"));
       return;
     }
 
@@ -60,6 +62,8 @@ const Signin = () => {
     if (e.key === "Enter") handleLogin();
   };
 
+  const heroLines = t("signin.heroTitle").split("\n");
+
   return (
     <C.PageWrapper>
       <C.HeroPanel>
@@ -69,27 +73,32 @@ const Signin = () => {
         <C.HeroContent>
           <BarbellIcon />
           <C.HeroTitle>
-            TREINE<br />COM<br />FOCO
+            {heroLines.map((line, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <br />}
+                {line}
+              </React.Fragment>
+            ))}
           </C.HeroTitle>
           <C.HeroAccentBar />
           <C.HeroSubtitle>
-            Organize seus treinos, acompanhe seu progresso e supere seus limites.
+            {t("signin.heroSubtitle")}
           </C.HeroSubtitle>
         </C.HeroContent>
 
-        <C.HeroFooter>Organizador de Treinos</C.HeroFooter>
+        <C.HeroFooter>{t("signin.heroFooter")}</C.HeroFooter>
       </C.HeroPanel>
 
       <C.FormPanel>
         <C.FormCard>
-          <C.AppBrand>💪 Treinos</C.AppBrand>
-          <C.FormHeading>Bem-vindo de volta</C.FormHeading>
-          <C.FormSub>Entre com seu e-mail e senha</C.FormSub>
+          <C.AppBrand>{t("common:brand")}</C.AppBrand>
+          <C.FormHeading>{t("signin.heading")}</C.FormHeading>
+          <C.FormSub>{t("signin.subheading")}</C.FormSub>
 
           <C.FieldGroup>
             <Input
               type="email"
-              placeholder="E-mail"
+              placeholder={t("signin.emailPlaceholder")}
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
@@ -97,7 +106,7 @@ const Signin = () => {
             />
             <Input
               type="password"
-              placeholder="Senha"
+              placeholder={t("signin.passwordPlaceholder")}
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
@@ -109,17 +118,17 @@ const Signin = () => {
           {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
           <Button
-            Text={loading ? "Entrando..." : "Entrar"}
+            Text={loading ? t("signin.submitLoading") : t("signin.submit")}
             onClick={handleLogin}
             disabled={loading}
           />
 
           <C.FooterLinks>
             <C.ForgotLink>
-              <Link to="/forgot-password">Esqueceu a senha?</Link>
+              <Link to="/forgot-password">{t("signin.forgotPassword")}</Link>
             </C.ForgotLink>
             <C.SignupLink>
-              Não tem conta? <Link to="/signup">Registre-se</Link>
+              {t("signin.noAccount")} <Link to="/signup">{t("signin.register")}</Link>
             </C.SignupLink>
           </C.FooterLinks>
         </C.FormCard>

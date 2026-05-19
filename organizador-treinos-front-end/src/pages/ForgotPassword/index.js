@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
@@ -20,9 +21,10 @@ const ForgotPassword = () => {
   const [error, setError]     = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation("auth");
 
   const handleSubmit = async () => {
-    if (!email) { setError("Preencha o e-mail"); return; }
+    if (!email) { setError(t("forgotPassword.fillEmail")); return; }
 
     setLoading(true);
     setError("");
@@ -31,7 +33,7 @@ const ForgotPassword = () => {
       await authService.forgotPassword(email);
       setSuccess(true);
     } catch {
-      setError("Erro ao enviar o e-mail. Tente novamente.");
+      setError(t("forgotPassword.errorSending"));
     } finally {
       setLoading(false);
     }
@@ -40,6 +42,8 @@ const ForgotPassword = () => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleSubmit();
   };
+
+  const heroLines = t("forgotPassword.heroTitle").split("\n");
 
   return (
     <C.PageWrapper>
@@ -50,40 +54,44 @@ const ForgotPassword = () => {
         <C.HeroContent>
           <KeyIcon />
           <C.HeroTitle>
-            RECUPERE<br />SUA<br />SENHA
+            {heroLines.map((line, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <br />}
+                {line}
+              </React.Fragment>
+            ))}
           </C.HeroTitle>
           <C.HeroAccentBar />
           <C.HeroSubtitle>
-            Sem problema. Enviaremos um link para você criar uma nova senha.
+            {t("forgotPassword.heroSubtitle")}
           </C.HeroSubtitle>
         </C.HeroContent>
 
-        <C.HeroFooter>Organizador de Treinos</C.HeroFooter>
+        <C.HeroFooter>{t("forgotPassword.heroFooter")}</C.HeroFooter>
       </C.HeroPanel>
 
       <C.FormPanel>
         <C.FormCard>
-          <C.AppBrand>💪 Treinos</C.AppBrand>
-          <C.FormHeading>Esqueceu a senha?</C.FormHeading>
+          <C.AppBrand>{t("common:brand")}</C.AppBrand>
+          <C.FormHeading>{t("forgotPassword.heading")}</C.FormHeading>
           <C.FormSub>
-            Informe seu e-mail e enviaremos um link para redefinir sua senha.
+            {t("forgotPassword.subheading")}
           </C.FormSub>
 
           {success ? (
             <>
               <C.SuccessBox>
-                Se o e-mail estiver cadastrado, você receberá um link para redefinir
-                sua senha. Verifique sua caixa de entrada (e a pasta de spam).
+                {t("forgotPassword.successMessage")}
               </C.SuccessBox>
               <C.BackLink>
-                <Link to="/">Voltar ao login</Link>
+                <Link to="/">{t("forgotPassword.backToLogin")}</Link>
               </C.BackLink>
             </>
           ) : (
             <>
               <Input
                 type="email"
-                placeholder="E-mail"
+                placeholder={t("forgotPassword.emailPlaceholder")}
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 onKeyDown={handleKeyDown}
@@ -93,13 +101,13 @@ const ForgotPassword = () => {
               {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
               <Button
-                Text={loading ? "Enviando..." : "Enviar link"}
+                Text={loading ? t("forgotPassword.submitLoading") : t("forgotPassword.submit")}
                 onClick={handleSubmit}
                 disabled={loading}
               />
 
               <C.BackLink>
-                Lembrou a senha? <Link to="/">Faça login</Link>
+                {t("forgotPassword.rememberPassword")} <Link to="/">{t("forgotPassword.doLogin")}</Link>
               </C.BackLink>
             </>
           )}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
@@ -9,6 +10,7 @@ import userService from "../../services/userService";
 function AccountPage() {
   const { user, updateUser, signout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation("account");
   const [name, setName] = useState(user?.name || "");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -29,7 +31,7 @@ function AccountPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError("O nome não pode estar vazio");
+      setError(t("nameRequired"));
       return;
     }
     setSaving(true);
@@ -40,7 +42,7 @@ function AccountPage() {
       updateUser(updated);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || "Erro ao salvar");
+      setError(err.message || t("errorSaving"));
     } finally {
       setSaving(false);
     }
@@ -53,9 +55,9 @@ function AccountPage() {
   };
 
   const validatePassword = (pwd) => {
-    if (pwd.length < 8) return "Senha deve ter no mínimo 8 caracteres";
-    if (!/[A-Z]/.test(pwd)) return "Senha deve conter pelo menos uma letra maiúscula";
-    if (!/\d/.test(pwd)) return "Senha deve conter pelo menos um número";
+    if (pwd.length < 8) return t("changePassword.passwordMinLength");
+    if (!/[A-Z]/.test(pwd)) return t("changePassword.passwordUppercase");
+    if (!/\d/.test(pwd)) return t("changePassword.passwordNumber");
     return null;
   };
 
@@ -63,12 +65,12 @@ function AccountPage() {
     e.preventDefault();
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setPasswordError("Preencha todos os campos");
+      setPasswordError(t("changePassword.fillAllFields"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("As novas senhas não são iguais");
+      setPasswordError(t("changePassword.passwordMismatch"));
       return;
     }
 
@@ -89,7 +91,7 @@ function AccountPage() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setPasswordError(err.response?.data?.message || err.message || "Erro ao mudar senha");
+      setPasswordError(err.response?.data?.message || err.message || t("changePassword.error"));
     } finally {
       setChangingPassword(false);
     }
@@ -118,7 +120,7 @@ function AccountPage() {
 
   const handleConfirmDelete = async () => {
     if (!deletePassword) {
-      setDeleteError("Digite sua senha");
+      setDeleteError(t("dangerZone.modal.passwordRequired"));
       return;
     }
     setDeleting(true);
@@ -126,10 +128,10 @@ function AccountPage() {
     try {
       await userService.deleteAccount(deletePassword);
       signout();
-      navigate("/", { state: { message: "Conta deletada com sucesso." } });
+      navigate("/", { state: { message: t("dangerZone.modal.successMessage") } });
     } catch (err) {
       setDeleteError(
-        err.response?.data?.message || err.message || "Senha incorreta ou erro ao deletar conta"
+        err.response?.data?.message || err.message || t("dangerZone.modal.error")
       );
       setDeleting(false);
     }
@@ -155,10 +157,10 @@ function AccountPage() {
                 marginBottom: 4,
               }}
             >
-              Minha Conta
+              {t("title")}
             </h1>
             <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
-              Gerencie seus dados
+              {t("subtitle")}
             </p>
           </div>
 
@@ -183,7 +185,7 @@ function AccountPage() {
                     marginBottom: 6,
                   }}
                 >
-                  Nome
+                  {t("nameLabel")}
                 </label>
                 <input
                   type="text"
@@ -218,7 +220,7 @@ function AccountPage() {
                     marginBottom: 6,
                   }}
                 >
-                  E-mail
+                  {t("emailLabel")}
                 </label>
                 <input
                   type="email"
@@ -245,7 +247,7 @@ function AccountPage() {
               )}
               {success && (
                 <p style={{ color: "var(--success)", fontSize: 13, marginBottom: 12 }}>
-                  Dados atualizados com sucesso!
+                  {t("updateSuccess")}
                 </p>
               )}
 
@@ -266,7 +268,7 @@ function AccountPage() {
                     opacity: saving ? 0.7 : 1,
                   }}
                 >
-                  {saving ? "Salvando..." : "Salvar alterações"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </button>
                 <button
                   type="button"
@@ -283,7 +285,7 @@ function AccountPage() {
                     cursor: "pointer",
                   }}
                 >
-                  Cancelar
+                  {t("cancel")}
                 </button>
               </div>
             </form>
@@ -307,7 +309,7 @@ function AccountPage() {
                 marginTop: 0,
               }}
             >
-              Trocar Senha
+              {t("changePassword.title")}
             </h2>
 
             <form onSubmit={handleChangePassword}>
@@ -323,7 +325,7 @@ function AccountPage() {
                     marginBottom: 6,
                   }}
                 >
-                  Senha Atual
+                  {t("changePassword.currentPassword")}
                 </label>
                 <input
                   type="password"
@@ -359,7 +361,7 @@ function AccountPage() {
                     marginBottom: 6,
                   }}
                 >
-                  Nova Senha
+                  {t("changePassword.newPassword")}
                 </label>
                 <input
                   type="password"
@@ -395,7 +397,7 @@ function AccountPage() {
                     marginBottom: 6,
                   }}
                 >
-                  Confirmar Nova Senha
+                  {t("changePassword.confirmNewPassword")}
                 </label>
                 <input
                   type="password"
@@ -426,7 +428,7 @@ function AccountPage() {
                   margin: "12px 0 16px",
                 }}
               >
-                Mínimo 8 caracteres, 1 maiúscula e 1 número
+                {t("changePassword.passwordHint")}
               </p>
 
               {passwordError && (
@@ -436,7 +438,7 @@ function AccountPage() {
               )}
               {passwordSuccess && (
                 <p style={{ color: "var(--success)", fontSize: 13, marginBottom: 12 }}>
-                  Senha alterada com sucesso!
+                  {t("changePassword.success")}
                 </p>
               )}
 
@@ -457,7 +459,7 @@ function AccountPage() {
                     opacity: changingPassword ? 0.7 : 1,
                   }}
                 >
-                  {changingPassword ? "Salvando..." : "Salvar Nova Senha"}
+                  {changingPassword ? t("changePassword.saving") : t("changePassword.saveButton")}
                 </button>
                 <button
                   type="button"
@@ -475,7 +477,7 @@ function AccountPage() {
                   }}
                   disabled={changingPassword}
                 >
-                  Cancelar
+                  {t("changePassword.cancel")}
                 </button>
               </div>
             </form>
@@ -499,7 +501,7 @@ function AccountPage() {
                 marginTop: 0,
               }}
             >
-              Zona de Perigo
+              {t("dangerZone.title")}
             </h2>
             <p
               style={{
@@ -508,7 +510,7 @@ function AccountPage() {
                 margin: "0 0 16px",
               }}
             >
-              Esta ação remove permanentemente sua conta e todos os seus dados.
+              {t("dangerZone.description")}
             </p>
             <button
               type="button"
@@ -524,7 +526,7 @@ function AccountPage() {
                 cursor: "pointer",
               }}
             >
-              Deletar Conta
+              {t("dangerZone.deleteButton")}
             </button>
           </div>
         </div>
@@ -533,12 +535,12 @@ function AccountPage() {
       <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
         <Modal.Header closeButton={!deleting}>
           <Modal.Title style={{ fontSize: 18, fontWeight: 700 }}>
-            Deletar Conta Permanentemente
+            {t("dangerZone.modal.title")}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p style={{ color: "#dc3545", fontSize: 14, marginBottom: 16 }}>
-            Esta ação é irreversível. Todos seus treinos e dados serão removidos.
+            {t("dangerZone.modal.warning")}
           </p>
           <label
             style={{
@@ -551,7 +553,7 @@ function AccountPage() {
               marginBottom: 6,
             }}
           >
-            Digite sua senha para confirmar
+            {t("dangerZone.modal.passwordLabel")}
           </label>
           <input
             type="password"
@@ -595,7 +597,7 @@ function AccountPage() {
               cursor: deleting ? "not-allowed" : "pointer",
             }}
           >
-            Cancelar
+            {t("dangerZone.modal.cancel")}
           </button>
           <button
             type="button"
@@ -613,7 +615,7 @@ function AccountPage() {
               opacity: deleting || !deletePassword ? 0.6 : 1,
             }}
           >
-            {deleting ? "Deletando..." : "Deletar Permanentemente"}
+            {deleting ? t("dangerZone.modal.deleting") : t("dangerZone.modal.confirmButton")}
           </button>
         </Modal.Footer>
       </Modal>

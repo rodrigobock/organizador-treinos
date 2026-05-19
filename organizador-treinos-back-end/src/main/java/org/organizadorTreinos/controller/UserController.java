@@ -41,7 +41,7 @@ public class UserController {
     @RolesAllowed("users")
     public Response updateCurrentUser(UserUpdateRequest request) {
         String userId = jwt.getSubject();
-        UserResponse response = userService.updateUser(UUID.fromString(userId), request.getName());
+        UserResponse response = userService.updateUser(UUID.fromString(userId), request.getName(), request.getPreferredLocale());
         return Response.ok(response).build();
     }
 
@@ -65,6 +65,7 @@ public class UserController {
 
     public static class UserUpdateRequest {
         private String name;
+        private String preferredLocale;
 
         public String getName() {
             return name;
@@ -72,6 +73,14 @@ public class UserController {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getPreferredLocale() {
+            return preferredLocale;
+        }
+
+        public void setPreferredLocale(String preferredLocale) {
+            this.preferredLocale = preferredLocale;
         }
     }
 

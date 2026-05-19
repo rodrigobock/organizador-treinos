@@ -66,7 +66,7 @@ class WorkoutFlowIntegrationTest {
         signupRequest.setEmail("joao@test.com");
         signupRequest.setPassword("Password123");
 
-        AuthResponse signupResponse = authService.signup(signupRequest);
+        AuthResponse signupResponse = authService.signup(signupRequest, "pt-BR");
         assertNotNull(signupResponse.getToken());
         User user = userRepository.findByEmail("joao@test.com").orElseThrow();
 
@@ -134,7 +134,7 @@ class WorkoutFlowIntegrationTest {
         signup1.setName("User 1");
         signup1.setEmail("user1@test.com");
         signup1.setPassword("Password123");
-        AuthResponse auth1 = authService.signup(signup1);
+        AuthResponse auth1 = authService.signup(signup1, "pt-BR");
         User user1 = userRepository.findByEmail("user1@test.com").orElseThrow();
 
         CreateWorkoutRequest workout1 = new CreateWorkoutRequest();
@@ -146,7 +146,7 @@ class WorkoutFlowIntegrationTest {
         signup2.setName("User 2");
         signup2.setEmail("user2@test.com");
         signup2.setPassword("Password456");
-        AuthResponse auth2 = authService.signup(signup2);
+        AuthResponse auth2 = authService.signup(signup2, "pt-BR");
         User user2 = userRepository.findByEmail("user2@test.com").orElseThrow();
 
         CreateWorkoutRequest workout2 = new CreateWorkoutRequest();
@@ -172,7 +172,7 @@ class WorkoutFlowIntegrationTest {
         signup.setName("Session User");
         signup.setEmail("session@test.com");
         signup.setPassword("Password123");
-        authService.signup(signup);
+        authService.signup(signup, "pt-BR");
         User user = userRepository.findByEmail("session@test.com").orElseThrow();
 
         // Create workout

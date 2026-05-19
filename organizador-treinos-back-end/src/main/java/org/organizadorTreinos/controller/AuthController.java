@@ -33,9 +33,11 @@ public class AuthController {
 
     @POST
     @Path("/signup")
-    public Response signup(@Valid SignupRequest request) {
+    public Response signup(@Valid SignupRequest request,
+                           @HeaderParam("Accept-Language") String acceptLanguage) {
         rateLimitService.checkSignup(resolveClientIp());
-        AuthResponse response = authService.signup(request);
+        String locale = resolveLocale(acceptLanguage, request.getPreferredLocale());
+        AuthResponse response = authService.signup(request, locale);
         return Response.status(Response.Status.CREATED).entity(response).build();
     }
 
@@ -67,6 +69,18 @@ public class AuthController {
     public Response resetPassword(@Valid ResetPasswordRequest request) {
         authService.resetPassword(request);
         return Response.ok().build();
+    }
+
+    private String resolveLocale(String acceptLanguage, String preferredLocale) {
+        // Explicit preferredLocale from request body takes priority
+        if (preferredLocale != null && !preferredLocale.isBlank()) {
+            return preferredLocale.trim().startsWith("en") ? "en" : "pt-BR";
+        }
+        // Fall back to Accept-Language header
+        if (acceptLanguage != null && !acceptLanguage.isBlank()) {
+            return acceptLanguage.trim().startsWith("en") ? "en" : "pt-BR";
+        }
+        return "pt-BR";
     }
 
     private String resolveClientIp() {

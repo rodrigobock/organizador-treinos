@@ -58,7 +58,7 @@ class UserDeleteFlowIntegrationTest {
         signupRequest.setEmail("maria@test.com");
         signupRequest.setPassword("Password123");
 
-        AuthResponse signupResponse = authService.signup(signupRequest);
+        AuthResponse signupResponse = authService.signup(signupRequest, "pt-BR");
         assertNotNull(signupResponse.getToken());
 
         User user = userRepository.findByEmail("maria@test.com").orElseThrow();
@@ -99,7 +99,7 @@ class UserDeleteFlowIntegrationTest {
         signupRequest.setEmail("pedro@test.com");
         signupRequest.setPassword("Password123");
 
-        AuthResponse signupResponse = authService.signup(signupRequest);
+        AuthResponse signupResponse = authService.signup(signupRequest, "pt-BR");
         assertNotNull(signupResponse.getToken());
 
         User user = userRepository.findByEmail("pedro@test.com").orElseThrow();

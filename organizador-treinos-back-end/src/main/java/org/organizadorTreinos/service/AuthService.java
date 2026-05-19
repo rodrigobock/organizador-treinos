@@ -38,7 +38,7 @@ public class AuthService {
     @Inject
     PasswordResetTokenRepository tokenRepository;
 
-    public AuthResponse signup(SignupRequest request) {
+    public AuthResponse signup(SignupRequest request, String locale) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email already registered");
         }
@@ -47,13 +47,14 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordService.hash(request.getPassword()));
+        user.setPreferredLocale(locale != null ? locale : "pt-BR");
 
         userRepository.persist(user);
 
         emailService.sendWelcome(user);
 
         String token = jwtService.generateToken(user.getId());
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
 
         return new AuthResponse(token, userResponse);
     }
@@ -67,7 +68,7 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user.getId());
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
 
         return new AuthResponse(token, userResponse);
     }
@@ -82,7 +83,7 @@ public class AuthService {
             resetToken.setExpiresAt(LocalDateTime.now().plusHours(1));
             tokenRepository.persist(resetToken);
 
-            emailService.sendPasswordReset(user.getEmail(), resetToken.getToken());
+            emailService.sendPasswordReset(user, resetToken.getToken());
         });
     }
 
@@ -92,7 +93,7 @@ public class AuthService {
                 .orElseThrow(() -> new NotAuthorizedException("User no longer exists"));
 
         String newToken = jwtService.generateToken(user.getId());
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
         return new AuthResponse(newToken, userResponse);
     }
 

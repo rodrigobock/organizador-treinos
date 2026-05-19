@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
@@ -9,6 +10,7 @@ import useAuth from "../../hooks/useAuth";
 function HomePage() {
   const { user, reloadUser } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation("workouts");
   const [workouts, setWorkouts] = useState([]);
   const [latestWorkout, setLatestWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,13 +41,13 @@ function HomePage() {
           await loadWorkoutById(workoutId);
         }
       } catch (err) {
-        setError(err.message || "Erro ao carregar dados");
+        setError(err.message || t("home.errorLoading"));
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [loadWorkoutById, user?.currentWorkoutId]);
+  }, [loadWorkoutById, user?.currentWorkoutId, t]);
 
   const handleToggle = async (exerciseId) => {
     if (!latestWorkout || !activeSession) return;
@@ -65,7 +67,7 @@ function HomePage() {
       const session = await sessionService.startSession(latestWorkout.id);
       setActiveSession(session);
     } catch (err) {
-      setError(err.response?.data?.message || "Erro ao iniciar treino");
+      setError(err.response?.data?.message || t("home.errorStarting"));
     } finally {
       setSessionLoading(false);
     }
@@ -87,13 +89,13 @@ function HomePage() {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Erro ao finalizar treino");
+      setError(err.response?.data?.message || t("home.errorEnding"));
     } finally {
       setSessionLoading(false);
     }
   };
 
-  const firstName = user?.name?.split(" ")[0] || "você";
+  const firstName = user?.name?.split(" ")[0] || "";
   const exercises = latestWorkout?.exercises || [];
   const completed = exercises.filter(ex => ex.completed).length;
   const total = exercises.length;
@@ -130,10 +132,10 @@ function HomePage() {
                   marginBottom: 2,
                 }}
               >
-                Olá, {firstName} 👋
+                {t("home.greeting", { name: firstName })} 👋
               </h1>
               <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
-                {loading ? "Carregando..." : "Aqui está o seu próximo treino"}
+                {loading ? t("home.loadingSubtitle") : t("home.subtitle")}
               </p>
             </div>
             <button
@@ -150,7 +152,7 @@ function HomePage() {
                 whiteSpace: "nowrap",
               }}
             >
-              + Novo Treino
+              {t("home.newWorkout")}
             </button>
           </div>
 
@@ -164,9 +166,9 @@ function HomePage() {
             }}
           >
             {[
-              { label: "Meus Treinos", value: workouts.length, accent: false },
-              { label: "Exercícios", value: total, accent: true },
-              { label: "Concluídos", value: completed, accent: false },
+              { label: t("home.stats.myWorkouts"), value: workouts.length, accent: false },
+              { label: t("home.stats.exercises"), value: total, accent: true },
+              { label: t("home.stats.completed"), value: completed, accent: false },
             ].map(stat => (
               <div
                 key={stat.label}
@@ -239,10 +241,10 @@ function HomePage() {
                   marginBottom: 8,
                 }}
               >
-                Nenhum treino criado ainda
+                {t("home.emptyTitle")}
               </h3>
               <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 20 }}>
-                Crie seu primeiro treino e comece a organizar seus exercícios
+                {t("home.emptyDescription")}
               </p>
               <button
                 onClick={() => navigate("/newworkout")}
@@ -257,12 +259,12 @@ function HomePage() {
                   cursor: "pointer",
                 }}
               >
-                Criar primeiro treino
+                {t("home.createFirst")}
               </button>
             </div>
           )}
 
-          {/* Próximo treino */}
+          {/* Next workout */}
           {!loading && latestWorkout && (
             <div>
               <div
@@ -275,7 +277,7 @@ function HomePage() {
                   marginBottom: 10,
                 }}
               >
-                Próximo treino
+                {t("home.nextWorkout")}
               </div>
               <div
                 style={{
@@ -322,14 +324,14 @@ function HomePage() {
 
                 {exercises.length === 0 ? (
                   <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                    Nenhum exercício neste treino.
+                    {t("home.noExercises")}
                   </p>
                 ) : (
                   exercises.map(ex => (
                     <div
                       key={ex.id}
                       onClick={() => handleToggle(ex.id)}
-                      title={!activeSession ? "Inicie o treino para marcar exercícios" : undefined}
+                      title={!activeSession ? t("home.startSessionHint") : undefined}
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -402,7 +404,7 @@ function HomePage() {
                   </div>
                 )}
 
-                {/* Botões Iniciar / Finalizar */}
+                {/* Start / End buttons */}
                 <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                   {activeSession ? (
                     <button
@@ -421,7 +423,7 @@ function HomePage() {
                         opacity: sessionLoading ? 0.7 : 1,
                       }}
                     >
-                      {sessionLoading ? "Finalizando..." : "⏹ Finalizar Treino"}
+                      {sessionLoading ? t("home.endingSession") : t("home.endSession")}
                     </button>
                   ) : (
                     <button
@@ -440,7 +442,7 @@ function HomePage() {
                         opacity: sessionLoading ? 0.7 : 1,
                       }}
                     >
-                      {sessionLoading ? "Iniciando..." : "▶ Iniciar Treino"}
+                      {sessionLoading ? t("home.startingSession") : t("home.startSession")}
                     </button>
                   )}
                   <button
@@ -456,7 +458,7 @@ function HomePage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Ver completo →
+                    {t("home.viewFull")} →
                   </button>
                 </div>
 
@@ -470,7 +472,7 @@ function HomePage() {
                       fontWeight: 500,
                     }}
                   >
-                    🟢 Treino em andamento
+                    {t("home.sessionActive")}
                   </div>
                 )}
               </div>

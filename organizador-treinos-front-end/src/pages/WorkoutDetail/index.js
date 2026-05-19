@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
 import Button from "../../components/Button";
 import Card from "react-bootstrap/Card";
@@ -17,6 +18,7 @@ function WorkoutDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { signed } = useAuth();
+  const { t } = useTranslation("workouts");
 
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ function WorkoutDetailPage() {
         }
       } catch (err) {
         if (mounted) {
-          setError(err.message || "Erro ao carregar treino");
+          setError(err.message || t("workoutDetail.errorLoading"));
         }
       } finally {
         if (mounted) {
@@ -58,11 +60,11 @@ function WorkoutDetailPage() {
     return () => {
       mounted = false;
     };
-  }, [id, signed, navigate]);
+  }, [id, signed, navigate, t]);
 
   const handleAddExercise = async () => {
     if (!newExerciseName.trim()) {
-      setError("Nome do exercício não pode estar vazio");
+      setError(t("workoutDetail.errorEmptyName"));
       return;
     }
 
@@ -78,7 +80,7 @@ function WorkoutDetailPage() {
         setNewExerciseName("");
       }
     } catch (err) {
-      setError(err.message || "Erro ao adicionar exercício");
+      setError(err.message || t("workoutDetail.errorAdding"));
     } finally {
       setAddingExercise(false);
     }
@@ -88,7 +90,6 @@ function WorkoutDetailPage() {
     try {
       setError("");
       const updatedExercise = await exerciseService.toggleExercise(id, exerciseId);
-      // Only update if still on same workout
       if (currentWorkoutId === id) {
         setWorkout({
           ...workout,
@@ -98,12 +99,12 @@ function WorkoutDetailPage() {
         });
       }
     } catch (err) {
-      setError(err.message || "Erro ao atualizar exercício");
+      setError(err.message || t("workoutDetail.errorToggling"));
     }
   };
 
   const handleDeleteExercise = async (exerciseId) => {
-    if (!window.confirm("Tem certeza que deseja deletar este exercício?")) {
+    if (!window.confirm(t("workoutDetail.confirmDeleteExercise"))) {
       return;
     }
 
@@ -117,7 +118,7 @@ function WorkoutDetailPage() {
         });
       }
     } catch (err) {
-      setError(err.message || "Erro ao deletar exercício");
+      setError(err.message || t("workoutDetail.errorDeleting"));
     }
   };
 
@@ -138,7 +139,7 @@ function WorkoutDetailPage() {
         });
       }
     } catch (err) {
-      setError(err.message || "Erro ao atualizar exercício");
+      setError(err.message || t("workoutDetail.errorUpdating"));
     }
   };
 
@@ -158,7 +159,7 @@ function WorkoutDetailPage() {
       <>
         <NavBar />
         <div className="container" style={{ marginTop: "20px" }}>
-          <p>Carregando treino...</p>
+          <p>{t("workoutDetail.loadingWorkout")}</p>
         </div>
       </>
     );
@@ -169,9 +170,9 @@ function WorkoutDetailPage() {
       <>
         <NavBar />
         <div className="container" style={{ marginTop: "20px" }}>
-          <p>Treino não encontrado</p>
+          <p>{t("workoutDetail.notFound")}</p>
           <Button
-            Text="Voltar"
+            Text={t("workoutDetail.back")}
             onClick={() => navigate("/myworkouts")}
           />
         </div>
@@ -187,12 +188,12 @@ function WorkoutDetailPage() {
           <div>
             <h1>{workout.name}</h1>
             {workout.isPublic && (
-              <span className="badge bg-info">Público</span>
+              <span className="badge bg-info">{t("common:public")}</span>
             )}
           </div>
           <div className="d-flex gap-2">
-            <Button Text="Exportar JSON" onClick={handleExportJson} size="sm" />
-            <Button Text="Voltar" onClick={() => navigate("/myworkouts")} size="sm" />
+            <Button Text={t("workoutDetail.exportJson")} onClick={handleExportJson} size="sm" />
+            <Button Text={t("workoutDetail.back")} onClick={() => navigate("/myworkouts")} size="sm" />
           </div>
         </div>
 
@@ -204,7 +205,7 @@ function WorkoutDetailPage() {
 
         <Card className="mb-4">
           <Card.Header>
-            <Card.Title className="mb-0">Exercícios</Card.Title>
+            <Card.Title className="mb-0">{t("workoutDetail.exercisesTitle")}</Card.Title>
           </Card.Header>
           <Card.Body>
             {workout.exercises && workout.exercises.length > 0 ? (
@@ -236,7 +237,7 @@ function WorkoutDetailPage() {
                       <Col xs={4} className="text-end">
                         <button
                           onClick={() => handleDeleteExercise(exercise.id)}
-                          aria-label="Excluir exercício"
+                          aria-label={t("workoutDetail.deleteExercise")}
                           style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#dc3545" }}
                         >
                           <Trash size={16} />
@@ -247,24 +248,24 @@ function WorkoutDetailPage() {
                 ))}
               </div>
             ) : (
-              <p>Nenhum exercício adicionado ainda.</p>
+              <p>{t("workoutDetail.noExercises")}</p>
             )}
 
             <hr />
 
             <div className="mb-3">
-              <Form.Label>Adicionar Novo Exercício</Form.Label>
+              <Form.Label>{t("workoutDetail.addNewExercise")}</Form.Label>
               <Form.Group className="mb-2">
                 <Form.Control
                   type="text"
-                  placeholder="Nome do exercício"
+                  placeholder={t("workoutDetail.exerciseNamePlaceholder")}
                   value={newExerciseName}
                   onChange={(e) => setNewExerciseName(e.target.value)}
                   disabled={addingExercise}
                 />
               </Form.Group>
               <Button
-                Text={addingExercise ? "Adicionando..." : "+ Adicionar"}
+                Text={addingExercise ? t("workoutDetail.adding") : t("workoutDetail.addButton")}
                 onClick={handleAddExercise}
                 disabled={addingExercise || !newExerciseName.trim()}
               />

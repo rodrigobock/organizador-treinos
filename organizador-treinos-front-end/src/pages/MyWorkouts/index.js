@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
 import Button from "../../components/Button";
 import Card from "react-bootstrap/Card";
@@ -17,7 +18,7 @@ import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
 
 const PAGE_SIZE = 10;
 
-function SortableWorkoutCard({ workout, onView, onDelete }) {
+function SortableWorkoutCard({ workout, onView, onDelete, t }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: workout.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,18 +39,18 @@ function SortableWorkoutCard({ workout, onView, onDelete }) {
           </span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600 }}>{workout.name}</div>
-            {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>Público</span>}
+            {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>{t("common:public")}</span>}
           </div>
           <button
             onClick={() => onView(workout.id)}
-            aria-label="Editar treino"
+            aria-label={t("myWorkouts.editWorkout")}
             style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
           >
             <PencilSquare size={17} />
           </button>
           <button
             onClick={() => onDelete(workout.id)}
-            aria-label="Excluir treino"
+            aria-label={t("myWorkouts.deleteWorkout")}
             style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
           >
             <Trash size={17} />
@@ -60,24 +61,24 @@ function SortableWorkoutCard({ workout, onView, onDelete }) {
   );
 }
 
-function StaticWorkoutCard({ workout, onView, onDelete }) {
+function StaticWorkoutCard({ workout, onView, onDelete, t }) {
   return (
     <Card className="workout-card mb-2">
       <Card.Body className="d-flex align-items-center gap-2 py-2">
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600 }}>{workout.name}</div>
-          {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>Público</span>}
+          {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>{t("common:public")}</span>}
         </div>
         <button
           onClick={() => onView(workout.id)}
-          aria-label="Editar treino"
+          aria-label={t("myWorkouts.editWorkout")}
           style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
         >
           <PencilSquare size={17} />
         </button>
         <button
           onClick={() => onDelete(workout.id)}
-          aria-label="Excluir treino"
+          aria-label={t("myWorkouts.deleteWorkout")}
           style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
         >
           <Trash size={17} />
@@ -90,6 +91,7 @@ function StaticWorkoutCard({ workout, onView, onDelete }) {
 function MyWorkoutsPage() {
   const { signed, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation("workouts");
 
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,7 +120,7 @@ function MyWorkoutsPage() {
       setTotalPages(data.totalPages);
       setTotalElements(data.totalElements);
     } catch (err) {
-      setError(err.message || "Erro ao carregar treinos");
+      setError(err.message || t("myWorkouts.errorLoading"));
     } finally {
       setLoading(false);
     }
@@ -145,7 +147,7 @@ function MyWorkoutsPage() {
   };
 
   const handleDeleteWorkout = async (id) => {
-    if (!window.confirm("Tem certeza que deseja deletar este treino?")) {
+    if (!window.confirm(t("myWorkouts.confirmDelete"))) {
       return;
     }
 
@@ -153,7 +155,7 @@ function MyWorkoutsPage() {
       await workoutService.deleteWorkout(id);
       await loadWorkouts(currentPage);
     } catch (err) {
-      setError(err.message || "Erro ao deletar treino");
+      setError(err.message || t("myWorkouts.errorDeleting"));
     }
   };
 
@@ -170,7 +172,7 @@ function MyWorkoutsPage() {
       await workoutService.reorderWorkouts(reordered.map(w => w.id));
     } catch (err) {
       setWorkouts(workouts);
-      setError(err.message || "Erro ao reordenar treinos");
+      setError(err.message || t("myWorkouts.errorReordering"));
     }
   };
 
@@ -191,7 +193,7 @@ function MyWorkoutsPage() {
       };
       downloadJson("my-workouts.json", data);
     } catch (err) {
-      setError("Erro ao exportar treinos");
+      setError(t("myWorkouts.errorExporting"));
     } finally {
       setExportingAll(false);
     }
@@ -206,17 +208,17 @@ function MyWorkoutsPage() {
     try {
       parsed = JSON.parse(await file.text());
     } catch {
-      setError("Arquivo JSON inválido");
+      setError(t("myWorkouts.invalidJson"));
       return;
     }
 
     if (parsed.version !== 1 || !Array.isArray(parsed.workouts)) {
-      setError("Versão de arquivo não suportada ou formato inválido");
+      setError(t("myWorkouts.unsupportedVersion"));
       return;
     }
 
     if (parsed.workouts.length === 0) {
-      setError("Nenhum treino encontrado no arquivo");
+      setError(t("myWorkouts.noWorkoutsInFile"));
       return;
     }
 
@@ -231,7 +233,7 @@ function MyWorkoutsPage() {
       setUserActions(defaults);
       setImportAnalysis(analysis);
     } catch (err) {
-      setError(typeof err === "string" ? err : "Erro ao analisar arquivo");
+      setError(typeof err === "string" ? err : t("myWorkouts.errorAnalyzing"));
     } finally {
       setImporting(false);
     }
@@ -252,12 +254,12 @@ function MyWorkoutsPage() {
       await loadWorkouts(0);
       setCurrentPage(0);
       const parts = [];
-      if (result.created > 0) parts.push(`${result.created} criado(s)`);
-      if (result.replaced > 0) parts.push(`${result.replaced} substituído(s)`);
-      if (result.skipped > 0) parts.push(`${result.skipped} ignorado(s)`);
-      alert(`Importação concluída: ${parts.join(", ")}`);
+      if (result.created > 0) parts.push(t("myWorkouts.import.resultCreated", { count: result.created }));
+      if (result.replaced > 0) parts.push(t("myWorkouts.import.resultReplaced", { count: result.replaced }));
+      if (result.skipped > 0) parts.push(t("myWorkouts.import.resultSkipped", { count: result.skipped }));
+      alert(t("myWorkouts.import.resultTitle", { details: parts.join(", ") }));
     } catch (err) {
-      setError(typeof err === "string" ? err : "Erro ao importar treinos");
+      setError(typeof err === "string" ? err : t("myWorkouts.errorImporting"));
     } finally {
       setImporting(false);
     }
@@ -306,7 +308,9 @@ function MyWorkoutsPage() {
     return (
       <div className="d-flex justify-content-between align-items-center mt-3">
         <small className="text-muted">
-          {totalElements} treino{totalElements !== 1 ? "s" : ""} no total
+          {totalElements === 1
+            ? t("myWorkouts.totalCount", { count: totalElements })
+            : t("myWorkouts.totalCount_plural", { count: totalElements })}
         </small>
         <Pagination size="sm" className="mb-0">{items}</Pagination>
       </div>
@@ -318,7 +322,7 @@ function MyWorkoutsPage() {
       <>
         <NavBar />
         <div className="container" style={{ marginTop: "20px" }}>
-          <p>Carregando treinos...</p>
+          <p>{t("myWorkouts.loadingWorkouts")}</p>
         </div>
       </>
     );
@@ -329,16 +333,16 @@ function MyWorkoutsPage() {
       <NavBar />
       <div className="container" style={{ marginTop: "20px" }}>
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>Meus Treinos</h1>
+          <h1>{t("myWorkouts.title")}</h1>
           <div className="d-flex gap-2">
             <Button
-              Text={exportingAll ? "Exportando..." : "Exportar JSON"}
+              Text={exportingAll ? t("myWorkouts.exportingJson") : t("myWorkouts.exportJson")}
               onClick={handleExportAll}
               disabled={exportingAll || totalElements === 0}
               size="sm"
             />
             <Button
-              Text={importing ? "Importando..." : "Importar JSON"}
+              Text={importing ? t("myWorkouts.importingJson") : t("myWorkouts.importJson")}
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
               disabled={importing}
               size="sm"
@@ -351,7 +355,7 @@ function MyWorkoutsPage() {
               onChange={handleImportFileChange}
             />
             <Button
-              Text="+ Novo Treino"
+              Text={t("myWorkouts.newWorkout")}
               onClick={() => navigate("/newworkout")}
               size="sm"
             />
@@ -368,8 +372,7 @@ function MyWorkoutsPage() {
           <Card>
             <Card.Body>
               <Card.Text>
-                Você não tem treinos ainda. Clique em "+ Novo Treino" para
-                começar!
+                {t("myWorkouts.emptyMessage")}
               </Card.Text>
             </Card.Body>
           </Card>
@@ -381,6 +384,7 @@ function MyWorkoutsPage() {
                 workout={workout}
                 onView={handleViewWorkout}
                 onDelete={handleDeleteWorkout}
+                t={t}
               />
             ))}
             {renderPagination()}
@@ -394,6 +398,7 @@ function MyWorkoutsPage() {
                   workout={workout}
                   onView={handleViewWorkout}
                   onDelete={handleDeleteWorkout}
+                  t={t}
                 />
               ))}
             </SortableContext>
@@ -403,35 +408,35 @@ function MyWorkoutsPage() {
 
       <Modal show={importAnalysis !== null} onHide={() => setImportAnalysis(null)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Importar Treinos</Modal.Title>
+          <Modal.Title>{t("myWorkouts.import.title")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Table bordered hover>
             <thead>
               <tr>
-                <th>Treino</th>
-                <th>Exercícios</th>
-                <th>Status</th>
-                <th>Ação</th>
+                <th>{t("myWorkouts.import.workoutColumn")}</th>
+                <th>{t("myWorkouts.import.exercisesColumn")}</th>
+                <th>{t("myWorkouts.import.statusColumn")}</th>
+                <th>{t("myWorkouts.import.actionColumn")}</th>
               </tr>
             </thead>
             <tbody>
               {(importAnalysis || []).map((item, idx) => (
                 <tr key={idx}>
                   <td>{item.workout.name}</td>
-                  <td>{(item.workout.exercises || []).length} exercício(s)</td>
+                  <td>{t("myWorkouts.import.exerciseCount", { count: (item.workout.exercises || []).length })}</td>
                   <td>
                     {item.status === "clean" ? (
-                      <span className="badge bg-success">Novo</span>
+                      <span className="badge bg-success">{t("myWorkouts.import.statusNew")}</span>
                     ) : (
                       <span className="badge bg-warning text-dark">
-                        Duplicado ({Math.round(item.similarity * 100)}%)
+                        {t("myWorkouts.import.statusDuplicate", { percent: Math.round(item.similarity * 100) })}
                       </span>
                     )}
                   </td>
                   <td>
                     {item.status === "clean" ? (
-                      <span className="text-muted">Será criado</span>
+                      <span className="text-muted">{t("myWorkouts.import.willBeCreated")}</span>
                     ) : (
                       <Form.Select
                         size="sm"
@@ -440,9 +445,9 @@ function MyWorkoutsPage() {
                           setUserActions({ ...userActions, [idx]: e.target.value })
                         }
                       >
-                        <option value="create">Criar novo (nome duplicado)</option>
-                        <option value="replace">Substituir</option>
-                        <option value="skip">Ignorar</option>
+                        <option value="create">{t("myWorkouts.import.createDuplicate")}</option>
+                        <option value="replace">{t("myWorkouts.import.replace")}</option>
+                        <option value="skip">{t("myWorkouts.import.skip")}</option>
                       </Form.Select>
                     )}
                   </td>
@@ -452,9 +457,9 @@ function MyWorkoutsPage() {
           </Table>
         </Modal.Body>
         <Modal.Footer>
-          <Button Text="Cancelar" onClick={() => setImportAnalysis(null)} />
+          <Button Text={t("common:cancel")} onClick={() => setImportAnalysis(null)} />
           <Button
-            Text={importing ? "Importando..." : "Confirmar Importação"}
+            Text={importing ? t("myWorkouts.import.confirmingButton") : t("myWorkouts.import.confirmButton")}
             onClick={handleConfirmImport}
             disabled={importing}
           />

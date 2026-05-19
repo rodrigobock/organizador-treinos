@@ -1,4 +1,5 @@
 import axios from 'axios';
+import i18n from '../i18n';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 const TOKEN_KEY = 'user_token';
@@ -58,6 +59,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    const lang = localStorage.getItem('i18n_lang') || 'pt-BR';
+    config.headers['Accept-Language'] = lang;
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -84,7 +89,7 @@ api.interceptors.response.use(
         } catch (refreshErr) {
           redirectToSignin();
           return Promise.reject({
-            message: 'Sessão expirada. Faça login novamente.',
+            message: i18n.t('errors.error.session_expired', { ns: 'common' }),
             status: 401,
           });
         }
@@ -103,7 +108,7 @@ api.interceptors.response.use(
       }
 
       return Promise.reject({
-        message: data?.message || 'Erro ao processar requisição',
+        message: data?.message || i18n.t('errors.error.processing', { ns: 'common' }),
         status,
         data,
       });
@@ -111,13 +116,13 @@ api.interceptors.response.use(
 
     if (error.request) {
       return Promise.reject({
-        message: 'Erro de conexão. Verifique sua internet.',
+        message: i18n.t('errors.error.connection', { ns: 'common' }),
         status: 0,
       });
     }
 
     return Promise.reject({
-      message: error.message || 'Erro desconhecido',
+      message: error.message || i18n.t('errors.error.unknown', { ns: 'common' }),
       status: 0,
     });
   }

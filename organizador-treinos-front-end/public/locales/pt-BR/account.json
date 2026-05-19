@@ -1,0 +1,45 @@
+{
+  "title": "Minha Conta",
+  "subtitle": "Gerencie seus dados",
+  "nameLabel": "Nome",
+  "emailLabel": "E-mail",
+  "saving": "Salvando...",
+  "saveChanges": "Salvar alterações",
+  "cancel": "Cancelar",
+  "updateSuccess": "Dados atualizados com sucesso!",
+  "nameRequired": "O nome não pode estar vazio",
+  "errorSaving": "Erro ao salvar",
+  "changePassword": {
+    "title": "Trocar Senha",
+    "currentPassword": "Senha Atual",
+    "newPassword": "Nova Senha",
+    "confirmNewPassword": "Confirmar Nova Senha",
+    "passwordHint": "Mínimo 8 caracteres, 1 maiúscula e 1 número",
+    "fillAllFields": "Preencha todos os campos",
+    "passwordMismatch": "As novas senhas não são iguais",
+    "saving": "Salvando...",
+    "saveButton": "Salvar Nova Senha",
+    "cancel": "Cancelar",
+    "success": "Senha alterada com sucesso!",
+    "error": "Erro ao mudar senha",
+    "passwordMinLength": "Senha deve ter no mínimo 8 caracteres",
+    "passwordUppercase": "Senha deve conter pelo menos uma letra maiúscula",
+    "passwordNumber": "Senha deve conter pelo menos um número"
+  },
+  "dangerZone": {
+    "title": "Zona de Perigo",
+    "description": "Esta ação remove permanentemente sua conta e todos os seus dados.",
+    "deleteButton": "Deletar Conta",
+    "modal": {
+      "title": "Deletar Conta Permanentemente",
+      "warning": "Esta ação é irreversível. Todos seus treinos e dados serão removidos.",
+      "passwordLabel": "Digite sua senha para confirmar",
+      "passwordRequired": "Digite sua senha",
+      "cancel": "Cancelar",
+      "deleting": "Deletando...",
+      "confirmButton": "Deletar Permanentemente",
+      "error": "Senha incorreta ou erro ao deletar conta",
+      "successMessage": "Conta deletada com sucesso."
+    }
+  }
+}

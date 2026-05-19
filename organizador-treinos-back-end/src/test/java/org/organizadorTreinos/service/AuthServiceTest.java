@@ -54,7 +54,7 @@ class AuthServiceTest {
         request.setEmail("joao@test.com");
         request.setPassword("SecurePass123");
 
-        AuthResponse response = authService.signup(request);
+        AuthResponse response = authService.signup(request, "pt-BR");
 
         assertNotNull(response);
         assertNotNull(response.getToken());
@@ -70,7 +70,7 @@ class AuthServiceTest {
         request.setEmail("test@test.com");
         request.setPassword("ValidPass123");
 
-        AuthResponse response = authService.signup(request);
+        AuthResponse response = authService.signup(request, "pt-BR");
 
         assertNotNull(response.getToken());
         assertFalse(response.getToken().isEmpty());
@@ -84,7 +84,7 @@ class AuthServiceTest {
         request1.setName("User 1");
         request1.setEmail("duplicate@test.com");
         request1.setPassword("Password123");
-        authService.signup(request1);
+        authService.signup(request1, "pt-BR");
 
         SignupRequest request2 = new SignupRequest();
         request2.setName("User 2");
@@ -92,7 +92,7 @@ class AuthServiceTest {
         request2.setPassword("Password456");
 
         assertThrows(BadRequestException.class, () -> {
-            authService.signup(request2);
+            authService.signup(request2, "pt-BR");
         });
     }
 
@@ -105,7 +105,7 @@ class AuthServiceTest {
         request.setPassword("weak");
 
         assertThrows(Exception.class, () -> {
-            authService.signup(request);
+            authService.signup(request, "pt-BR");
         });
     }
 
@@ -116,7 +116,7 @@ class AuthServiceTest {
         signupRequest.setName("User");
         signupRequest.setEmail("login@test.com");
         signupRequest.setPassword("ValidPass123");
-        authService.signup(signupRequest);
+        authService.signup(signupRequest, "pt-BR");
 
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setEmail("login@test.com");
@@ -136,7 +136,7 @@ class AuthServiceTest {
         signupRequest.setName("User");
         signupRequest.setEmail("token@test.com");
         signupRequest.setPassword("ValidPass123");
-        authService.signup(signupRequest);
+        authService.signup(signupRequest, "pt-BR");
 
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setEmail("token@test.com");
@@ -155,7 +155,7 @@ class AuthServiceTest {
         signupRequest.setName("User");
         signupRequest.setEmail("wrong@test.com");
         signupRequest.setPassword("CorrectPass123");
-        authService.signup(signupRequest);
+        authService.signup(signupRequest, "pt-BR");
 
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setEmail("wrong@test.com");
@@ -186,7 +186,7 @@ class AuthServiceTest {
         request.setEmail("hash@test.com");
         request.setPassword("MyPassword123");
 
-        authService.signup(request);
+        authService.signup(request, "pt-BR");
         String storedHash = userRepository.findByEmail("hash@test.com").get().getPasswordHash();
 
         assertNotNull(storedHash);
@@ -202,7 +202,7 @@ class AuthServiceTest {
         request.setEmail("maria@test.com");
         request.setPassword("ValidPass123");
 
-        authService.signup(request);
+        authService.signup(request, "pt-BR");
 
         Mockito.verify(emailService, Mockito.times(1)).sendWelcome(Mockito.any());
     }
@@ -214,7 +214,7 @@ class AuthServiceTest {
         signup.setName("User");
         signup.setEmail("user@test.com");
         signup.setPassword("ValidPass123");
-        authService.signup(signup);
+        authService.signup(signup, "pt-BR");
         Mockito.reset(emailService);
 
         ForgotPasswordRequest request = new ForgotPasswordRequest();
@@ -223,7 +223,7 @@ class AuthServiceTest {
         authService.forgotPassword(request);
 
         Mockito.verify(emailService, Mockito.times(1))
-                .sendPasswordReset(Mockito.eq("user@test.com"), Mockito.anyString());
+                .sendPasswordReset(Mockito.any(org.organizadorTreinos.entity.User.class), Mockito.anyString());
     }
 
     @Test
@@ -233,7 +233,7 @@ class AuthServiceTest {
         request.setEmail("nobody@test.com");
 
         assertDoesNotThrow(() -> authService.forgotPassword(request));
-        Mockito.verify(emailService, Mockito.never()).sendPasswordReset(Mockito.any(), Mockito.any());
+        Mockito.verify(emailService, Mockito.never()).sendPasswordReset(Mockito.any(org.organizadorTreinos.entity.User.class), Mockito.any());
     }
 
     @Test
@@ -243,7 +243,7 @@ class AuthServiceTest {
         signup.setName("User");
         signup.setEmail("user2@test.com");
         signup.setPassword("ValidPass123");
-        authService.signup(signup);
+        authService.signup(signup, "pt-BR");
         Mockito.reset(emailService);
 
         ForgotPasswordRequest request = new ForgotPasswordRequest();
@@ -263,7 +263,7 @@ class AuthServiceTest {
         signup.setName("User");
         signup.setEmail("reset@test.com");
         signup.setPassword("OldPass123");
-        authService.signup(signup);
+        authService.signup(signup, "pt-BR");
         Mockito.reset(emailService);
 
         ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
@@ -303,7 +303,7 @@ class AuthServiceTest {
         signup.setName("User");
         signup.setEmail("used@test.com");
         signup.setPassword("OldPass123");
-        authService.signup(signup);
+        authService.signup(signup, "pt-BR");
         Mockito.reset(emailService);
 
         ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();
@@ -330,7 +330,7 @@ class AuthServiceTest {
         signup.setName("User");
         signup.setEmail("expired@test.com");
         signup.setPassword("OldPass123");
-        authService.signup(signup);
+        authService.signup(signup, "pt-BR");
         Mockito.reset(emailService);
 
         ForgotPasswordRequest forgotRequest = new ForgotPasswordRequest();

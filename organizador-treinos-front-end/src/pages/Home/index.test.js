@@ -6,12 +6,14 @@ jest.mock("../../hooks/useAuth");
 jest.mock("../../contexts/theme");
 jest.mock("../../services/workoutService");
 jest.mock("../../services/exerciseService");
+jest.mock("../../services/sessionService");
 jest.mock("../../components/NavBar", () => () => <div data-testid="navbar" />);
 
 import useAuth from "../../hooks/useAuth";
 import { useTheme } from "../../contexts/theme";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
+import sessionService from "../../services/sessionService";
 
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -34,7 +36,7 @@ const fakeWorkoutDetail = {
 };
 
 beforeEach(() => {
-  useAuth.mockReturnValue({ user: { name: "Rodrigo Bock", email: "r@test.com" } });
+  useAuth.mockReturnValue({ user: { name: "Rodrigo Bock", email: "r@test.com" }, reloadUser: jest.fn().mockResolvedValue(null) });
   useTheme.mockReturnValue({ theme: "dark", toggleTheme: jest.fn() });
   workoutService.getMyWorkouts = jest.fn().mockResolvedValue(fakeWorkouts);
   workoutService.getWorkout = jest.fn().mockResolvedValue(fakeWorkoutDetail);
@@ -43,6 +45,9 @@ beforeEach(() => {
     name: "Remada Baixa",
     completed: true,
   });
+  sessionService.getActiveSession = jest.fn().mockResolvedValue({ id: "s1" });
+  sessionService.startSession = jest.fn().mockResolvedValue({ id: "s1" });
+  sessionService.endSession = jest.fn().mockResolvedValue(null);
   mockNavigate.mockClear();
 });
 

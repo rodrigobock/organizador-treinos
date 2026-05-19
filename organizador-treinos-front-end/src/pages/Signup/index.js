@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
@@ -29,21 +30,22 @@ const Signup = () => {
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
   const { signup } = useAuth();
+  const { t } = useTranslation("auth");
 
   const validatePassword = (pwd) => {
-    if (pwd.length < 8)      return "Senha deve ter no mínimo 8 caracteres";
-    if (!/[A-Z]/.test(pwd))  return "Senha deve conter pelo menos uma letra maiúscula";
-    if (!/\d/.test(pwd))     return "Senha deve conter pelo menos um número";
+    if (pwd.length < 8)      return t("signup.passwordMinLength");
+    if (!/[A-Z]/.test(pwd))  return t("signup.passwordUppercase");
+    if (!/\d/.test(pwd))     return t("signup.passwordNumber");
     return null;
   };
 
   const handleSignup = async () => {
     if (!name || !email || !emailConf || !password) {
-      setError("Preencha todos os campos");
+      setError(t("signup.fillAllFields"));
       return;
     }
     if (email !== emailConf) {
-      setError("Os e-mails não são iguais");
+      setError(t("signup.emailMismatch"));
       return;
     }
     const passwordError = validatePassword(password);
@@ -67,6 +69,8 @@ const Signup = () => {
     if (e.key === "Enter") handleSignup();
   };
 
+  const heroLines = t("signup.heroTitle").split("\n");
+
   return (
     <C.PageWrapper>
       <C.HeroPanel>
@@ -76,27 +80,32 @@ const Signup = () => {
         <C.HeroContent>
           <RunnerIcon />
           <C.HeroTitle>
-            COMECE<br />SUA<br />JORNADA
+            {heroLines.map((line, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <br />}
+                {line}
+              </React.Fragment>
+            ))}
           </C.HeroTitle>
           <C.HeroAccentBar />
           <C.HeroSubtitle>
-            Crie sua conta e comece a organizar seus treinos hoje mesmo.
+            {t("signup.heroSubtitle")}
           </C.HeroSubtitle>
         </C.HeroContent>
 
-        <C.HeroFooter>Organizador de Treinos</C.HeroFooter>
+        <C.HeroFooter>{t("signup.heroFooter")}</C.HeroFooter>
       </C.HeroPanel>
 
       <C.FormPanel>
         <C.FormCard>
-          <C.AppBrand>💪 Treinos</C.AppBrand>
-          <C.FormHeading>Criar conta</C.FormHeading>
-          <C.FormSub>Preencha os dados abaixo para começar</C.FormSub>
+          <C.AppBrand>{t("common:brand")}</C.AppBrand>
+          <C.FormHeading>{t("signup.heading")}</C.FormHeading>
+          <C.FormSub>{t("signup.subheading")}</C.FormSub>
 
           <C.FieldGroup>
             <Input
               type="text"
-              placeholder="Nome completo"
+              placeholder={t("signup.namePlaceholder")}
               value={name}
               onChange={(e) => { setName(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
@@ -104,7 +113,7 @@ const Signup = () => {
             />
             <Input
               type="email"
-              placeholder="E-mail"
+              placeholder={t("signup.emailPlaceholder")}
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
@@ -112,7 +121,7 @@ const Signup = () => {
             />
             <Input
               type="email"
-              placeholder="Confirmar e-mail"
+              placeholder={t("signup.confirmEmailPlaceholder")}
               value={emailConf}
               onChange={(e) => { setEmailConf(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
@@ -120,25 +129,25 @@ const Signup = () => {
             />
             <Input
               type="password"
-              placeholder="Senha"
+              placeholder={t("signup.passwordPlaceholder")}
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
               disabled={loading}
             />
-            <C.PasswordHint>Mínimo 8 caracteres, 1 maiúscula e 1 número</C.PasswordHint>
+            <C.PasswordHint>{t("signup.passwordHint")}</C.PasswordHint>
           </C.FieldGroup>
 
           {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
           <Button
-            Text={loading ? "Criando conta..." : "Criar conta"}
+            Text={loading ? t("signup.submitLoading") : t("signup.submit")}
             onClick={handleSignup}
             disabled={loading}
           />
 
           <C.SigninLink>
-            Já tem conta? <Link to="/">Entrar</Link>
+            {t("signup.hasAccount")} <Link to="/">{t("signup.login")}</Link>
           </C.SigninLink>
         </C.FormCard>
       </C.FormPanel>

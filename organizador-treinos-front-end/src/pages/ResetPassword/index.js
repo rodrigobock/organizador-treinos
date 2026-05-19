@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
@@ -34,6 +35,7 @@ const ResetPassword = () => {
   const [searchParams]                        = useSearchParams();
   const token                                 = searchParams.get("token") || "";
   const navigate                              = useNavigate();
+  const { t } = useTranslation("auth");
 
   const [newPassword, setNewPassword]         = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,16 +43,16 @@ const ResetPassword = () => {
   const [loading, setLoading]                 = useState(false);
 
   const validatePassword = (pwd) => {
-    if (pwd.length < 8)     return "Senha deve ter no mínimo 8 caracteres";
-    if (!/[A-Z]/.test(pwd)) return "Senha deve conter pelo menos uma letra maiúscula";
-    if (!/\d/.test(pwd))    return "Senha deve conter pelo menos um número";
+    if (pwd.length < 8)     return t("resetPassword.passwordMinLength");
+    if (!/[A-Z]/.test(pwd)) return t("resetPassword.passwordUppercase");
+    if (!/\d/.test(pwd))    return t("resetPassword.passwordNumber");
     return null;
   };
 
   const handleSubmit = async () => {
-    if (!token) { setError("Link inválido. Solicite um novo."); return; }
-    if (!newPassword || !confirmPassword) { setError("Preencha todos os campos"); return; }
-    if (newPassword !== confirmPassword)  { setError("As senhas não são iguais"); return; }
+    if (!token) { setError(t("resetPassword.invalidLink")); return; }
+    if (!newPassword || !confirmPassword) { setError(t("resetPassword.fillAllFields")); return; }
+    if (newPassword !== confirmPassword)  { setError(t("resetPassword.passwordMismatch")); return; }
 
     const pwdError = validatePassword(newPassword);
     if (pwdError) { setError(pwdError); return; }
@@ -60,9 +62,9 @@ const ResetPassword = () => {
 
     try {
       await authService.resetPassword(token, newPassword);
-      navigate("/", { state: { message: "Senha redefinida com sucesso! Faça login." } });
+      navigate("/", { state: { message: t("resetPassword.successMessage") } });
     } catch {
-      setError("Link inválido ou expirado. Solicite um novo.");
+      setError(t("resetPassword.expiredLink"));
       setLoading(false);
     }
   };
@@ -70,6 +72,8 @@ const ResetPassword = () => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleSubmit();
   };
+
+  const heroLines = t("resetPassword.heroTitle").split("\n");
 
   return (
     <C.PageWrapper>
@@ -80,27 +84,32 @@ const ResetPassword = () => {
         <C.HeroContent>
           <ShieldIcon />
           <C.HeroTitle>
-            NOVA<br />SENHA<br />SEGURA
+            {heroLines.map((line, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <br />}
+                {line}
+              </React.Fragment>
+            ))}
           </C.HeroTitle>
           <C.HeroAccentBar />
           <C.HeroSubtitle>
-            Escolha uma senha forte para manter sua conta protegida.
+            {t("resetPassword.heroSubtitle")}
           </C.HeroSubtitle>
         </C.HeroContent>
 
-        <C.HeroFooter>Organizador de Treinos</C.HeroFooter>
+        <C.HeroFooter>{t("resetPassword.heroFooter")}</C.HeroFooter>
       </C.HeroPanel>
 
       <C.FormPanel>
         <C.FormCard>
-          <C.AppBrand>💪 Treinos</C.AppBrand>
-          <C.FormHeading>Redefinir senha</C.FormHeading>
-          <C.FormSub>Crie uma nova senha para sua conta</C.FormSub>
+          <C.AppBrand>{t("common:brand")}</C.AppBrand>
+          <C.FormHeading>{t("resetPassword.heading")}</C.FormHeading>
+          <C.FormSub>{t("resetPassword.subheading")}</C.FormSub>
 
           <C.FieldGroup>
             <Input
               type="password"
-              placeholder="Nova senha"
+              placeholder={t("resetPassword.newPasswordPlaceholder")}
               value={newPassword}
               onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
@@ -108,25 +117,25 @@ const ResetPassword = () => {
             />
             <Input
               type="password"
-              placeholder="Confirmar nova senha"
+              placeholder={t("resetPassword.confirmPasswordPlaceholder")}
               value={confirmPassword}
               onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
               disabled={loading}
             />
-            <C.PasswordHint>Mínimo 8 caracteres, 1 maiúscula e 1 número</C.PasswordHint>
+            <C.PasswordHint>{t("resetPassword.passwordHint")}</C.PasswordHint>
           </C.FieldGroup>
 
           {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
           <Button
-            Text={loading ? "Salvando..." : "Redefinir senha"}
+            Text={loading ? t("resetPassword.submitLoading") : t("resetPassword.submit")}
             onClick={handleSubmit}
             disabled={loading}
           />
 
           <C.BackLink>
-            <Link to="/">Voltar ao login</Link>
+            <Link to="/">{t("resetPassword.backToLogin")}</Link>
           </C.BackLink>
         </C.FormCard>
       </C.FormPanel>

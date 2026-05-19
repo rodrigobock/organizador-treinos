@@ -1,0 +1,45 @@
+{
+  "title": "My Account",
+  "subtitle": "Manage your information",
+  "nameLabel": "Name",
+  "emailLabel": "Email",
+  "saving": "Saving...",
+  "saveChanges": "Save changes",
+  "cancel": "Cancel",
+  "updateSuccess": "Information updated successfully!",
+  "nameRequired": "Name cannot be empty",
+  "errorSaving": "Error saving",
+  "changePassword": {
+    "title": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "passwordHint": "Minimum 8 characters, 1 uppercase and 1 number",
+    "fillAllFields": "Please fill in all fields",
+    "passwordMismatch": "New passwords do not match",
+    "saving": "Saving...",
+    "saveButton": "Save New Password",
+    "cancel": "Cancel",
+    "success": "Password changed successfully!",
+    "error": "Error changing password",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordUppercase": "Password must contain at least one uppercase letter",
+    "passwordNumber": "Password must contain at least one number"
+  },
+  "dangerZone": {
+    "title": "Danger Zone",
+    "description": "This action permanently removes your account and all your data.",
+    "deleteButton": "Delete Account",
+    "modal": {
+      "title": "Delete Account Permanently",
+      "warning": "This action is irreversible. All your workouts and data will be removed.",
+      "passwordLabel": "Enter your password to confirm",
+      "passwordRequired": "Enter your password",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "confirmButton": "Delete Permanently",
+      "error": "Incorrect password or error deleting account",
+      "successMessage": "Account deleted successfully."
+    }
+  }
+}

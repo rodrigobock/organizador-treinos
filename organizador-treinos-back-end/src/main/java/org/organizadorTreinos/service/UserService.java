@@ -25,17 +25,22 @@ public class UserService {
         User user = userRepository.find("id", userId)
             .firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
 
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
     }
 
-    public UserResponse updateUser(UUID userId, String name) {
+    public UserResponse updateUser(UUID userId, String name, String preferredLocale) {
         User user = userRepository.find("id", userId)
             .firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
 
-        user.setName(name);
+        if (name != null) {
+            user.setName(name);
+        }
+        if (preferredLocale != null) {
+            user.setPreferredLocale(preferredLocale);
+        }
         userRepository.persist(user);
 
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
     }
 
     public void changePassword(UUID userId, String oldPassword, String newPassword) {

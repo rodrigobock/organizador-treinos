@@ -1,0 +1,34 @@
+{
+  "brand": "Treinos",
+  "save": "Salvar",
+  "cancel": "Cancelar",
+  "delete": "Excluir",
+  "edit": "Editar",
+  "loading": "Carregando...",
+  "confirm": "Confirmar",
+  "back": "Voltar",
+  "remove": "Remover",
+  "public": "Público",
+  "navbar": {
+    "dashboard": "Dashboard",
+    "myWorkouts": "Meus Treinos",
+    "account": "Conta",
+    "logout": "Sair",
+    "themeLight": "Mudar para Light",
+    "themeDark": "Mudar para Dark"
+  },
+  "errors": {
+    "auth.email_already_registered": "Este e-mail já está cadastrado",
+    "auth.invalid_credentials": "E-mail ou senha inválidos",
+    "auth.rate_limit_exceeded": "Muitas tentativas. Tente novamente em alguns minutos",
+    "workout.not_found": "Treino não encontrado",
+    "workout.forbidden": "Você não tem acesso a este treino",
+    "validation.constraint_violation": "Dados inválidos",
+    "error.connection": "Erro de conexão. Verifique sua internet.",
+    "error.unknown": "Erro desconhecido. Tente novamente.",
+    "error.processing": "Erro ao processar requisição",
+    "error.session_expired": "Sessão expirada. Faça login novamente.",
+    "error.access_denied": "Acesso negado",
+    "error.not_found": "Não encontrado"
+  }
+}
