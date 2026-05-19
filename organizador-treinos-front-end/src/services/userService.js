@@ -1,32 +1,27 @@
 import api from './api';
 
+function toError(error, fallback) {
+  const err = new Error(error.response?.data?.message || error.message || fallback);
+  err.response = error.response;
+  return err;
+}
+
 const userService = {
   changePassword: async (oldPassword, newPassword) => {
     try {
-      const response = await api.put('/users/me/password', {
-        oldPassword,
-        newPassword,
-      });
+      const response = await api.put('/users/me/password', { oldPassword, newPassword });
       return response.data;
     } catch (error) {
-      throw {
-        message: error.message || 'Erro ao alterar senha',
-        response: error.response,
-      };
+      throw toError(error, 'Erro ao alterar senha');
     }
   },
 
   deleteAccount: async (password) => {
     try {
-      const response = await api.delete('/users/me', {
-        data: { password },
-      });
+      const response = await api.delete('/users/me', { data: { password } });
       return response.data;
     } catch (error) {
-      throw {
-        message: error.message || 'Erro ao deletar conta',
-        response: error.response,
-      };
+      throw toError(error, 'Erro ao deletar conta');
     }
   },
 };

@@ -1,62 +1,50 @@
 import api from './api';
 
+function toError(error, fallback) {
+  const err = new Error(error.response?.data?.message || error.message || fallback);
+  err.response = error.response;
+  return err;
+}
+
 const exerciseService = {
-  // POST /workouts/:workoutId/exercises - Adicionar exercício
   createExercise: async (workoutId, name) => {
     try {
-      const response = await api.post(`/workouts/${workoutId}/exercises`, {
-        name,
-      });
-      return response.data; // ExerciseResponse
+      const response = await api.post(`/workouts/${workoutId}/exercises`, { name });
+      return response.data;
     } catch (error) {
-      throw {
-        message: error.message || 'Erro ao criar exercício',
-        response: error.response,
-      };
+      throw toError(error, 'Erro ao criar exercício');
     }
   },
 
-  // PUT /workouts/:workoutId/exercises/:exerciseId - Atualizar exercício
   updateExercise: async (workoutId, exerciseId, name) => {
     try {
       const response = await api.put(
         `/workouts/${workoutId}/exercises/${exerciseId}`,
         { name }
       );
-      return response.data; // ExerciseResponse
+      return response.data;
     } catch (error) {
-      throw {
-        message: error.message || 'Erro ao atualizar exercício',
-        response: error.response,
-      };
+      throw toError(error, 'Erro ao atualizar exercício');
     }
   },
 
-  // PATCH /workouts/:workoutId/exercises/:exerciseId/toggle - Marcar como feito/não feito
   toggleExercise: async (workoutId, exerciseId) => {
     try {
       const response = await api.patch(
         `/workouts/${workoutId}/exercises/${exerciseId}/toggle`
       );
-      return response.data; // ExerciseResponse com status atualizado
+      return response.data;
     } catch (error) {
-      throw {
-        message: error.message || 'Erro ao marcar exercício',
-        response: error.response,
-      };
+      throw toError(error, 'Erro ao marcar exercício');
     }
   },
 
-  // DELETE /workouts/:workoutId/exercises/:exerciseId - Deletar exercício
   deleteExercise: async (workoutId, exerciseId) => {
     try {
       await api.delete(`/workouts/${workoutId}/exercises/${exerciseId}`);
       return true;
     } catch (error) {
-      throw {
-        message: error.message || 'Erro ao deletar exercício',
-        response: error.response,
-      };
+      throw toError(error, 'Erro ao deletar exercício');
     }
   },
 };
