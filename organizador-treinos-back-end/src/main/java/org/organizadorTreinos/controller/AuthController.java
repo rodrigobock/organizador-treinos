@@ -39,6 +39,9 @@ public class AuthController {
     @ConfigProperty(name = "app.cookie.secure", defaultValue = "true")
     boolean cookieSecure;
 
+    @ConfigProperty(name = "app.cookie.samesite", defaultValue = "NONE")
+    String cookieSameSite;
+
     @POST
     @Path("/signup")
     public Response signup(@Valid SignupRequest request,
@@ -70,10 +73,11 @@ public class AuthController {
     @POST
     @Path("/logout")
     public Response logout() {
+        NewCookie.SameSite sameSite = NewCookie.SameSite.valueOf(cookieSameSite);
         NewCookie clearAccess = new NewCookie.Builder("access_token")
-                .value("").httpOnly(true).secure(cookieSecure).path("/").maxAge(0).build();
+                .value("").httpOnly(true).secure(cookieSecure).sameSite(sameSite).path("/").maxAge(0).build();
         NewCookie clearRefresh = new NewCookie.Builder("refresh_token")
-                .value("").httpOnly(true).secure(cookieSecure).path("/auth/refresh").maxAge(0).build();
+                .value("").httpOnly(true).secure(cookieSecure).sameSite(sameSite).path("/auth/refresh").maxAge(0).build();
         return Response.ok().cookie(clearAccess, clearRefresh).build();
     }
 
@@ -93,11 +97,12 @@ public class AuthController {
     }
 
     private Response buildAuthResponse(Response.ResponseBuilder builder, AuthResponse authResponse) {
+        NewCookie.SameSite sameSite = NewCookie.SameSite.valueOf(cookieSameSite);
         NewCookie accessCookie = new NewCookie.Builder("access_token")
                 .value(authResponse.getToken())
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite(NewCookie.SameSite.LAX)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(ACCESS_TOKEN_MAX_AGE)
                 .build();
@@ -106,7 +111,7 @@ public class AuthController {
                 .value(authResponse.getRefreshToken())
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite(NewCookie.SameSite.LAX)
+                .sameSite(sameSite)
                 .path("/auth/refresh")
                 .maxAge(REFRESH_TOKEN_MAX_AGE)
                 .build();
