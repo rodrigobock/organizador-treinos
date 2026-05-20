@@ -77,7 +77,7 @@ public class AuthController {
         NewCookie clearAccess = new NewCookie.Builder("access_token")
                 .value("").httpOnly(true).secure(cookieSecure).sameSite(sameSite).path("/").maxAge(0).build();
         NewCookie clearRefresh = new NewCookie.Builder("refresh_token")
-                .value("").httpOnly(true).secure(cookieSecure).sameSite(sameSite).path("/auth/refresh").maxAge(0).build();
+                .value("").httpOnly(true).secure(cookieSecure).sameSite(sameSite).path("/").maxAge(0).build();
         return Response.ok().cookie(clearAccess, clearRefresh).build();
     }
 
@@ -112,7 +112,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .sameSite(sameSite)
-                .path("/auth/refresh")
+                .path("/")
                 .maxAge(REFRESH_TOKEN_MAX_AGE)
                 .build();
 

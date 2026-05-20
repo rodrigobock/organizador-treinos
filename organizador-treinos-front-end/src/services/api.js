@@ -1,7 +1,10 @@
 import axios from 'axios';
 import i18n from '../i18n';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const raw = process.env.REACT_APP_API_URL;
+const API_BASE_URL = raw && raw.trim()
+  ? raw.trim()
+  : process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
