@@ -27,3 +27,32 @@ export const Input = styled.input`
     cursor: not-allowed;
   }
 `;
+
+export const Wrapper = styled.div`
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  align-items: center;
+
+  ${Input} {
+    max-width: 100%;
+    padding-right: 40px;
+  }
+`;
+
+export const ToggleButton = styled.button`
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-muted, #94a3b8);
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: var(--text-primary, #0f172a);
+  }
+`;
