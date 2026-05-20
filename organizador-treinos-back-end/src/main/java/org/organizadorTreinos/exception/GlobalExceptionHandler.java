@@ -65,7 +65,8 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
             return Response.status(wae.getResponse().getStatus()).entity(error).build();
         }
 
-        LOG.error("Unhandled exception", exception);
+        LOG.errorf("Unhandled exception occurred: %s", exception.getMessage());
+        LOG.debug("Stack trace:", exception);
         ErrorResponse error = new ErrorResponse("Internal server error", "error.internal", 500);
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(error).build();
     }

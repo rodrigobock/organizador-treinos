@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotAuthorizedException;
+import org.jboss.logging.Logger;
 import org.organizadorTreinos.dto.request.ForgotPasswordRequest;
 import org.organizadorTreinos.dto.request.LoginRequest;
 import org.organizadorTreinos.dto.request.ResetPasswordRequest;
@@ -24,6 +25,8 @@ import java.util.UUID;
 @ApplicationScoped
 @Transactional
 public class AuthService {
+
+    private static final Logger LOG = Logger.getLogger(AuthService.class);
 
     @Inject
     UserRepository userRepository;
@@ -55,6 +58,7 @@ public class AuthService {
         user.setPreferredLocale(locale != null ? locale : "pt-BR");
 
         userRepository.persist(user);
+        LOG.infof("New user signed up: userId=%s", user.getId());
 
         emailService.sendWelcome(user);
 
@@ -66,12 +70,20 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        String maskedEmail = maskEmail(request.getEmail());
+
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+            .orElseThrow(() -> {
+                LOG.warnf("Login failed for email=%s: user not found", maskedEmail);
+                return new BadRequestException("Invalid email or password");
+            });
 
         if (!passwordService.verify(request.getPassword(), user.getPasswordHash())) {
+            LOG.warnf("Login failed for email=%s, userId=%s: invalid password", maskedEmail, user.getId());
             throw new BadRequestException("Invalid email or password");
         }
+
+        LOG.infof("Login successful for userId=%s", user.getId());
 
         String accessToken = jwtService.generateToken(user.getId());
         String refreshTokenValue = createRefreshToken(user);
@@ -102,10 +114,16 @@ public class AuthService {
 
     public void logout(String rawRefreshToken) {
         refreshTokenRepository.findByToken(rawRefreshToken)
-                .ifPresent(refreshTokenRepository::delete);
+                .ifPresent(token -> {
+                    UUID userId = token.getUser().getId();
+                    refreshTokenRepository.delete(token);
+                    LOG.infof("User logged out: userId=%s", userId);
+                });
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
+        LOG.infof("Password reset requested for email=%s", maskEmail(request.getEmail()));
+
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             tokenRepository.invalidateUnusedForUser(user.getId());
 
@@ -121,14 +139,38 @@ public class AuthService {
 
     public void resetPassword(ResetPasswordRequest request) {
         PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new BadRequestException("Invalid or expired token"));
+                .orElseThrow(() -> {
+                    LOG.warn("Password reset attempted with invalid token (not found)");
+                    return new BadRequestException("Invalid or expired token");
+                });
 
         if (resetToken.isUsed() || resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            LOG.warnf("Password reset attempted with expired/used token for userId=%s", resetToken.getUser().getId());
             throw new BadRequestException("Invalid or expired token");
         }
 
-        resetToken.getUser().setPasswordHash(passwordService.hash(request.getNewPassword()));
+        User user = resetToken.getUser();
+        user.setPasswordHash(passwordService.hash(request.getNewPassword()));
         resetToken.setUsed(true);
+
+        LOG.infof("Password reset completed for userId=%s", user.getId());
+    }
+
+    /**
+     * Masks an email address for safe logging.
+     * Example: "john@example.com" becomes "j***@example.com"
+     */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return "***";
+        }
+        String[] parts = email.split("@", 2);
+        String localPart = parts[0];
+        String domain = parts[1];
+        if (localPart.isEmpty()) {
+            return "***@" + domain;
+        }
+        return localPart.charAt(0) + "***@" + domain;
     }
 
     private String createRefreshToken(User user) {
