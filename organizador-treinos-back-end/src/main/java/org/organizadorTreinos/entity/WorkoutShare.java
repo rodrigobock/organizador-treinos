@@ -12,7 +12,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "workout_share",
+@Table(name = "workout_shares",
     uniqueConstraints = {
         @UniqueConstraint(columnNames = {"workout_id", "shared_with_user_id"})
     },
@@ -42,6 +42,9 @@ public class WorkoutShare {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "last_accessed_at")
+    private LocalDateTime lastAccessedAt;
 
     @PrePersist
     protected void onCreate() {

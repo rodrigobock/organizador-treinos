@@ -50,6 +50,9 @@ public class WorkoutService {
     WorkoutShareRepository workoutShareRepository;
 
     @Inject
+    WorkoutShareService workoutShareService;
+
+    @Inject
     UserRepository userRepository;
 
     // 🔥 CRITICAL: Authorization check before accessing any workout
@@ -109,6 +112,11 @@ public class WorkoutService {
             .firstResultOptional().orElseThrow(() -> new NotFoundException("Workout not found"));
 
         checkWorkoutAccess(workout, user);
+
+        // Record access time for non-owners (trainer dashboard tracking)
+        if (!workout.getUser().getId().equals(user.getId())) {
+            workoutShareService.recordAccess(workout, user);
+        }
 
         WorkoutResponse response = toResponse(workout);
         response.setExercises(

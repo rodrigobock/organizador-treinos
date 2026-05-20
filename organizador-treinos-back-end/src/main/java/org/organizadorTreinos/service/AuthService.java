@@ -100,6 +100,11 @@ public class AuthService {
         return new AuthResponse(accessToken, newRefreshToken, userResponse);
     }
 
+    public void logout(String rawRefreshToken) {
+        refreshTokenRepository.findByToken(rawRefreshToken)
+                .ifPresent(refreshTokenRepository::delete);
+    }
+
     public void forgotPassword(ForgotPasswordRequest request) {
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             tokenRepository.invalidateUnusedForUser(user.getId());

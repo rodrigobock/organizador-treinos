@@ -72,7 +72,10 @@ public class AuthController {
 
     @POST
     @Path("/logout")
-    public Response logout() {
+    public Response logout(@CookieParam("refresh_token") String refreshTokenCookie) {
+        if (refreshTokenCookie != null && !refreshTokenCookie.isBlank()) {
+            authService.logout(refreshTokenCookie);
+        }
         NewCookie.SameSite sameSite = NewCookie.SameSite.valueOf(cookieSameSite);
         NewCookie clearAccess = new NewCookie.Builder("access_token")
                 .value("").httpOnly(true).secure(cookieSecure).sameSite(sameSite).path("/").maxAge(0).build();

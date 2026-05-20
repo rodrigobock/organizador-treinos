@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class SignupRequest {
 
     @NotBlank(message = "Name is required")
+    @Size(max = 100, message = "Name must not exceed 100 characters")
     private String name;
 
     @Email(message = "Email must be valid")

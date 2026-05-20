@@ -19,7 +19,7 @@ import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
 
 const PAGE_SIZE = 10;
 
-function SortableWorkoutCard({ workout, onView, onDelete, t }) {
+function SortableWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: workout.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -27,14 +27,16 @@ function SortableWorkoutCard({ workout, onView, onDelete, t }) {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isDeleting = deletingId === workout.id;
+
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="workout-card mb-2">
+      <Card className="workout-card mb-2" style={{ opacity: isDeleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
         <Card.Body className="d-flex align-items-center gap-2 py-2">
           <span
             {...attributes}
             {...listeners}
-            style={{ cursor: "grab", color: "var(--text-muted, #888)", flexShrink: 0 }}
+            style={{ cursor: isDeleting ? "not-allowed" : "grab", color: "var(--text-muted, #888)", flexShrink: 0 }}
           >
             <GripVertical size={18} />
           </span>
@@ -45,16 +47,24 @@ function SortableWorkoutCard({ workout, onView, onDelete, t }) {
           <button
             onClick={() => onView(workout.id)}
             aria-label={t("myWorkouts.editWorkout")}
-            style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
+            disabled={isDeleting}
+            style={{ background: "none", border: "none", padding: "4px 6px", cursor: isDeleting ? "not-allowed" : "pointer", color: "var(--text-muted, #555)" }}
           >
             <PencilSquare size={17} />
           </button>
           <button
             onClick={() => onDelete(workout.id)}
             aria-label={t("myWorkouts.deleteWorkout")}
-            style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
+            disabled={isDeleting}
+            style={{ background: "none", border: "none", padding: "4px 6px", cursor: isDeleting ? "not-allowed" : "pointer", color: "#dc3545" }}
           >
-            <Trash size={17} />
+            {isDeleting ? (
+              <Spinner animation="border" size="sm" role="status" style={{ width: 17, height: 17 }}>
+                <span className="visually-hidden">{t("myWorkouts.deleting")}</span>
+              </Spinner>
+            ) : (
+              <Trash size={17} />
+            )}
           </button>
         </Card.Body>
       </Card>
@@ -62,9 +72,11 @@ function SortableWorkoutCard({ workout, onView, onDelete, t }) {
   );
 }
 
-function StaticWorkoutCard({ workout, onView, onDelete, t }) {
+function StaticWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
+  const isDeleting = deletingId === workout.id;
+
   return (
-    <Card className="workout-card mb-2">
+    <Card className="workout-card mb-2" style={{ opacity: isDeleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
       <Card.Body className="d-flex align-items-center gap-2 py-2">
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600 }}>{workout.name}</div>
@@ -73,16 +85,24 @@ function StaticWorkoutCard({ workout, onView, onDelete, t }) {
         <button
           onClick={() => onView(workout.id)}
           aria-label={t("myWorkouts.editWorkout")}
-          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
+          disabled={isDeleting}
+          style={{ background: "none", border: "none", padding: "4px 6px", cursor: isDeleting ? "not-allowed" : "pointer", color: "var(--text-muted, #555)" }}
         >
           <PencilSquare size={17} />
         </button>
         <button
           onClick={() => onDelete(workout.id)}
           aria-label={t("myWorkouts.deleteWorkout")}
-          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
+          disabled={isDeleting}
+          style={{ background: "none", border: "none", padding: "4px 6px", cursor: isDeleting ? "not-allowed" : "pointer", color: "#dc3545" }}
         >
-          <Trash size={17} />
+          {isDeleting ? (
+            <Spinner animation="border" size="sm" role="status" style={{ width: 17, height: 17 }}>
+              <span className="visually-hidden">{t("myWorkouts.deleting")}</span>
+            </Spinner>
+          ) : (
+            <Trash size={17} />
+          )}
         </button>
       </Card.Body>
     </Card>
@@ -107,6 +127,7 @@ function MyWorkoutsPage() {
   const [userActions, setUserActions] = useState({});
   const [importing, setImporting] = useState(false);
   const [exportingAll, setExportingAll] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -148,15 +169,20 @@ function MyWorkoutsPage() {
   };
 
   const handleDeleteWorkout = async (id) => {
+    if (deletingId) return;
     if (!window.confirm(t("myWorkouts.confirmDelete"))) {
       return;
     }
 
     try {
+      setDeletingId(id);
+      setError("");
       await workoutService.deleteWorkout(id);
       await loadWorkouts(currentPage);
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("myWorkouts.errorDeleting"));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -339,13 +365,27 @@ function MyWorkoutsPage() {
           <h1>{t("myWorkouts.title")}</h1>
           <div className="d-flex gap-2">
             <Button
-              Text={exportingAll ? t("myWorkouts.exportingJson") : t("myWorkouts.exportJson")}
+              Text={
+                exportingAll ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                    {t("myWorkouts.exportingJson")}
+                  </span>
+                ) : t("myWorkouts.exportJson")
+              }
               onClick={handleExportAll}
               disabled={exportingAll || totalElements === 0}
               size="sm"
             />
             <Button
-              Text={importing ? t("myWorkouts.importingJson") : t("myWorkouts.importJson")}
+              Text={
+                importing ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                    {t("myWorkouts.importingJson")}
+                  </span>
+                ) : t("myWorkouts.importJson")
+              }
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
               disabled={importing}
               size="sm"
@@ -392,6 +432,7 @@ function MyWorkoutsPage() {
                 workout={workout}
                 onView={handleViewWorkout}
                 onDelete={handleDeleteWorkout}
+                deletingId={deletingId}
                 t={t}
               />
             ))}
@@ -406,6 +447,7 @@ function MyWorkoutsPage() {
                   workout={workout}
                   onView={handleViewWorkout}
                   onDelete={handleDeleteWorkout}
+                  deletingId={deletingId}
                   t={t}
                 />
               ))}
@@ -467,7 +509,14 @@ function MyWorkoutsPage() {
         <Modal.Footer>
           <Button Text={t("common:cancel")} onClick={() => setImportAnalysis(null)} />
           <Button
-            Text={importing ? t("myWorkouts.import.confirmingButton") : t("myWorkouts.import.confirmButton")}
+            Text={
+              importing ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                  {t("myWorkouts.import.confirmingButton")}
+                </span>
+              ) : t("myWorkouts.import.confirmButton")
+            }
             onClick={handleConfirmImport}
             disabled={importing}
           />

@@ -47,6 +47,29 @@ const exerciseService = {
       throw toError(error, 'Erro ao deletar exercício');
     }
   },
+
+  logExecution: async (workoutId, exerciseId, data) => {
+    try {
+      const response = await api.post(
+        `/workouts/${workoutId}/exercises/${exerciseId}/logs`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      throw toError(error, 'Erro ao registrar execução');
+    }
+  },
+
+  getHistory: async (workoutId, exerciseId) => {
+    try {
+      const response = await api.get(
+        `/workouts/${workoutId}/exercises/${exerciseId}/logs`
+      );
+      return response.data;
+    } catch (error) {
+      throw toError(error, 'Erro ao carregar histórico');
+    }
+  },
 };
 
 export default exerciseService;

@@ -5,6 +5,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import org.organizadorTreinos.exception.RateLimitException;
 
 import java.time.Duration;
@@ -13,6 +14,8 @@ import java.util.concurrent.ConcurrentMap;
 
 @ApplicationScoped
 public class RateLimitService {
+
+    private static final Logger LOG = Logger.getLogger(RateLimitService.class);
 
     @ConfigProperty(name = "auth.ratelimit.login.capacity", defaultValue = "5")
     long loginCapacity;
@@ -78,6 +81,7 @@ public class RateLimitService {
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (!probe.isConsumed()) {
             long retryAfterSeconds = Math.max(1L, probe.getNanosToWaitForRefill() / 1_000_000_000L);
+            LOG.warnf("Rate limit exceeded: %s — retry after %ds", message, retryAfterSeconds);
             throw new RateLimitException(message, retryAfterSeconds);
         }
     }

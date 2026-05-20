@@ -6,10 +6,12 @@ import Account from "../pages/Account";
 import MyWorkouts from "../pages/MyWorkouts";
 import NewWorkout from "../pages/NewWorkout";
 import WorkoutDetail from "../pages/WorkoutDetail";
+import SharedByMe from "../pages/SharedByMe";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import Templates from "../pages/Templates";
 
 const Private = ({ Item }) => {
   const { signed, loading } = useAuth();
@@ -28,10 +30,12 @@ const RoutesApp = () => {
           <Route exact path="/myworkouts" element={<Private Item={MyWorkouts} />} />
           <Route exact path="/newworkout" element={<Private Item={NewWorkout} />} />
           <Route exact path="/workout/:id" element={<Private Item={WorkoutDetail} />} />
+          <Route exact path="/shared-by-me" element={<Private Item={SharedByMe} />} />
           <Route path="/" element={<Signin />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route exact path="/forgot-password" element={<ForgotPassword />} />
           <Route exact path="/reset-password" element={<ResetPassword />} />
+          <Route exact path="/templates" element={<Templates />} />
           <Route path="*" element={<Signin />} />
         </Routes>
       </Fragment>

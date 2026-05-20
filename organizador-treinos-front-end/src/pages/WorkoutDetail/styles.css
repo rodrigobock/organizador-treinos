@@ -21,3 +21,22 @@
   background-color: #f0f0f0;
   color: #666;
 }
+
+.exercise-history .btn-link {
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.exercise-history .btn-link:hover {
+  text-decoration: underline;
+}
+
+.exercise-history-panel {
+  font-size: 0.82rem;
+}
+
+.history-table th,
+.history-table td {
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}

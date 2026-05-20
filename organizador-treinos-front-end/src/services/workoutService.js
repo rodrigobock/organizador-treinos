@@ -81,7 +81,16 @@ const workoutService = {
 
   shareWorkout: async (id, email, permission = 'READ') => {
     try {
-      const response = await api.post(`/workouts/${id}/share`, { email, permission });
+      const response = await api.post(`/workouts/${id}/share`, { emails: [email], permission });
+      return response.data;
+    } catch (error) {
+      throw toError(error, 'Erro ao compartilhar treino');
+    }
+  },
+
+  bulkShare: async (workoutId, emails, permission = 'READ') => {
+    try {
+      const response = await api.post(`/workouts/${workoutId}/share`, { emails, permission });
       return response.data;
     } catch (error) {
       throw toError(error, 'Erro ao compartilhar treino');
@@ -94,6 +103,15 @@ const workoutService = {
       return true;
     } catch (error) {
       throw toError(error, 'Erro ao revogar compartilhamento');
+    }
+  },
+
+  getSharedByMe: async () => {
+    try {
+      const response = await api.get('/workouts/shared-by-me');
+      return response.data;
+    } catch (error) {
+      throw toError(error, 'Erro ao carregar compartilhamentos');
     }
   },
 

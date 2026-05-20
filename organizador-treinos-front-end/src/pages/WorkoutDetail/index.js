@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
 import Button from "../../components/Button";
+import Alert from "react-bootstrap/Alert";
+import Badge from "react-bootstrap/Badge";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
+import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
@@ -13,13 +16,222 @@ import exerciseService from "../../services/exerciseService";
 import useAuth from "../../hooks/useAuth";
 import { downloadJson } from "../../utils/downloadJson";
 import { downloadWorkoutAsPdf } from "../../utils/downloadPdf";
-import { Trash } from "react-bootstrap-icons";
+import { ClockHistory, PlusCircle, Trash } from "react-bootstrap-icons";
 import "./styles.css";
+
+function formatLoggedAt(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleString(undefined, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function ExerciseHistoryPanel({ workoutId, exerciseId, t }) {
+  const [open, setOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await exerciseService.getHistory(workoutId, exerciseId);
+      setLogs(data);
+    } catch (err) {
+      setError(err.message || t("workoutDetail.history.errorLoading"));
+    } finally {
+      setLoading(false);
+    }
+  }, [workoutId, exerciseId, t]);
+
+  const handleToggle = () => {
+    if (!open) {
+      loadHistory();
+    }
+    setOpen((prev) => !prev);
+  };
+
+  return (
+    <div className="exercise-history mt-2">
+      <button
+        className="btn btn-link btn-sm p-0 text-secondary"
+        onClick={handleToggle}
+        aria-expanded={open}
+      >
+        <ClockHistory size={13} className="me-1" />
+        {open
+          ? t("workoutDetail.history.hide")
+          : t("workoutDetail.history.show")}
+      </button>
+
+      {open && (
+        <div className="exercise-history-panel mt-1 p-2 rounded border bg-white">
+          {loading && (
+            <small className="text-muted">
+              {t("workoutDetail.history.loading")}
+            </small>
+          )}
+          {error && <small className="text-danger">{error}</small>}
+          {!loading && !error && logs.length === 0 && (
+            <small className="text-muted">
+              {t("workoutDetail.history.empty")}
+            </small>
+          )}
+          {!loading && !error && logs.length > 0 && (
+            <table className="table table-sm table-borderless mb-0 history-table">
+              <thead>
+                <tr className="text-muted small">
+                  <th>{t("workoutDetail.history.title")}</th>
+                  <th>{t("workoutDetail.logModal.setsLabel")}</th>
+                  <th>{t("workoutDetail.logModal.repsLabel")}</th>
+                  <th>{t("workoutDetail.logModal.weightLabel")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.slice(0, 3).map((log) => (
+                  <tr key={log.id} className="small">
+                    <td className="text-muted">{formatLoggedAt(log.loggedAt)}</td>
+                    <td>{log.sets ?? "—"}</td>
+                    <td>{log.reps ?? "—"}</td>
+                    <td>
+                      {log.weight != null
+                        ? `${log.weight} kg`
+                        : t("workoutDetail.history.bodyweight")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) {
+  const [weight, setWeight] = useState("");
+  const [reps, setReps] = useState("");
+  const [sets, setSets] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (show) {
+      setWeight("");
+      setReps("");
+      setSets("");
+      setError("");
+    }
+  }, [show]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      setError("");
+      const payload = {
+        weight: weight !== "" ? parseFloat(weight) : null,
+        reps: reps !== "" ? parseInt(reps, 10) : null,
+        sets: sets !== "" ? parseInt(sets, 10) : null,
+      };
+      const log = await exerciseService.logExecution(workoutId, exercise.id, payload);
+      onLogged(log);
+      onClose();
+    } catch (err) {
+      setError(err.message || t("workoutDetail.history.errorLogging"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!exercise) return null;
+
+  return (
+    <Modal show={show} onHide={onClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title className="fs-6">
+          {t("workoutDetail.logModal.title", { name: exercise.name })}
+        </Modal.Title>
+      </Modal.Header>
+      <form onSubmit={handleSubmit}>
+        <Modal.Body>
+          {error && (
+            <div className="alert alert-danger py-2 small">{error}</div>
+          )}
+          <Row className="g-3">
+            <Col xs={4}>
+              <Form.Label className="small">
+                {t("workoutDetail.logModal.setsLabel")}
+              </Form.Label>
+              <Form.Control
+                type="number"
+                min="1"
+                placeholder={t("workoutDetail.logModal.setsPlaceholder")}
+                value={sets}
+                onChange={(e) => setSets(e.target.value)}
+                disabled={saving}
+              />
+            </Col>
+            <Col xs={4}>
+              <Form.Label className="small">
+                {t("workoutDetail.logModal.repsLabel")}
+              </Form.Label>
+              <Form.Control
+                type="number"
+                min="1"
+                placeholder={t("workoutDetail.logModal.repsPlaceholder")}
+                value={reps}
+                onChange={(e) => setReps(e.target.value)}
+                disabled={saving}
+              />
+            </Col>
+            <Col xs={4}>
+              <Form.Label className="small">
+                {t("workoutDetail.logModal.weightLabel")}
+              </Form.Label>
+              <Form.Control
+                type="number"
+                min="0"
+                step="0.5"
+                placeholder={t("workoutDetail.logModal.weightPlaceholder")}
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                disabled={saving}
+              />
+            </Col>
+          </Row>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            Text={t("workoutDetail.logModal.cancel")}
+            onClick={onClose}
+            disabled={saving}
+            size="sm"
+          />
+          <Button
+            Text={saving
+              ? t("workoutDetail.logModal.saving")
+              : t("workoutDetail.logModal.save")}
+            type="submit"
+            disabled={saving}
+            size="sm"
+          />
+        </Modal.Footer>
+      </form>
+    </Modal>
+  );
+}
 
 function WorkoutDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { signed } = useAuth();
+  const { signed, user } = useAuth();
   const { t } = useTranslation("workouts");
 
   const [workout, setWorkout] = useState(null);
@@ -28,6 +240,37 @@ function WorkoutDetailPage() {
   const [newExerciseName, setNewExerciseName] = useState("");
   const [addingExercise, setAddingExercise] = useState(false);
   const [currentWorkoutId, setCurrentWorkoutId] = useState(id);
+  const [logModalExercise, setLogModalExercise] = useState(null);
+
+  // Sharing state
+  const [shareEmails, setShareEmails] = useState("");
+  const [sharePermission, setSharePermission] = useState("READ");
+  const [sharing, setSharing] = useState(false);
+  const [shareResult, setShareResult] = useState(null);
+
+  const isOwner = workout && user && workout.userId === user.id;
+
+  const handleShare = async (e) => {
+    e.preventDefault();
+    const emails = shareEmails
+      .split(/[,;\s]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    if (emails.length === 0) return;
+
+    try {
+      setSharing(true);
+      setShareResult(null);
+      const result = await workoutService.bulkShare(id, emails, sharePermission);
+      setShareResult(result);
+      setShareEmails("");
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || t("workoutDetail.errorSharing"));
+    } finally {
+      setSharing(false);
+    }
+  };
 
   useEffect(() => {
     if (!signed) {
@@ -231,11 +474,12 @@ function WorkoutDetailPage() {
                           style={{ width: 18, height: 18, cursor: "pointer" }}
                         />
                       </Col>
-                      <Col xs={7}>
+                      <Col xs={6}>
                         <input
                           type="text"
                           className="form-control"
                           defaultValue={exercise.name}
+                          maxLength={255}
                           onBlur={(e) => {
                             if (e.target.value !== exercise.name) {
                               handleUpdateExercise(exercise.id, e.target.value);
@@ -243,7 +487,15 @@ function WorkoutDetailPage() {
                           }}
                         />
                       </Col>
-                      <Col xs={4} className="text-end">
+                      <Col xs={5} className="text-end d-flex justify-content-end align-items-center gap-2">
+                        <button
+                          onClick={() => setLogModalExercise(exercise)}
+                          aria-label={t("workoutDetail.logExecution")}
+                          title={t("workoutDetail.logExecution")}
+                          style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#0d6efd" }}
+                        >
+                          <PlusCircle size={16} />
+                        </button>
                         <button
                           onClick={() => handleDeleteExercise(exercise.id)}
                           aria-label={t("workoutDetail.deleteExercise")}
@@ -253,11 +505,18 @@ function WorkoutDetailPage() {
                         </button>
                       </Col>
                     </Row>
+                    <ExerciseHistoryPanel
+                      workoutId={id}
+                      exerciseId={exercise.id}
+                      t={t}
+                    />
                   </div>
                 ))}
               </div>
             ) : (
-              <p>{t("workoutDetail.noExercises")}</p>
+              <div className="text-center py-4 text-muted">
+                <p className="mb-0">{t("workoutDetail.noExercises")}</p>
+              </div>
             )}
 
             <hr />
@@ -271,6 +530,7 @@ function WorkoutDetailPage() {
                   value={newExerciseName}
                   onChange={(e) => setNewExerciseName(e.target.value)}
                   disabled={addingExercise}
+                  maxLength={255}
                 />
               </Form.Group>
               <Button
@@ -281,7 +541,89 @@ function WorkoutDetailPage() {
             </div>
           </Card.Body>
         </Card>
+
+        {isOwner && (
+          <Card className="mb-4">
+            <Card.Header>
+              <Card.Title className="mb-0">{t("workoutDetail.shareTitle")}</Card.Title>
+            </Card.Header>
+            <Card.Body>
+              <p className="text-muted" style={{ fontSize: "0.875rem" }}>
+                {t("workoutDetail.shareHint")}
+              </p>
+
+              {shareResult && (
+                <Alert
+                  variant={shareResult.shared > 0 ? "success" : "warning"}
+                  dismissible
+                  onClose={() => setShareResult(null)}
+                  className="mb-3"
+                >
+                  {shareResult.shared > 0 && (
+                    <span>{t("workoutDetail.shareResultShared", { count: shareResult.shared })} </span>
+                  )}
+                  {shareResult.alreadyShared > 0 && (
+                    <span>{t("workoutDetail.shareResultAlready", { count: shareResult.alreadyShared })} </span>
+                  )}
+                  {shareResult.notFound && shareResult.notFound.length > 0 && (
+                    <span>
+                      {t("workoutDetail.shareResultNotFound", { count: shareResult.notFound.length })}
+                      {": "}
+                      {shareResult.notFound.map((email, i) => (
+                        <Badge key={i} bg="secondary" className="me-1">{email}</Badge>
+                      ))}
+                    </span>
+                  )}
+                </Alert>
+              )}
+
+              <Form onSubmit={handleShare}>
+                <Form.Group className="mb-2">
+                  <Form.Label>{t("workoutDetail.shareEmailsLabel")}</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder={t("workoutDetail.shareEmailsPlaceholder")}
+                    value={shareEmails}
+                    onChange={(e) => setShareEmails(e.target.value)}
+                    disabled={sharing}
+                  />
+                  <Form.Text className="text-muted">
+                    {t("workoutDetail.shareEmailsHint")}
+                  </Form.Text>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>{t("workoutDetail.sharePermissionLabel")}</Form.Label>
+                  <Form.Select
+                    value={sharePermission}
+                    onChange={(e) => setSharePermission(e.target.value)}
+                    disabled={sharing}
+                    style={{ maxWidth: 200 }}
+                  >
+                    <option value="READ">{t("workoutDetail.permissionRead")}</option>
+                    <option value="EDIT">{t("workoutDetail.permissionEdit")}</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Button
+                  Text={sharing ? t("workoutDetail.sharing") : t("workoutDetail.shareButton")}
+                  onClick={handleShare}
+                  disabled={sharing || !shareEmails.trim()}
+                />
+              </Form>
+            </Card.Body>
+          </Card>
+        )}
       </div>
+
+      <LogExecutionModal
+        show={logModalExercise !== null}
+        exercise={logModalExercise}
+        workoutId={id}
+        onClose={() => setLogModalExercise(null)}
+        onLogged={() => {}}
+        t={t}
+      />
     </>
   );
 }

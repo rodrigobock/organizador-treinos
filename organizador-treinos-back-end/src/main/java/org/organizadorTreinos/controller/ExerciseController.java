@@ -8,11 +8,15 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.organizadorTreinos.dto.request.CreateExerciseRequest;
+import org.organizadorTreinos.dto.request.LogExerciseRequest;
+import org.organizadorTreinos.dto.response.ExerciseLogResponse;
 import org.organizadorTreinos.dto.response.ExerciseResponse;
 import org.organizadorTreinos.entity.User;
 import org.organizadorTreinos.repository.UserRepository;
+import org.organizadorTreinos.service.ExerciseLogService;
 import org.organizadorTreinos.service.ExerciseService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Path("/workouts/{workoutId}/exercises")
@@ -22,6 +26,9 @@ public class ExerciseController {
 
     @Inject
     ExerciseService exerciseService;
+
+    @Inject
+    ExerciseLogService exerciseLogService;
 
     @Inject
     UserRepository userRepository;
@@ -73,5 +80,26 @@ public class ExerciseController {
         User user = getCurrentUser();
         exerciseService.deleteExercise(workoutId, exerciseId, user);
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{exerciseId}/logs")
+    @RolesAllowed("users")
+    public Response logExecution(@PathParam("workoutId") UUID workoutId,
+                                 @PathParam("exerciseId") UUID exerciseId,
+                                 @Valid LogExerciseRequest request) {
+        User user = getCurrentUser();
+        ExerciseLogResponse response = exerciseLogService.logExecution(workoutId, exerciseId, user, request);
+        return Response.status(Response.Status.CREATED).entity(response).build();
+    }
+
+    @GET
+    @Path("/{exerciseId}/logs")
+    @RolesAllowed("users")
+    public Response getHistory(@PathParam("workoutId") UUID workoutId,
+                               @PathParam("exerciseId") UUID exerciseId) {
+        User user = getCurrentUser();
+        List<ExerciseLogResponse> history = exerciseLogService.getHistory(workoutId, exerciseId, user);
+        return Response.ok(history).build();
     }
 }

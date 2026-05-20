@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import Spinner from "react-bootstrap/Spinner";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
@@ -122,7 +123,14 @@ const Signin = () => {
           {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
           <Button
-            Text={loading ? t("signin.submitLoading") : t("signin.submit")}
+            Text={
+              loading ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                  {t("signin.submitLoading")}
+                </span>
+              ) : t("signin.submit")
+            }
             onClick={handleLogin}
             disabled={loading}
           />

@@ -114,6 +114,7 @@ const Signup = () => {
               onChange={(e) => { setName(e.target.value); setError(""); }}
               onKeyDown={handleKeyDown}
               disabled={loading}
+              maxLength={100}
             />
             <Input
               type="email"

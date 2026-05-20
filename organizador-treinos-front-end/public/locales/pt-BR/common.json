@@ -12,6 +12,8 @@
   "navbar": {
     "dashboard": "Dashboard",
     "myWorkouts": "Meus Treinos",
+    "sharedByMe": "Compartilhamentos",
+    "templates": "Templates",
     "account": "Conta",
     "logout": "Sair",
     "themeLight": "Mudar para Light",

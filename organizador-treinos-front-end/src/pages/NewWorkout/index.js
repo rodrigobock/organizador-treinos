@@ -70,7 +70,7 @@ function NewWorkoutPage() {
 
       navigate('/myworkouts');
     } catch (err) {
-      setError(err.message || t('newWorkout.errorCreating'));
+      setError(err.response?.data?.message || err.message || t('newWorkout.errorCreating'));
     } finally {
       setLoading(false);
     }
@@ -97,6 +97,7 @@ function NewWorkoutPage() {
               value={workoutName}
               onChange={handleChangeWorkoutName}
               disabled={loading}
+              maxLength={255}
             />
           </Form.Group>
 
@@ -122,6 +123,7 @@ function NewWorkoutPage() {
                       placeholder={t('newWorkout.exerciseNamePlaceholder')}
                       onChange={(event) => handleChangeExerciseName(index, event)}
                       disabled={loading}
+                      maxLength={255}
                     />
                   </Col>
                   <Col xs={3} sm={3}>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import Spinner from "react-bootstrap/Spinner";
 import NavBar from "../../components/NavBar";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
@@ -101,6 +102,32 @@ function HomePage() {
   const total = exercises.length;
   const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+  if (loading) {
+    return (
+      <>
+        <NavBar />
+        <div
+          style={{
+            minHeight: "calc(100vh - 56px)",
+            backgroundColor: "var(--bg-primary)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <Spinner animation="border" role="status" style={{ color: "var(--accent, #f59e0b)" }}>
+              <span className="visually-hidden">{t("home.loadingHome")}</span>
+            </Spinner>
+            <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 12 }}>
+              {t("home.loadingHome")}
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <NavBar />
@@ -135,7 +162,7 @@ function HomePage() {
                 {t("home.greeting", { name: firstName })} 👋
               </h1>
               <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
-                {loading ? t("home.loadingSubtitle") : t("home.subtitle")}
+                {t("home.subtitle")}
               </p>
             </div>
             <button
@@ -198,7 +225,7 @@ function HomePage() {
                     color: stat.accent ? "var(--accent)" : "var(--text-primary)",
                   }}
                 >
-                  {loading ? "—" : stat.value}
+                  {stat.value}
                 </div>
               </div>
             ))}
@@ -222,7 +249,7 @@ function HomePage() {
           )}
 
           {/* Empty state */}
-          {!loading && workouts.length === 0 && (
+          {workouts.length === 0 && (
             <div
               style={{
                 background: "var(--bg-card)",
@@ -265,7 +292,7 @@ function HomePage() {
           )}
 
           {/* Next workout */}
-          {!loading && latestWorkout && (
+          {latestWorkout && (
             <div>
               <div
                 style={{
@@ -421,8 +448,15 @@ function HomePage() {
                         fontSize: 13,
                         cursor: sessionLoading ? "not-allowed" : "pointer",
                         opacity: sessionLoading ? 0.7 : 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
                       }}
                     >
+                      {sessionLoading && (
+                        <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                      )}
                       {sessionLoading ? t("home.endingSession") : t("home.endSession")}
                     </button>
                   ) : (
@@ -440,8 +474,15 @@ function HomePage() {
                         fontSize: 13,
                         cursor: sessionLoading ? "not-allowed" : "pointer",
                         opacity: sessionLoading ? 0.7 : 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
                       }}
                     >
+                      {sessionLoading && (
+                        <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                      )}
                       {sessionLoading ? t("home.startingSession") : t("home.startSession")}
                     </button>
                   )}

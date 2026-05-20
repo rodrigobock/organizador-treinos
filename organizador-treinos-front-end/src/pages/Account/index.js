@@ -190,6 +190,7 @@ function AccountPage() {
                 <input
                   type="text"
                   value={name}
+                  maxLength={100}
                   onChange={(e) => {
                     setName(e.target.value);
                     setError("");

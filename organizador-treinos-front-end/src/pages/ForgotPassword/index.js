@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import Spinner from "react-bootstrap/Spinner";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
@@ -101,7 +102,14 @@ const ForgotPassword = () => {
               {error && <C.ErrorMsg>{error}</C.ErrorMsg>}
 
               <Button
-                Text={loading ? t("forgotPassword.submitLoading") : t("forgotPassword.submit")}
+                Text={
+                  loading ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                      {t("forgotPassword.submitLoading")}
+                    </span>
+                  ) : t("forgotPassword.submit")
+                }
                 onClick={handleSubmit}
                 disabled={loading}
               />

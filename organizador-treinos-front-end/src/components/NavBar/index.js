@@ -47,6 +47,8 @@ function NavBar() {
           <S.NavLinksCenter>
             <S.NavLink href="/home">{t("navbar.dashboard")}</S.NavLink>
             <S.NavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.NavLink>
+            <S.NavLink href="/shared-by-me">{t("navbar.sharedByMe")}</S.NavLink>
+            <S.NavLink href="/templates">{t("navbar.templates")}</S.NavLink>
             <S.NavLink href="/account">{t("navbar.account")}</S.NavLink>
           </S.NavLinksCenter>
 
@@ -85,6 +87,8 @@ function NavBar() {
             <S.MobileNavContent isOpen={mobileMenuOpen}>
               <S.MobileNavLink href="/home">{t("navbar.dashboard")}</S.MobileNavLink>
               <S.MobileNavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.MobileNavLink>
+              <S.MobileNavLink href="/shared-by-me">{t("navbar.sharedByMe")}</S.MobileNavLink>
+              <S.MobileNavLink href="/templates">{t("navbar.templates")}</S.MobileNavLink>
               <S.MobileNavLink href="/account">{t("navbar.account")}</S.MobileNavLink>
               <S.MobileLogoutButton onClick={handleLogout}>
                 {t("navbar.logout")}
