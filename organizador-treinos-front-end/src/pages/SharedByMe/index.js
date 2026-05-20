@@ -75,11 +75,6 @@ function SharedByMePage() {
     }
   };
 
-  const allExercisesCompleted = (exercises) => {
-    if (!exercises || exercises.length === 0) return false;
-    return exercises.every(e => e.completed);
-  };
-
   if (loading) {
     return (
       <>
