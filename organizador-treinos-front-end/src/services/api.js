@@ -39,9 +39,11 @@ const doTokenRefresh = () => {
   return refreshInFlight;
 };
 
+const PUBLIC_PATHS = ['/', '/signin', '/signup', '/forgot-password', '/reset-password'];
+
 const redirectToSignin = () => {
   refreshClient.post('/auth/logout', {}).catch(() => {});
-  if (window.location.pathname !== '/signin' && window.location.pathname !== '/') {
+  if (!PUBLIC_PATHS.includes(window.location.pathname)) {
     window.location.href = '/signin';
   }
 };
