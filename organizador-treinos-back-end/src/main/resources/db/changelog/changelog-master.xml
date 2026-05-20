@@ -15,5 +15,6 @@
     <include file="db/changelog/V8__add_last_accessed_at_to_workout_shares.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V9__add_exercise_logs.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V10__add_workout_templates.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V11__add_calisthenics_templates.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>
