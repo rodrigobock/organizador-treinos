@@ -400,59 +400,96 @@ function WorkoutDetailPage() {
             {workout.exercises && workout.exercises.length > 0 ? (
               <div className="exercises-list">
                 {workout.exercises.map((exercise) => (
-                  <div key={exercise.id} className="exercise-item mb-3 p-3 border rounded">
-                    <Row className="align-items-center">
-                      <Col xs={1}>
-                        <input
-                          key={`${currentWorkoutId}-${exercise.id}`}
-                          type="checkbox"
-                          checked={exercise.completed || false}
-                          onChange={() => handleToggleExercise(exercise.id)}
-                          style={{ width: 18, height: 18, cursor: "pointer" }}
-                        />
-                      </Col>
-                      <Col xs={6}>
-                        <input
-                          type="text"
-                          className="form-control"
-                          defaultValue={exercise.name}
-                          maxLength={255}
+                  <div key={exercise.id} className="exercise-item mb-2 p-2 border rounded">
+                    <div className="wd-exercise-row">
+                      <input
+                        key={`${currentWorkoutId}-${exercise.id}`}
+                        type="checkbox"
+                        className="wd-exercise-checkbox"
+                        checked={exercise.completed || false}
+                        onChange={() => handleToggleExercise(exercise.id)}
+                      />
+                      <input
+                        type="text"
+                        className="form-control wd-exercise-name"
+                        defaultValue={exercise.name}
+                        maxLength={255}
+                        onBlur={(e) => {
+                          if (e.target.value !== exercise.name) {
+                            handleUpdateExercise(exercise.id, e.target.value, exercise.sets, exercise.repsMin, exercise.repsMax, exercise.weight);
+                          }
+                        }}
+                      />
+                      <div className="wd-exercise-nums">
+                        <Form.Control
+                          size="sm"
+                          type="number" min="1"
+                          placeholder={t("workoutDetail.setsPlaceholder")}
+                          defaultValue={exercise.sets ?? ''}
                           onBlur={(e) => {
-                            if (e.target.value !== exercise.name) {
-                              handleUpdateExercise(exercise.id, e.target.value, exercise.sets, exercise.repsMin, exercise.repsMax, exercise.weight);
+                            const val = e.target.value !== '' ? parseInt(e.target.value, 10) : null;
+                            if (val !== exercise.sets) {
+                              handleUpdateExercise(exercise.id, exercise.name, val, exercise.repsMin, exercise.repsMax, exercise.weight);
                             }
                           }}
                         />
-                        {(exercise.sets || exercise.repsMin || exercise.weight) && (
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>
-                            {exercise.sets && <span className="me-2">{exercise.sets} {t("workoutDetail.seriesLabel")}</span>}
-                            {exercise.repsMin && (
-                              <span className="me-2">
-                                {exercise.repsMin}{exercise.repsMax && exercise.repsMax !== exercise.repsMin ? `–${exercise.repsMax}` : ""} {t("workoutDetail.repsLabel")}
-                              </span>
-                            )}
-                            {exercise.weight && <span>{exercise.weight} kg</span>}
-                          </div>
-                        )}
-                      </Col>
-                      <Col xs={5} className="text-end d-flex justify-content-end align-items-center gap-2">
+                        <Form.Control
+                          size="sm"
+                          type="number" min="1"
+                          placeholder={t("workoutDetail.repsMinPlaceholder")}
+                          defaultValue={exercise.repsMin ?? ''}
+                          onBlur={(e) => {
+                            const val = e.target.value !== '' ? parseInt(e.target.value, 10) : null;
+                            if (val !== exercise.repsMin) {
+                              handleUpdateExercise(exercise.id, exercise.name, exercise.sets, val, exercise.repsMax, exercise.weight);
+                            }
+                          }}
+                        />
+                        <Form.Control
+                          size="sm"
+                          type="number" min="1"
+                          placeholder={t("workoutDetail.repsMaxPlaceholder")}
+                          defaultValue={exercise.repsMax ?? ''}
+                          onBlur={(e) => {
+                            const val = e.target.value !== '' ? parseInt(e.target.value, 10) : null;
+                            if (val !== exercise.repsMax) {
+                              handleUpdateExercise(exercise.id, exercise.name, exercise.sets, exercise.repsMin, val, exercise.weight);
+                            }
+                          }}
+                        />
+                        <Form.Control
+                          size="sm"
+                          type="number" min="0" step="0.5"
+                          placeholder={t("workoutDetail.weightPlaceholder")}
+                          defaultValue={exercise.weight ?? ''}
+                          onBlur={(e) => {
+                            const val = e.target.value !== '' ? parseFloat(e.target.value) : null;
+                            if (val !== exercise.weight) {
+                              handleUpdateExercise(exercise.id, exercise.name, exercise.sets, exercise.repsMin, exercise.repsMax, val);
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="wd-exercise-actions">
                         <button
+                          type="button"
                           onClick={() => setLogModalExercise(exercise)}
                           aria-label={t("workoutDetail.logExecution")}
                           title={t("workoutDetail.logExecution")}
-                          style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#0d6efd" }}
+                          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#0d6efd" }}
                         >
                           <PlusCircle size={16} />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDeleteExercise(exercise.id)}
                           aria-label={t("workoutDetail.deleteExercise")}
-                          style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#dc3545" }}
+                          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
                         >
                           <Trash size={16} />
                         </button>
-                      </Col>
-                    </Row>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -466,8 +503,8 @@ function WorkoutDetailPage() {
 
             <div className="mb-3">
               <Form.Label>{t("workoutDetail.addNewExercise")}</Form.Label>
-              <Form.Group className="mb-2">
-                <div style={{ position: "relative" }}>
+              <div className="wd-add-row mb-2">
+                <div className="wd-add-name">
                   <Form.Control
                     type="text"
                     placeholder={t("workoutDetail.exerciseNamePlaceholder")}
@@ -502,45 +539,41 @@ function WorkoutDetailPage() {
                     </div>
                   )}
                 </div>
-                <Row className="mt-2 g-2">
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="1" size="sm"
-                      placeholder={t("workoutDetail.setsPlaceholder")}
-                      value={newExerciseSets}
-                      onChange={(e) => setNewExerciseSets(e.target.value)}
-                      disabled={addingExercise}
-                    />
-                  </Col>
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="1" size="sm"
-                      placeholder={t("workoutDetail.repsMinPlaceholder")}
-                      value={newExerciseRepsMin}
-                      onChange={(e) => setNewExerciseRepsMin(e.target.value)}
-                      disabled={addingExercise}
-                    />
-                  </Col>
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="1" size="sm"
-                      placeholder={t("workoutDetail.repsMaxPlaceholder")}
-                      value={newExerciseRepsMax}
-                      onChange={(e) => setNewExerciseRepsMax(e.target.value)}
-                      disabled={addingExercise}
-                    />
-                  </Col>
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="0" step="0.5" size="sm"
-                      placeholder={t("workoutDetail.weightPlaceholder")}
-                      value={newExerciseWeight}
-                      onChange={(e) => setNewExerciseWeight(e.target.value)}
-                      disabled={addingExercise}
-                    />
-                  </Col>
-                </Row>
-              </Form.Group>
+                <div className="wd-exercise-nums">
+                  <Form.Control
+                    size="sm"
+                    type="number" min="1"
+                    placeholder={t("workoutDetail.setsPlaceholder")}
+                    value={newExerciseSets}
+                    onChange={(e) => setNewExerciseSets(e.target.value)}
+                    disabled={addingExercise}
+                  />
+                  <Form.Control
+                    size="sm"
+                    type="number" min="1"
+                    placeholder={t("workoutDetail.repsMinPlaceholder")}
+                    value={newExerciseRepsMin}
+                    onChange={(e) => setNewExerciseRepsMin(e.target.value)}
+                    disabled={addingExercise}
+                  />
+                  <Form.Control
+                    size="sm"
+                    type="number" min="1"
+                    placeholder={t("workoutDetail.repsMaxPlaceholder")}
+                    value={newExerciseRepsMax}
+                    onChange={(e) => setNewExerciseRepsMax(e.target.value)}
+                    disabled={addingExercise}
+                  />
+                  <Form.Control
+                    size="sm"
+                    type="number" min="0" step="0.5"
+                    placeholder={t("workoutDetail.weightPlaceholder")}
+                    value={newExerciseWeight}
+                    onChange={(e) => setNewExerciseWeight(e.target.value)}
+                    disabled={addingExercise}
+                  />
+                </div>
+              </div>
               <Button
                 Text={addingExercise ? t("workoutDetail.adding") : t("workoutDetail.addButton")}
                 onClick={handleAddExercise}

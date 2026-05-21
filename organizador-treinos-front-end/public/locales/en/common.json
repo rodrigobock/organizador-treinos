@@ -10,10 +10,10 @@
   "remove": "Remove",
   "public": "Public",
   "navbar": {
-    "dashboard": "Dashboard",
+    "dashboard": "Today's Workout",
     "myWorkouts": "My Workouts",
     "sharedByMe": "Shared by me",
-    "templates": "Library",
+    "templates": "Ready workouts",
     "account": "Account",
     "logout": "Logout",
     "themeLight": "Switch to Light",
