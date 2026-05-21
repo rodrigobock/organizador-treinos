@@ -108,6 +108,7 @@ public class TemplateService {
             workout.getId(),
             workout.getName(),
             workout.getUser().getId(),
+            workout.getUser().getName(),
             workout.getIsPublic(),
             workout.getCreatedAt(),
             workout.getUpdatedAt()
