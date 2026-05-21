@@ -46,6 +46,14 @@ public class User {
     @Column(name = "preferred_locale", nullable = false)
     private String preferredLocale = "pt-BR";
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.STUDENT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender = Gender.UNISEX;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

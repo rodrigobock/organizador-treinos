@@ -11,6 +11,7 @@ public record ExerciseLogResponse(
         Double weight,
         Integer reps,
         Integer sets,
+        String difficulty,
         LocalDateTime loggedAt
 ) {
     public static ExerciseLogResponse from(ExerciseLog log) {
@@ -20,6 +21,7 @@ public record ExerciseLogResponse(
                 log.getWeight(),
                 log.getReps(),
                 log.getSets(),
+                log.getDifficulty() != null ? log.getDifficulty().name() : null,
                 log.getLoggedAt()
         );
     }

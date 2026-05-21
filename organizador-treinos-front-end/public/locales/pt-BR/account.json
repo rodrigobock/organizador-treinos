@@ -26,6 +26,19 @@
     "passwordUppercase": "Senha deve conter pelo menos uma letra maiúscula",
     "passwordNumber": "Senha deve conter pelo menos um número"
   },
+  "trainer": {
+    "studentsTitle": "Meus Alunos",
+    "studentsSubtitle": "Gerencie os alunos vinculados à sua conta.",
+    "emailPlaceholder": "E-mail do aluno",
+    "linkButton": "Vincular",
+    "linking": "Vinculando...",
+    "linkSuccess": "Aluno vinculado com sucesso!",
+    "noStudents": "Nenhum aluno vinculado ainda.",
+    "loading": "Carregando alunos...",
+    "unlink": "Desvincular",
+    "errorLinking": "Erro ao vincular aluno",
+    "errorUnlinking": "Erro ao desvincular aluno"
+  },
   "dangerZone": {
     "title": "Zona de Perigo",
     "description": "Esta ação remove permanentemente sua conta e todos os seus dados.",

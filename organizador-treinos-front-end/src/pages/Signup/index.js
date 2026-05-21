@@ -27,6 +27,8 @@ const Signup = () => {
   const [email, setEmail]       = useState("");
   const [emailConf, setEmailConf] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole]         = useState("STUDENT");
+  const [gender, setGender]     = useState("UNISEX");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ const Signup = () => {
     setLoading(true);
     setError("");
 
-    const errorMsg = await signup(name, email, password);
+    const errorMsg = await signup(name, email, password, role, gender);
 
     if (errorMsg) {
       setError(errorMsg.response?.data?.message || errorMsg.message || errorMsg || t("signup.error"));
@@ -141,6 +143,30 @@ const Signup = () => {
               disabled={loading}
             />
             <C.PasswordHint>{t("signup.passwordHint")}</C.PasswordHint>
+          </C.FieldGroup>
+
+          <C.FieldGroup style={{ marginTop: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{t("signup.roleLabel")}</p>
+            <div style={{ display: "flex", gap: 12 }}>
+              {["STUDENT", "PERSONAL_TRAINER"].map((r) => (
+                <label key={r} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13 }}>
+                  <input type="radio" name="role" value={r} checked={role === r} onChange={() => setRole(r)} />
+                  {t(`signup.roles.${r}`)}
+                </label>
+              ))}
+            </div>
+          </C.FieldGroup>
+
+          <C.FieldGroup style={{ marginTop: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{t("signup.genderLabel")}</p>
+            <div style={{ display: "flex", gap: 12 }}>
+              {["MALE", "FEMALE", "UNISEX"].map((g) => (
+                <label key={g} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13 }}>
+                  <input type="radio" name="gender" value={g} checked={gender === g} onChange={() => setGender(g)} />
+                  {t(`signup.genders.${g}`)}
+                </label>
+              ))}
+            </div>
           </C.FieldGroup>
 
           {error && <C.ErrorMsg>{error}</C.ErrorMsg>}

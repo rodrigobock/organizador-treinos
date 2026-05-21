@@ -6,6 +6,7 @@ import NavBar from "../../components/NavBar";
 import useAuth from "../../hooks/useAuth";
 import authService from "../../services/authService";
 import userService from "../../services/userService";
+import trainerService from "../../services/trainerService";
 
 function AccountPage() {
   const { user, updateUser, signout } = useAuth();
@@ -32,6 +33,13 @@ function AccountPage() {
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [showDeletePass, setShowDeletePass] = useState(false);
+
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentEmail, setStudentEmail] = useState("");
+  const [linkingStudent, setLinkingStudent] = useState(false);
+  const [studentError, setStudentError] = useState("");
+  const [studentSuccess, setStudentSuccess] = useState("");
 
   const EyeIcon = ({ visible, onToggle }) => (
     <button
@@ -67,6 +75,22 @@ function AccountPage() {
       )}
     </button>
   );
+
+  React.useEffect(() => {
+    if (user?.role !== 'PERSONAL_TRAINER') return;
+    const load = async () => {
+      setStudentsLoading(true);
+      try {
+        const data = await trainerService.getStudents();
+        setStudents(data);
+      } catch (err) {
+        // silently fail
+      } finally {
+        setStudentsLoading(false);
+      }
+    };
+    load();
+  }, [user?.role]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -174,6 +198,33 @@ function AccountPage() {
         err.response?.data?.message || err.message || t("dangerZone.modal.error")
       );
       setDeleting(false);
+    }
+  };
+
+  const handleLinkStudent = async (e) => {
+    e.preventDefault();
+    if (!studentEmail.trim()) return;
+    setLinkingStudent(true);
+    setStudentError("");
+    setStudentSuccess("");
+    try {
+      const student = await trainerService.linkStudent(studentEmail.trim());
+      setStudents(prev => [...prev, student]);
+      setStudentEmail("");
+      setStudentSuccess(t("trainer.linkSuccess"));
+    } catch (err) {
+      setStudentError(err.response?.data?.message || err.message || t("trainer.errorLinking"));
+    } finally {
+      setLinkingStudent(false);
+    }
+  };
+
+  const handleUnlinkStudent = async (studentId) => {
+    try {
+      await trainerService.unlinkStudent(studentId);
+      setStudents(prev => prev.filter(s => s.id !== studentId));
+    } catch (err) {
+      setStudentError(err.response?.data?.message || err.message || t("trainer.errorUnlinking"));
     }
   };
 
@@ -532,6 +583,61 @@ function AccountPage() {
               </div>
             </form>
           </div>
+
+          {user?.role === 'PERSONAL_TRAINER' && (
+            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 24, marginTop: 24 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4, marginTop: 0 }}>
+                {t("trainer.studentsTitle")}
+              </h2>
+              <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 0 16px" }}>
+                {t("trainer.studentsSubtitle")}
+              </p>
+
+              <form onSubmit={handleLinkStudent} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <input
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) => setStudentEmail(e.target.value)}
+                  placeholder={t("trainer.emailPlaceholder")}
+                  disabled={linkingStudent}
+                  style={{ flex: 1, padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-surface)", color: "var(--text-primary)", fontSize: 13, outline: "none" }}
+                />
+                <button
+                  type="submit"
+                  disabled={linkingStudent || !studentEmail.trim()}
+                  style={{ padding: "9px 16px", borderRadius: 8, border: "none", background: "var(--btn-primary-bg)", color: "var(--btn-primary-text)", fontWeight: 600, fontSize: 13, cursor: linkingStudent ? "not-allowed" : "pointer", opacity: linkingStudent ? 0.7 : 1 }}
+                >
+                  {linkingStudent ? t("trainer.linking") : t("trainer.linkButton")}
+                </button>
+              </form>
+
+              {studentError && <p style={{ color: "var(--accent-alt)", fontSize: 13, marginBottom: 8 }}>{studentError}</p>}
+              {studentSuccess && <p style={{ color: "var(--success)", fontSize: 13, marginBottom: 8 }}>{studentSuccess}</p>}
+
+              {studentsLoading ? (
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("trainer.loading")}</p>
+              ) : students.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("trainer.noStudents")}</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {students.map((student) => (
+                    <div key={student.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                      <div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{student.name}</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 8 }}>{student.email}</span>
+                      </div>
+                      <button
+                        onClick={() => handleUnlinkStudent(student.id)}
+                        style={{ background: "none", border: "none", color: "#dc3545", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: "2px 8px" }}
+                      >
+                        {t("trainer.unlink")}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div
             style={{

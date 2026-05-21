@@ -87,9 +87,9 @@
     "errorCreating": "Error creating workout"
   },
   "templates": {
-    "title": "Workout Templates",
+    "title": "Workout Library",
     "subtitle": "Choose a pre-built template and add it to your workouts with a single click.",
-    "allGoals": "All",
+    "allCategories": "All",
     "useTemplate": "Use this workout",
     "loginToUse": "Sign in to use",
     "loginPrompt": "Sign in or create an account to import templates into your workouts.",
@@ -100,11 +100,17 @@
     "myWorkouts": "My Workouts",
     "errorLoading": "Error loading templates",
     "errorImporting": "Error importing template",
-    "goals": {
-      "HIPERTROFIA": "Hypertrophy",
-      "FORCA": "Strength",
-      "INICIANTE": "Beginner",
-      "FUNCIONAL": "Functional"
+    "categories": {
+      "BEGINNER": "Beginner",
+      "INTERMEDIATE": "Intermediate",
+      "ADVANCED": "Advanced",
+      "FUNCTIONAL": "Functional",
+      "CALISTHENICS": "Calisthenics"
+    },
+    "genders": {
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "UNISEX": "Unisex"
     }
   },
   "workoutDetail": {
@@ -114,6 +120,12 @@
     "exportJson": "Export JSON",
     "exportPdf": "Export PDF",
     "exercisesTitle": "Exercises",
+    "seriesLabel": "sets",
+    "repsLabel": "reps",
+    "setsPlaceholder": "e.g. 3",
+    "repsMinPlaceholder": "min reps",
+    "repsMaxPlaceholder": "max reps",
+    "weightPlaceholder": "weight kg",
     "noExercises": "No exercises added yet.",
     "addNewExercise": "Add New Exercise",
     "exerciseNamePlaceholder": "Exercise name",
@@ -138,7 +150,14 @@
       "setsPlaceholder": "e.g. 3",
       "cancel": "Cancel",
       "save": "Save",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "difficultyLabel": "Perceived difficulty (optional)",
+      "difficulty": {
+        "EASY": "Easy",
+        "MODERATE": "Moderate",
+        "HARD": "Hard",
+        "MAX": "Maximum"
+      }
     },
     "history": {
       "title": "History",

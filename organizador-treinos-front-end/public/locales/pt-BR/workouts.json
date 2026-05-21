@@ -87,9 +87,9 @@
     "errorCreating": "Erro ao criar treino"
   },
   "templates": {
-    "title": "Templates de Treino",
-    "subtitle": "Escolha um template pré-montado e adicione aos seus treinos com um clique.",
-    "allGoals": "Todos",
+    "title": "Biblioteca de Treinos",
+    "subtitle": "Escolha um treino pré-montado e adicione aos seus treinos com um clique.",
+    "allCategories": "Todos",
     "useTemplate": "Usar este treino",
     "loginToUse": "Faça login para usar",
     "loginPrompt": "Faça login ou crie uma conta para importar templates para os seus treinos.",
@@ -100,11 +100,17 @@
     "myWorkouts": "Meus Treinos",
     "errorLoading": "Erro ao carregar templates",
     "errorImporting": "Erro ao importar template",
-    "goals": {
-      "HIPERTROFIA": "Hipertrofia",
-      "FORCA": "Força",
-      "INICIANTE": "Iniciante",
-      "FUNCIONAL": "Funcional"
+    "categories": {
+      "BEGINNER": "Iniciante",
+      "INTERMEDIATE": "Intermediário",
+      "ADVANCED": "Avançado",
+      "FUNCTIONAL": "Funcional",
+      "CALISTHENICS": "Calistenia"
+    },
+    "genders": {
+      "MALE": "Masculino",
+      "FEMALE": "Feminino",
+      "UNISEX": "Unissex"
     }
   },
   "workoutDetail": {
@@ -114,6 +120,12 @@
     "exportJson": "Exportar JSON",
     "exportPdf": "Exportar PDF",
     "exercisesTitle": "Exercícios",
+    "seriesLabel": "séries",
+    "repsLabel": "reps",
+    "setsPlaceholder": "ex: 3",
+    "repsMinPlaceholder": "reps mín",
+    "repsMaxPlaceholder": "reps máx",
+    "weightPlaceholder": "peso kg",
     "noExercises": "Nenhum exercício adicionado ainda.",
     "addNewExercise": "Adicionar Novo Exercício",
     "exerciseNamePlaceholder": "Nome do exercício",
@@ -138,7 +150,14 @@
       "setsPlaceholder": "ex: 3",
       "cancel": "Cancelar",
       "save": "Salvar",
-      "saving": "Salvando..."
+      "saving": "Salvando...",
+      "difficultyLabel": "Dificuldade percebida (opcional)",
+      "difficulty": {
+        "EASY": "Fácil",
+        "MODERATE": "Moderado",
+        "HARD": "Difícil",
+        "MAX": "Máximo"
+      }
     },
     "history": {
       "title": "Histórico",

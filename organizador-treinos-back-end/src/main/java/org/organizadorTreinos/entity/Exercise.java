@@ -35,6 +35,18 @@ public class Exercise {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column
+    private Integer sets;
+
+    @Column(name = "reps_min")
+    private Integer repsMin;
+
+    @Column(name = "reps_max")
+    private Integer repsMax;
+
+    @Column
+    private Double weight;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

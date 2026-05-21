@@ -36,10 +36,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, role, gender) => {
     try {
       setError(null);
-      const userResponse = await authService.signup(name, email, password);
+      const userResponse = await authService.signup(name, email, password, role, gender);
       setUser(userResponse);
       return null;
     } catch (err) {

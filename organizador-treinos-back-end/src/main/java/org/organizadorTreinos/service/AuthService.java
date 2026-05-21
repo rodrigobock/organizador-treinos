@@ -12,9 +12,11 @@ import org.organizadorTreinos.dto.request.ResetPasswordRequest;
 import org.organizadorTreinos.dto.request.SignupRequest;
 import org.organizadorTreinos.dto.response.AuthResponse;
 import org.organizadorTreinos.dto.response.UserResponse;
+import org.organizadorTreinos.entity.Gender;
 import org.organizadorTreinos.entity.PasswordResetToken;
 import org.organizadorTreinos.entity.RefreshToken;
 import org.organizadorTreinos.entity.User;
+import org.organizadorTreinos.entity.UserRole;
 import org.organizadorTreinos.repository.PasswordResetTokenRepository;
 import org.organizadorTreinos.repository.RefreshTokenRepository;
 import org.organizadorTreinos.repository.UserRepository;
@@ -56,6 +58,8 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordService.hash(request.getPassword()));
         user.setPreferredLocale(locale != null ? locale : "pt-BR");
+        user.setRole(parseRole(request.getRole()));
+        user.setGender(parseGender(request.getGender()));
 
         userRepository.persist(user);
         LOG.infof("New user signed up: userId=%s", user.getId());
@@ -64,7 +68,7 @@ public class AuthService {
 
         String accessToken = jwtService.generateToken(user.getId());
         String refreshTokenValue = createRefreshToken(user);
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale(), user.getRole().name(), user.getGender().name());
 
         return new AuthResponse(accessToken, refreshTokenValue, userResponse);
     }
@@ -87,7 +91,7 @@ public class AuthService {
 
         String accessToken = jwtService.generateToken(user.getId());
         String refreshTokenValue = createRefreshToken(user);
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale(), user.getRole().name(), user.getGender().name());
 
         return new AuthResponse(accessToken, refreshTokenValue, userResponse);
     }
@@ -107,7 +111,7 @@ public class AuthService {
 
         String accessToken = jwtService.generateToken(user.getId());
         String newRefreshToken = createRefreshToken(user);
-        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale());
+        UserResponse userResponse = new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getCurrentWorkoutId(), user.getPreferredLocale(), user.getRole().name(), user.getGender().name());
 
         return new AuthResponse(accessToken, newRefreshToken, userResponse);
     }
@@ -171,6 +175,17 @@ public class AuthService {
             return "***@" + domain;
         }
         return localPart.charAt(0) + "***@" + domain;
+    }
+
+    private UserRole parseRole(String role) {
+        if ("PERSONAL_TRAINER".equalsIgnoreCase(role)) return UserRole.PERSONAL_TRAINER;
+        return UserRole.STUDENT;
+    }
+
+    private Gender parseGender(String gender) {
+        if ("MALE".equalsIgnoreCase(gender)) return Gender.MALE;
+        if ("FEMALE".equalsIgnoreCase(gender)) return Gender.FEMALE;
+        return Gender.UNISEX;
     }
 
     private String createRefreshToken(User user) {

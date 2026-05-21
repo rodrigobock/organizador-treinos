@@ -1,13 +1,15 @@
 import api from './api';
 
 const templateService = {
-  getTemplates: async (goal) => {
+  getTemplates: async (category, gender) => {
     try {
-      const params = goal ? { goal } : {};
+      const params = {};
+      if (category) params.category = category;
+      if (gender) params.gender = gender;
       const response = await api.get('/templates', { params });
       return response.data;
     } catch (error) {
-      throw new Error(error.message || 'Erro ao carregar templates');
+      throw new Error(error.message || 'Erro ao carregar biblioteca de treinos');
     }
   },
 
@@ -16,7 +18,7 @@ const templateService = {
       const response = await api.post(`/templates/${id}/import`);
       return response.data;
     } catch (error) {
-      throw new Error(error.message || 'Erro ao importar template');
+      throw new Error(error.message || 'Erro ao importar treino');
     }
   },
 };

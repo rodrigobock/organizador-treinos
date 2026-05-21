@@ -38,6 +38,10 @@ public class ExerciseLog {
     @Column
     private Integer sets;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Difficulty difficulty;
+
     @Column(name = "logged_at", nullable = false)
     private LocalDateTime loggedAt;
 

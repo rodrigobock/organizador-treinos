@@ -53,6 +53,10 @@ public class ExerciseService {
 
         Exercise exercise = new Exercise();
         exercise.setName(request.getName());
+        exercise.setSets(request.getSets());
+        exercise.setRepsMin(request.getRepsMin());
+        exercise.setRepsMax(request.getRepsMax());
+        exercise.setWeight(request.getWeight());
         exercise.setWorkout(workout);
 
         exerciseRepository.persist(exercise);
@@ -75,6 +79,10 @@ public class ExerciseService {
         }
 
         exercise.setName(request.getName());
+        exercise.setSets(request.getSets());
+        exercise.setRepsMin(request.getRepsMin());
+        exercise.setRepsMax(request.getRepsMax());
+        exercise.setWeight(request.getWeight());
         exerciseRepository.persist(exercise);
 
         return toResponse(exercise, user);
@@ -156,6 +164,10 @@ public class ExerciseService {
             exercise.getId(),
             exercise.getName(),
             completed,
+            exercise.getSets(),
+            exercise.getRepsMin(),
+            exercise.getRepsMax(),
+            exercise.getWeight(),
             exercise.getCreatedAt(),
             exercise.getUpdatedAt()
         );

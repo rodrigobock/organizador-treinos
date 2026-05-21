@@ -49,6 +49,11 @@ public class ExerciseLogService {
         log.setWeight(request.getWeight());
         log.setReps(request.getReps());
         log.setSets(request.getSets());
+        if (request.getDifficulty() != null && !request.getDifficulty().isBlank()) {
+            try {
+                log.setDifficulty(org.organizadorTreinos.entity.Difficulty.valueOf(request.getDifficulty().toUpperCase()));
+            } catch (IllegalArgumentException ignored) {}
+        }
 
         exerciseLogRepository.persist(log);
 

@@ -10,10 +10,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExerciseResponse {
-
     private UUID id;
     private String name;
     private Boolean completed;
+    private Integer sets;
+    private Integer repsMin;
+    private Integer repsMax;
+    private Double weight;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -7,7 +7,7 @@ function toError(error, fallback) {
 }
 
 const authService = {
-  signup: async (name, email, password) => {
+  signup: async (name, email, password, role, gender) => {
     const preferredLocale = localStorage.getItem('i18n_lang') || 'pt-BR';
     try {
       const response = await api.post('/auth/signup', {
@@ -15,6 +15,8 @@ const authService = {
         email,
         password,
         preferredLocale,
+        role: role || 'STUDENT',
+        gender: gender || 'UNISEX',
       });
       return response.data;
     } catch (error) {

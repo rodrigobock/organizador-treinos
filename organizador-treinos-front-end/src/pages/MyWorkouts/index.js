@@ -10,7 +10,6 @@ import Form from "react-bootstrap/Form";
 import Pagination from "react-bootstrap/Pagination";
 import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
-import { downloadJson } from "../../utils/downloadJson";
 import useAuth from "../../hooks/useAuth";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
@@ -126,7 +125,6 @@ function MyWorkoutsPage() {
   const [importAnalysis, setImportAnalysis] = useState(null);
   const [userActions, setUserActions] = useState({});
   const [importing, setImporting] = useState(false);
-  const [exportingAll, setExportingAll] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -200,29 +198,6 @@ function MyWorkoutsPage() {
     } catch (err) {
       setWorkouts(workouts);
       setError(err.response?.data?.message || err.message || t("myWorkouts.errorReordering"));
-    }
-  };
-
-  const handleExportAll = async () => {
-    if (totalElements === 0) return;
-    try {
-      setExportingAll(true);
-      const allWorkouts = await workoutService.getMyWorkouts();
-      const workoutsWithExercises = await Promise.all(
-        allWorkouts.map((w) => workoutService.getWorkout(w.id))
-      );
-      const data = {
-        version: 1,
-        workouts: workoutsWithExercises.map((w) => ({
-          name: w.name,
-          exercises: (w.exercises || []).map((e) => ({ name: e.name, completed: e.completed })),
-        })),
-      };
-      downloadJson("my-workouts.json", data);
-    } catch (err) {
-      setError(t("myWorkouts.errorExporting"));
-    } finally {
-      setExportingAll(false);
     }
   };
 
@@ -364,19 +339,6 @@ function MyWorkoutsPage() {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1>{t("myWorkouts.title")}</h1>
           <div className="d-flex gap-2">
-            <Button
-              Text={
-                exportingAll ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
-                    {t("myWorkouts.exportingJson")}
-                  </span>
-                ) : t("myWorkouts.exportJson")
-              }
-              onClick={handleExportAll}
-              disabled={exportingAll || totalElements === 0}
-              size="sm"
-            />
             <Button
               Text={
                 importing ? (

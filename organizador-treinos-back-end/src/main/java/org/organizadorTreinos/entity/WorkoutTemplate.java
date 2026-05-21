@@ -15,7 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "workout_templates", indexes = {
-    @Index(name = "idx_workout_templates_goal", columnList = "goal")
+    @Index(name = "idx_workout_templates_category", columnList = "category"),
+    @Index(name = "idx_workout_templates_gender", columnList = "gender")
 })
 public class WorkoutTemplate {
 
@@ -30,9 +31,13 @@ public class WorkoutTemplate {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @NotBlank(message = "Template goal is required")
-    @Column(nullable = false, length = 50)
-    private String goal;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TemplateCategory category = TemplateCategory.INTERMEDIATE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender = Gender.UNISEX;
 
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true,
                fetch = FetchType.LAZY)

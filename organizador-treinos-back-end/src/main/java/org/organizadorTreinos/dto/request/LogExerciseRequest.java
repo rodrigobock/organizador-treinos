@@ -16,4 +16,6 @@ public class LogExerciseRequest {
 
     @Min(value = 1, message = "Sets must be at least 1")
     private Integer sets;
+
+    private String difficulty;
 }

@@ -28,4 +28,8 @@ public class SignupRequest {
     private String password;
 
     private String preferredLocale;
+
+    private String role;
+
+    private String gender;
 }

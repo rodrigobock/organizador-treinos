@@ -48,6 +48,9 @@ public class WorkoutShareController {
     public Response shareWorkout(@PathParam("workoutId") UUID workoutId,
                                  @Valid BulkShareRequest request) {
         User user = getCurrentUser();
+        if (user.getRole() != org.organizadorTreinos.entity.UserRole.PERSONAL_TRAINER) {
+            throw new jakarta.ws.rs.ForbiddenException("Only personal trainers can manage workout shares");
+        }
         BulkShareResult result = workoutShareService.shareWithMultiple(
                 workoutId, request.getEmails(), request.getPermission(), user);
         return Response.status(Response.Status.CREATED).entity(result).build();
@@ -63,6 +66,9 @@ public class WorkoutShareController {
     public Response revokeShare(@PathParam("workoutId") UUID workoutId,
                                 @PathParam("userId") UUID userId) {
         User user = getCurrentUser();
+        if (user.getRole() != org.organizadorTreinos.entity.UserRole.PERSONAL_TRAINER) {
+            throw new jakarta.ws.rs.ForbiddenException("Only personal trainers can manage workout shares");
+        }
         workoutShareService.revokeAccess(workoutId, userId, user);
         return Response.noContent().build();
     }
@@ -76,6 +82,9 @@ public class WorkoutShareController {
     @RolesAllowed("users")
     public Response getSharedByMe() {
         User user = getCurrentUser();
+        if (user.getRole() != org.organizadorTreinos.entity.UserRole.PERSONAL_TRAINER) {
+            throw new jakarta.ws.rs.ForbiddenException("Only personal trainers can manage workout shares");
+        }
         List<SharedByMeResponse> result = workoutShareService.getSharedByMe(user);
         return Response.ok(result).build();
     }

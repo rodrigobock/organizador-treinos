@@ -26,6 +26,19 @@
     "passwordUppercase": "Password must contain at least one uppercase letter",
     "passwordNumber": "Password must contain at least one number"
   },
+  "trainer": {
+    "studentsTitle": "My Students",
+    "studentsSubtitle": "Manage the students linked to your account.",
+    "emailPlaceholder": "Student email",
+    "linkButton": "Link",
+    "linking": "Linking...",
+    "linkSuccess": "Student linked successfully!",
+    "noStudents": "No students linked yet.",
+    "loading": "Loading students...",
+    "unlink": "Unlink",
+    "errorLinking": "Error linking student",
+    "errorUnlinking": "Error unlinking student"
+  },
   "dangerZone": {
     "title": "Danger Zone",
     "description": "This action permanently removes your account and all your data.",

@@ -11,11 +11,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WorkoutTemplateResponse {
-
     private Long id;
     private String name;
     private String description;
-    private String goal;
+    private String category;
+    private String gender;
     private List<TemplateExerciseResponse> exercises;
     private LocalDateTime createdAt;
 }

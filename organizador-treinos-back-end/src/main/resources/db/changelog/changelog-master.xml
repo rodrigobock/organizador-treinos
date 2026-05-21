@@ -16,5 +16,12 @@
     <include file="db/changelog/V9__add_exercise_logs.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V10__add_workout_templates.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V11__add_calisthenics_templates.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V12__add_user_role_and_gender.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V13__create_trainer_students.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V14__add_exercise_fields_and_catalog.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V15__update_workout_templates_category.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V16__add_exercise_log_difficulty.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V17__add_gender_specific_templates.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V18__expand_exercise_catalog.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

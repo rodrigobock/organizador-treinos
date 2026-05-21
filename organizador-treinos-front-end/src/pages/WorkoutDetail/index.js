@@ -14,8 +14,6 @@ import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
 import useAuth from "../../hooks/useAuth";
-import { downloadJson } from "../../utils/downloadJson";
-import { downloadWorkoutAsPdf } from "../../utils/downloadPdf";
 import { ClockHistory, PlusCircle, Trash } from "react-bootstrap-icons";
 import "./styles.css";
 
@@ -70,7 +68,7 @@ function ExerciseHistoryPanel({ workoutId, exerciseId, t }) {
       </button>
 
       {open && (
-        <div className="exercise-history-panel mt-1 p-2 rounded border bg-white">
+        <div className="exercise-history-panel mt-1 p-2 rounded border" style={{ background: "var(--bg-card)" }}>
           {loading && (
             <small className="text-muted">
               {t("workoutDetail.history.loading")}
@@ -118,6 +116,7 @@ function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) 
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
   const [sets, setSets] = useState("");
+  const [difficulty, setDifficulty] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -126,6 +125,7 @@ function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) 
       setWeight("");
       setReps("");
       setSets("");
+      setDifficulty("");
       setError("");
     }
   }, [show]);
@@ -139,6 +139,7 @@ function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) 
         weight: weight !== "" ? parseFloat(weight) : null,
         reps: reps !== "" ? parseInt(reps, 10) : null,
         sets: sets !== "" ? parseInt(sets, 10) : null,
+        difficulty: difficulty || null,
       };
       const log = await exerciseService.logExecution(workoutId, exercise.id, payload);
       onLogged(log);
@@ -206,6 +207,22 @@ function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) 
               />
             </Col>
           </Row>
+          <Form.Group className="mt-3">
+            <Form.Label className="small">{t("workoutDetail.logModal.difficultyLabel")}</Form.Label>
+            <div className="d-flex gap-2 flex-wrap">
+              {["EASY", "MODERATE", "HARD", "MAX"].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`btn btn-sm ${difficulty === d ? "btn-dark" : "btn-outline-secondary"}`}
+                  onClick={() => setDifficulty(prev => prev === d ? "" : d)}
+                  disabled={saving}
+                >
+                  {t(`workoutDetail.logModal.difficulty.${d}`)}
+                </button>
+              ))}
+            </div>
+          </Form.Group>
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -238,11 +255,28 @@ function WorkoutDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [newExerciseName, setNewExerciseName] = useState("");
+  const [newExerciseSets, setNewExerciseSets] = useState("");
+  const [newExerciseRepsMin, setNewExerciseRepsMin] = useState("");
+  const [newExerciseRepsMax, setNewExerciseRepsMax] = useState("");
+  const [newExerciseWeight, setNewExerciseWeight] = useState("");
   const [addingExercise, setAddingExercise] = useState(false);
   const [currentWorkoutId, setCurrentWorkoutId] = useState(id);
   const [logModalExercise, setLogModalExercise] = useState(null);
 
-  // Sharing state
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionTimer = React.useRef(null);
+
+  const fetchSuggestions = (query) => {
+    clearTimeout(suggestionTimer.current);
+    if (!query || query.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
+    suggestionTimer.current = setTimeout(async () => {
+      const results = await exerciseService.getSuggestions(query);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    }, 300);
+  };
+
   const [shareEmails, setShareEmails] = useState("");
   const [sharePermission, setSharePermission] = useState("READ");
   const [sharing, setSharing] = useState(false);
@@ -316,13 +350,23 @@ function WorkoutDetailPage() {
     try {
       setAddingExercise(true);
       setError("");
-      const newExercise = await exerciseService.createExercise(id, newExerciseName);
+      const newExercise = await exerciseService.createExercise(
+        id, newExerciseName,
+        newExerciseSets !== "" ? parseInt(newExerciseSets, 10) : null,
+        newExerciseRepsMin !== "" ? parseInt(newExerciseRepsMin, 10) : null,
+        newExerciseRepsMax !== "" ? parseInt(newExerciseRepsMax, 10) : null,
+        newExerciseWeight !== "" ? parseFloat(newExerciseWeight) : null
+      );
       if (currentWorkoutId === id) {
         setWorkout({
           ...workout,
           exercises: [...(workout.exercises || []), newExercise],
         });
         setNewExerciseName("");
+        setNewExerciseSets("");
+        setNewExerciseRepsMin("");
+        setNewExerciseRepsMax("");
+        setNewExerciseWeight("");
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("workoutDetail.errorAdding"));
@@ -367,13 +411,17 @@ function WorkoutDetailPage() {
     }
   };
 
-  const handleUpdateExercise = async (exerciseId, newName) => {
+  const handleUpdateExercise = async (exerciseId, name, sets, repsMin, repsMax, weight) => {
     try {
       setError("");
       const updatedExercise = await exerciseService.updateExercise(
         id,
         exerciseId,
-        newName
+        name,
+        sets,
+        repsMin,
+        repsMax,
+        weight
       );
       if (currentWorkoutId === id) {
         setWorkout({
@@ -386,21 +434,6 @@ function WorkoutDetailPage() {
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("workoutDetail.errorUpdating"));
     }
-  };
-
-  const handleExportJson = () => {
-    const data = {
-      version: 1,
-      workouts: [{
-        name: workout.name,
-        exercises: (workout.exercises || []).map(e => ({ name: e.name, completed: e.completed })),
-      }],
-    };
-    downloadJson(`${workout.name.replace(/\s+/g, '-').toLowerCase()}.json`, data);
-  };
-
-  const handleExportPdf = () => {
-    downloadWorkoutAsPdf(workout);
   };
 
   if (loading) {
@@ -443,8 +476,6 @@ function WorkoutDetailPage() {
             )}
           </div>
           <div className="d-flex gap-2">
-            <Button Text={t("workoutDetail.exportJson")} onClick={handleExportJson} size="sm" />
-            <Button Text={t("workoutDetail.exportPdf")} onClick={handleExportPdf} size="sm" />
             <Button Text={t("workoutDetail.back")} onClick={() => navigate("/myworkouts")} size="sm" />
           </div>
         </div>
@@ -482,10 +513,21 @@ function WorkoutDetailPage() {
                           maxLength={255}
                           onBlur={(e) => {
                             if (e.target.value !== exercise.name) {
-                              handleUpdateExercise(exercise.id, e.target.value);
+                              handleUpdateExercise(exercise.id, e.target.value, exercise.sets, exercise.repsMin, exercise.repsMax, exercise.weight);
                             }
                           }}
                         />
+                        {(exercise.sets || exercise.repsMin || exercise.weight) && (
+                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>
+                            {exercise.sets && <span className="me-2">{exercise.sets} {t("workoutDetail.seriesLabel")}</span>}
+                            {exercise.repsMin && (
+                              <span className="me-2">
+                                {exercise.repsMin}{exercise.repsMax && exercise.repsMax !== exercise.repsMin ? `–${exercise.repsMax}` : ""} {t("workoutDetail.repsLabel")}
+                              </span>
+                            )}
+                            {exercise.weight && <span>{exercise.weight} kg</span>}
+                          </div>
+                        )}
                       </Col>
                       <Col xs={5} className="text-end d-flex justify-content-end align-items-center gap-2">
                         <button
@@ -524,14 +566,79 @@ function WorkoutDetailPage() {
             <div className="mb-3">
               <Form.Label>{t("workoutDetail.addNewExercise")}</Form.Label>
               <Form.Group className="mb-2">
-                <Form.Control
-                  type="text"
-                  placeholder={t("workoutDetail.exerciseNamePlaceholder")}
-                  value={newExerciseName}
-                  onChange={(e) => setNewExerciseName(e.target.value)}
-                  disabled={addingExercise}
-                  maxLength={255}
-                />
+                <div style={{ position: "relative" }}>
+                  <Form.Control
+                    type="text"
+                    placeholder={t("workoutDetail.exerciseNamePlaceholder")}
+                    value={newExerciseName}
+                    onChange={(e) => {
+                      setNewExerciseName(e.target.value);
+                      fetchSuggestions(e.target.value);
+                    }}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                    disabled={addingExercise}
+                    maxLength={255}
+                    autoComplete="off"
+                  />
+                  {showSuggestions && (
+                    <div style={{
+                      position: "absolute", top: "100%", left: 0, right: 0, zIndex: 1000,
+                      background: "var(--bg-card)", border: "1px solid var(--border)",
+                      borderRadius: 6, boxShadow: "0 4px 12px rgba(0,0,0,0.15)", maxHeight: 200, overflowY: "auto"
+                    }}>
+                      {suggestions.map((s, i) => (
+                        <div
+                          key={i}
+                          style={{ padding: "8px 12px", cursor: "pointer", fontSize: 13, color: "var(--text-primary)" }}
+                          onMouseDown={() => { setNewExerciseName(s); setShowSuggestions(false); setSuggestions([]); }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-surface)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                        >
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Row className="mt-2 g-2">
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="1" size="sm"
+                      placeholder={t("workoutDetail.setsPlaceholder")}
+                      value={newExerciseSets}
+                      onChange={(e) => setNewExerciseSets(e.target.value)}
+                      disabled={addingExercise}
+                    />
+                  </Col>
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="1" size="sm"
+                      placeholder={t("workoutDetail.repsMinPlaceholder")}
+                      value={newExerciseRepsMin}
+                      onChange={(e) => setNewExerciseRepsMin(e.target.value)}
+                      disabled={addingExercise}
+                    />
+                  </Col>
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="1" size="sm"
+                      placeholder={t("workoutDetail.repsMaxPlaceholder")}
+                      value={newExerciseRepsMax}
+                      onChange={(e) => setNewExerciseRepsMax(e.target.value)}
+                      disabled={addingExercise}
+                    />
+                  </Col>
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="0" step="0.5" size="sm"
+                      placeholder={t("workoutDetail.weightPlaceholder")}
+                      value={newExerciseWeight}
+                      onChange={(e) => setNewExerciseWeight(e.target.value)}
+                      disabled={addingExercise}
+                    />
+                  </Col>
+                </Row>
               </Form.Group>
               <Button
                 Text={addingExercise ? t("workoutDetail.adding") : t("workoutDetail.addButton")}
@@ -542,7 +649,7 @@ function WorkoutDetailPage() {
           </Card.Body>
         </Card>
 
-        {isOwner && (
+        {isOwner && user?.role === 'PERSONAL_TRAINER' && (
           <Card className="mb-4">
             <Card.Header>
               <Card.Title className="mb-0">{t("workoutDetail.shareTitle")}</Card.Title>

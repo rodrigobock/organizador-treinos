@@ -7,20 +7,32 @@ function toError(error, fallback) {
 }
 
 const exerciseService = {
-  createExercise: async (workoutId, name) => {
+  createExercise: async (workoutId, name, sets, repsMin, repsMax, weight) => {
     try {
-      const response = await api.post(`/workouts/${workoutId}/exercises`, { name });
+      const response = await api.post(`/workouts/${workoutId}/exercises`, {
+        name,
+        sets: sets ?? null,
+        repsMin: repsMin ?? null,
+        repsMax: repsMax ?? null,
+        weight: weight ?? null,
+      });
       return response.data;
     } catch (error) {
       throw toError(error, 'Erro ao criar exercício');
     }
   },
 
-  updateExercise: async (workoutId, exerciseId, name) => {
+  updateExercise: async (workoutId, exerciseId, name, sets, repsMin, repsMax, weight) => {
     try {
       const response = await api.put(
         `/workouts/${workoutId}/exercises/${exerciseId}`,
-        { name }
+        {
+          name,
+          sets: sets ?? null,
+          repsMin: repsMin ?? null,
+          repsMax: repsMax ?? null,
+          weight: weight ?? null,
+        }
       );
       return response.data;
     } catch (error) {
@@ -68,6 +80,16 @@ const exerciseService = {
       return response.data;
     } catch (error) {
       throw toError(error, 'Erro ao carregar histórico');
+    }
+  },
+
+  getSuggestions: async (query) => {
+    try {
+      const params = query ? { q: query } : {};
+      const response = await api.get('/exercises/suggestions', { params });
+      return response.data;
+    } catch {
+      return [];
     }
   },
 };
