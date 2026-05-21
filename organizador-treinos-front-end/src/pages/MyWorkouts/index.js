@@ -340,26 +340,6 @@ function MyWorkoutsPage() {
           <h1>{t("myWorkouts.title")}</h1>
           <div className="d-flex gap-2">
             <Button
-              Text={
-                importing ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
-                    {t("myWorkouts.importingJson")}
-                  </span>
-                ) : t("myWorkouts.importJson")
-              }
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              disabled={importing}
-              size="sm"
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              style={{ display: "none" }}
-              onChange={handleImportFileChange}
-            />
-            <Button
               Text={t("myWorkouts.newWorkout")}
               onClick={() => navigate("/newworkout")}
               size="sm"

@@ -6,21 +6,23 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import { Trash } from 'react-bootstrap-icons';
 import workoutService from '../../services/workoutService';
 import exerciseService from '../../services/exerciseService';
+
+const emptyExercise = () => ({ exerciseName: '', sets: '', repsMin: '', repsMax: '', weight: '' });
 
 function NewWorkoutPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('workouts');
 
-  const [exercises, setExercises] = useState([{ exerciseName: '' }]);
+  const [exercises, setExercises] = useState([emptyExercise()]);
   const [workoutName, setWorkoutName] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleAddExercise = () => {
-    setExercises([...exercises, { exerciseName: '' }]);
+    setExercises([...exercises, emptyExercise()]);
   };
 
   const handleDeleteExercise = (index) => {
@@ -29,19 +31,14 @@ function NewWorkoutPage() {
       newExercises.splice(index, 1);
       setExercises(newExercises);
     } else {
-      const updatedExercises = [{ exerciseName: '' }];
-      setExercises(updatedExercises);
+      setExercises([emptyExercise()]);
     }
   };
 
-  const handleChangeExerciseName = (index, event) => {
+  const handleChangeExerciseField = (index, field, value) => {
     const newExercises = [...exercises];
-    newExercises[index].exerciseName = event.target.value;
+    newExercises[index][field] = value;
     setExercises(newExercises);
-  };
-
-  const handleChangeWorkoutName = (event) => {
-    setWorkoutName(event.target.value);
   };
 
   const handleSubmit = async (event) => {
@@ -62,10 +59,17 @@ function NewWorkoutPage() {
     setError('');
 
     try {
-      const workoutResponse = await workoutService.createWorkout(workoutName, isPublic);
+      const workoutResponse = await workoutService.createWorkout(workoutName);
 
       for (const exercise of validExercises) {
-        await exerciseService.createExercise(workoutResponse.id, exercise.exerciseName);
+        await exerciseService.createExercise(
+          workoutResponse.id,
+          exercise.exerciseName,
+          exercise.sets || null,
+          exercise.repsMin || null,
+          exercise.repsMax || null,
+          exercise.weight || null,
+        );
       }
 
       navigate('/myworkouts');
@@ -95,46 +99,75 @@ function NewWorkoutPage() {
               type="text"
               placeholder={t('newWorkout.workoutNamePlaceholder')}
               value={workoutName}
-              onChange={handleChangeWorkoutName}
+              onChange={(e) => setWorkoutName(e.target.value)}
               disabled={loading}
               maxLength={255}
-            />
-          </Form.Group>
-
-          <Form.Group controlId="formIsPublic" className="mb-3">
-            <Form.Check
-              type="checkbox"
-              label={t('newWorkout.publicCheckbox')}
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              disabled={loading}
             />
           </Form.Group>
 
           <div className="mb-3">
             <Form.Label>{t('newWorkout.exercisesLabel')}</Form.Label>
             {exercises.map((exercise, index) => (
-              <div key={index} className="mb-2">
-                <Row>
-                  <Col xs={9} sm={9}>
+              <div key={index} className="mb-3 p-3 border rounded">
+                <Row className="align-items-center mb-2">
+                  <Col>
                     <Form.Control
                       type="text"
                       value={exercise.exerciseName}
                       placeholder={t('newWorkout.exerciseNamePlaceholder')}
-                      onChange={(event) => handleChangeExerciseName(index, event)}
+                      onChange={(e) => handleChangeExerciseField(index, 'exerciseName', e.target.value)}
                       disabled={loading}
                       maxLength={255}
                     />
                   </Col>
-                  <Col xs={3} sm={3}>
-                    <Button
-                      variant="danger"
-                      className="w-100"
+                  <Col xs="auto">
+                    <button
+                      type="button"
                       onClick={() => handleDeleteExercise(index)}
                       disabled={loading}
+                      aria-label={t('newWorkout.removeExercise')}
+                      style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#dc3545" }}
                     >
-                      {t('newWorkout.removeExercise')}
-                    </Button>
+                      <Trash size={16} />
+                    </button>
+                  </Col>
+                </Row>
+                <Row className="g-2">
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="1" size="sm"
+                      placeholder={t('workoutDetail.setsPlaceholder')}
+                      value={exercise.sets}
+                      onChange={(e) => handleChangeExerciseField(index, 'sets', e.target.value)}
+                      disabled={loading}
+                    />
+                  </Col>
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="1" size="sm"
+                      placeholder={t('workoutDetail.repsMinPlaceholder')}
+                      value={exercise.repsMin}
+                      onChange={(e) => handleChangeExerciseField(index, 'repsMin', e.target.value)}
+                      disabled={loading}
+                    />
+                  </Col>
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="1" size="sm"
+                      placeholder={t('workoutDetail.repsMaxPlaceholder')}
+                      value={exercise.repsMax}
+                      onChange={(e) => handleChangeExerciseField(index, 'repsMax', e.target.value)}
+                      disabled={loading}
+                    />
+                  </Col>
+                  <Col xs={3}>
+                    <Form.Control
+                      type="number" min="0" step="0.5" size="sm"
+                      placeholder={t('workoutDetail.weightPlaceholder')}
+                      value={exercise.weight}
+                      onChange={(e) => handleChangeExerciseField(index, 'weight', e.target.value)}
+                      disabled={loading}
+                    />
                   </Col>
                 </Row>
               </div>

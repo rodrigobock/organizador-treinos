@@ -37,11 +37,8 @@ function GenderBadge({ gender, t }) {
 }
 
 function TemplateCard({ template, onImport, importing, signed, t }) {
-  const previewExercises = template.exercises.slice(0, 4);
-  const remaining = template.exercises.length - previewExercises.length;
-
   return (
-    <Card className="mb-3 h-100" style={{ borderColor: "var(--border)" }}>
+    <Card className="mb-3 h-100" style={{ borderColor: "var(--border)", background: "var(--bg-card)", color: "var(--text-primary)" }}>
       <Card.Body className="d-flex flex-column">
         <div className="d-flex align-items-start justify-content-between mb-2 gap-2">
           <Card.Title style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 0 }}>
@@ -60,7 +57,7 @@ function TemplateCard({ template, onImport, importing, signed, t }) {
         )}
 
         <ul className="list-unstyled mb-3" style={{ fontSize: "0.85rem" }}>
-          {previewExercises.map((exercise) => (
+          {template.exercises.map((exercise) => (
             <li key={exercise.id} style={{ padding: "2px 0", color: "var(--text-primary)" }}>
               <span style={{ color: "var(--text-muted)" }}>•</span>{" "}
               {exercise.name}
@@ -72,11 +69,6 @@ function TemplateCard({ template, onImport, importing, signed, t }) {
               )}
             </li>
           ))}
-          {remaining > 0 && (
-            <li style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-              {t("templates.moreExercises", { count: remaining })}
-            </li>
-          )}
         </ul>
 
         <div className="mt-auto">

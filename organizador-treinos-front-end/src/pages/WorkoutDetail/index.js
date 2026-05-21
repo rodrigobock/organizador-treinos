@@ -14,103 +14,9 @@ import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
 import useAuth from "../../hooks/useAuth";
-import { ClockHistory, PlusCircle, Trash } from "react-bootstrap-icons";
+import { PlusCircle, Trash } from "react-bootstrap-icons";
 import "./styles.css";
 
-function formatLoggedAt(isoString) {
-  const date = new Date(isoString);
-  return date.toLocaleString(undefined, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function ExerciseHistoryPanel({ workoutId, exerciseId, t }) {
-  const [open, setOpen] = useState(false);
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const loadHistory = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const data = await exerciseService.getHistory(workoutId, exerciseId);
-      setLogs(data);
-    } catch (err) {
-      setError(err.message || t("workoutDetail.history.errorLoading"));
-    } finally {
-      setLoading(false);
-    }
-  }, [workoutId, exerciseId, t]);
-
-  const handleToggle = () => {
-    if (!open) {
-      loadHistory();
-    }
-    setOpen((prev) => !prev);
-  };
-
-  return (
-    <div className="exercise-history mt-2">
-      <button
-        className="btn btn-link btn-sm p-0 text-secondary"
-        onClick={handleToggle}
-        aria-expanded={open}
-      >
-        <ClockHistory size={13} className="me-1" />
-        {open
-          ? t("workoutDetail.history.hide")
-          : t("workoutDetail.history.show")}
-      </button>
-
-      {open && (
-        <div className="exercise-history-panel mt-1 p-2 rounded border" style={{ background: "var(--bg-card)" }}>
-          {loading && (
-            <small className="text-muted">
-              {t("workoutDetail.history.loading")}
-            </small>
-          )}
-          {error && <small className="text-danger">{error}</small>}
-          {!loading && !error && logs.length === 0 && (
-            <small className="text-muted">
-              {t("workoutDetail.history.empty")}
-            </small>
-          )}
-          {!loading && !error && logs.length > 0 && (
-            <table className="table table-sm table-borderless mb-0 history-table">
-              <thead>
-                <tr className="text-muted small">
-                  <th>{t("workoutDetail.history.title")}</th>
-                  <th>{t("workoutDetail.logModal.setsLabel")}</th>
-                  <th>{t("workoutDetail.logModal.repsLabel")}</th>
-                  <th>{t("workoutDetail.logModal.weightLabel")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.slice(0, 3).map((log) => (
-                  <tr key={log.id} className="small">
-                    <td className="text-muted">{formatLoggedAt(log.loggedAt)}</td>
-                    <td>{log.sets ?? "—"}</td>
-                    <td>{log.reps ?? "—"}</td>
-                    <td>
-                      {log.weight != null
-                        ? `${log.weight} kg`
-                        : t("workoutDetail.history.bodyweight")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) {
   const [weight, setWeight] = useState("");
@@ -547,11 +453,6 @@ function WorkoutDetailPage() {
                         </button>
                       </Col>
                     </Row>
-                    <ExerciseHistoryPanel
-                      workoutId={id}
-                      exerciseId={exercise.id}
-                      t={t}
-                    />
                   </div>
                 ))}
               </div>

@@ -23,5 +23,6 @@
     <include file="db/changelog/V16__add_exercise_log_difficulty.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V17__add_gender_specific_templates.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V18__expand_exercise_catalog.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V19__add_advanced_templates.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>
