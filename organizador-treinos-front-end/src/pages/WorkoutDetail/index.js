@@ -184,7 +184,6 @@ function WorkoutDetailPage() {
     }, 300);
   };
 
-  const [sharePermission, setSharePermission] = useState("READ");
   const [sharing, setSharing] = useState(false);
   const [shareResult, setShareResult] = useState(null);
 
@@ -204,7 +203,7 @@ function WorkoutDetailPage() {
     try {
       setSharing(true);
       setShareResult(null);
-      const result = await workoutService.bulkShare(id, emails, sharePermission);
+      const result = await workoutService.bulkShare(id, emails, "EDIT");
       setShareResult(result);
       setSelectedStudentIds([]);
     } catch (err) {
@@ -647,19 +646,6 @@ function WorkoutDetailPage() {
                       ))}
                     </div>
                   )}
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>{t("workoutDetail.sharePermissionLabel")}</Form.Label>
-                  <Form.Select
-                    value={sharePermission}
-                    onChange={(e) => setSharePermission(e.target.value)}
-                    disabled={sharing}
-                    style={{ maxWidth: 200 }}
-                  >
-                    <option value="READ">{t("workoutDetail.permissionRead")}</option>
-                    <option value="EDIT">{t("workoutDetail.permissionEdit")}</option>
-                  </Form.Select>
                 </Form.Group>
 
                 <Button

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -37,7 +39,8 @@ public class WorkoutShare {
 
     @NotNull(message = "Permission is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(columnDefinition = "workout_permission", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Permission permission;
 
     @Column(name = "created_at", nullable = false, updatable = false)
