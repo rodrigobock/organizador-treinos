@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import Spinner from "react-bootstrap/Spinner";
 import NavBar from "../../components/NavBar";
 import workoutService from "../../services/workoutService";
-import exerciseService from "../../services/exerciseService";
 import sessionService from "../../services/sessionService";
 import useAuth from "../../hooks/useAuth";
 
@@ -50,15 +49,14 @@ function HomePage() {
     load();
   }, [loadWorkoutById, user?.currentWorkoutId, t]);
 
-  const handleToggle = async (exerciseId) => {
+  const handleToggle = (exerciseId) => {
     if (!latestWorkout || !activeSession) return;
-    try {
-      const updated = await exerciseService.toggleExercise(latestWorkout.id, exerciseId);
-      setLatestWorkout(prev => ({
-        ...prev,
-        exercises: prev.exercises.map(ex => (ex.id === exerciseId ? updated : ex)),
-      }));
-    } catch (_) {}
+    setLatestWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex =>
+        ex.id === exerciseId ? { ...ex, completed: !ex.completed } : ex
+      ),
+    }));
   };
 
   const handleStartSession = async () => {

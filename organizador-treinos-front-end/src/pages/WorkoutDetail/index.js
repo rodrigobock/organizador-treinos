@@ -281,21 +281,13 @@ function WorkoutDetailPage() {
     }
   };
 
-  const handleToggleExercise = async (exerciseId) => {
-    try {
-      setError("");
-      const updatedExercise = await exerciseService.toggleExercise(id, exerciseId);
-      if (currentWorkoutId === id) {
-        setWorkout({
-          ...workout,
-          exercises: workout.exercises.map((ex) =>
-            ex.id === exerciseId ? updatedExercise : ex
-          ),
-        });
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || t("workoutDetail.errorToggling"));
-    }
+  const handleToggleExercise = (exerciseId) => {
+    setWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex =>
+        ex.id === exerciseId ? { ...ex, completed: !ex.completed } : ex
+      ),
+    }));
   };
 
   const handleDeleteExercise = async (exerciseId) => {

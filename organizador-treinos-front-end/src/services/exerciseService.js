@@ -40,17 +40,6 @@ const exerciseService = {
     }
   },
 
-  toggleExercise: async (workoutId, exerciseId) => {
-    try {
-      const response = await api.patch(
-        `/workouts/${workoutId}/exercises/${exerciseId}/toggle`
-      );
-      return response.data;
-    } catch (error) {
-      throw toError(error, 'Erro ao marcar exercício');
-    }
-  },
-
   deleteExercise: async (workoutId, exerciseId) => {
     try {
       await api.delete(`/workouts/${workoutId}/exercises/${exerciseId}`);
