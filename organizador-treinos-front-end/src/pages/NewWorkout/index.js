@@ -3,12 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import NavBar from "../../components/NavBar";
 import Button from 'react-bootstrap/Button';
-import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
 import { Trash } from 'react-bootstrap-icons';
 import workoutService from '../../services/workoutService';
 import exerciseService from '../../services/exerciseService';
+import './styles.css';
+
+const EXERCISE_SUGGESTIONS = [
+  'Supino Reto', 'Supino Inclinado', 'Supino Declinado',
+  'Rosca Direta', 'Rosca Alternada', 'Rosca Martelo', 'Rosca Scott',
+  'Tríceps Pulley', 'Tríceps Testa', 'Tríceps Corda', 'Tríceps Francês',
+  'Desenvolvimento com Halter', 'Desenvolvimento com Barra', 'Desenvolvimento Arnold',
+  'Elevação Lateral', 'Elevação Frontal', 'Elevação Posterior',
+  'Remada Curvada', 'Remada Unilateral', 'Remada Cavalinho', 'Remada T',
+  'Puxada Frontal', 'Puxada Supinada', 'Puxada Neutra',
+  'Leg Press', 'Leg Press 45°', 'Agachamento', 'Agachamento Livre', 'Agachamento Goblet',
+  'Cadeira Extensora', 'Mesa Flexora', 'Cadeira Abdutora', 'Cadeira Adutora',
+  'Stiff', 'Bom Dia', 'Elevação Pélvica', 'Levantamento Terra',
+  'Panturrilha em Pé', 'Panturrilha Sentado', 'Panturrilha no Leg Press',
+  'Abdominal Crunch', 'Abdominal Bicicleta', 'Prancha',
+  'Flexão de Braços', 'Barra Fixa', 'Barra Fixa Supinada', 'Paralelas',
+  'Corrida na Esteira', 'Bicicleta Ergométrica', 'Elíptico',
+  'Crucifixo', 'Crucifixo Inclinado', 'Fly na Polia', 'Peck Deck',
+  'Pullover', 'Afundo', 'Glúteo no Cabo', 'Extensão de Quadril',
+];
 
 const emptyExercise = () => ({ exerciseName: '', sets: '', repsMin: '', repsMax: '', weight: '' });
 
@@ -105,71 +123,69 @@ function NewWorkoutPage() {
             />
           </Form.Group>
 
+          <datalist id="exercise-suggestions">
+            {EXERCISE_SUGGESTIONS.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+
           <div className="mb-3">
             <Form.Label>{t('newWorkout.exercisesLabel')}</Form.Label>
             {exercises.map((exercise, index) => (
-              <div key={index} className="mb-3 p-3 border rounded">
-                <Row className="align-items-center mb-2">
-                  <Col>
-                    <Form.Control
-                      type="text"
-                      value={exercise.exerciseName}
-                      placeholder={t('newWorkout.exerciseNamePlaceholder')}
-                      onChange={(e) => handleChangeExerciseField(index, 'exerciseName', e.target.value)}
-                      disabled={loading}
-                      maxLength={255}
-                    />
-                  </Col>
-                  <Col xs="auto">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteExercise(index)}
-                      disabled={loading}
-                      aria-label={t('newWorkout.removeExercise')}
-                      style={{ background: "none", border: "none", padding: "4px 8px", cursor: "pointer", color: "#dc3545" }}
-                    >
-                      <Trash size={16} />
-                    </button>
-                  </Col>
-                </Row>
-                <Row className="g-2">
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="1" size="sm"
-                      placeholder={t('workoutDetail.setsPlaceholder')}
-                      value={exercise.sets}
-                      onChange={(e) => handleChangeExerciseField(index, 'sets', e.target.value)}
-                      disabled={loading}
-                    />
-                  </Col>
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="1" size="sm"
-                      placeholder={t('workoutDetail.repsMinPlaceholder')}
-                      value={exercise.repsMin}
-                      onChange={(e) => handleChangeExerciseField(index, 'repsMin', e.target.value)}
-                      disabled={loading}
-                    />
-                  </Col>
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="1" size="sm"
-                      placeholder={t('workoutDetail.repsMaxPlaceholder')}
-                      value={exercise.repsMax}
-                      onChange={(e) => handleChangeExerciseField(index, 'repsMax', e.target.value)}
-                      disabled={loading}
-                    />
-                  </Col>
-                  <Col xs={3}>
-                    <Form.Control
-                      type="number" min="0" step="0.5" size="sm"
-                      placeholder={t('workoutDetail.weightPlaceholder')}
-                      value={exercise.weight}
-                      onChange={(e) => handleChangeExerciseField(index, 'weight', e.target.value)}
-                      disabled={loading}
-                    />
-                  </Col>
-                </Row>
+              <div key={index} className="exercise-row mb-2 p-2 border rounded">
+                <Form.Control
+                  className="exercise-name-field"
+                  type="text"
+                  list="exercise-suggestions"
+                  value={exercise.exerciseName}
+                  placeholder={t('newWorkout.exerciseNamePlaceholder')}
+                  onChange={(e) => handleChangeExerciseField(index, 'exerciseName', e.target.value)}
+                  disabled={loading}
+                  maxLength={255}
+                />
+                <div className="exercise-num-fields">
+                  <Form.Control
+                    size="sm"
+                    type="number" min="1"
+                    placeholder={t('newWorkout.setsPlaceholder')}
+                    value={exercise.sets}
+                    onChange={(e) => handleChangeExerciseField(index, 'sets', e.target.value)}
+                    disabled={loading}
+                  />
+                  <Form.Control
+                    size="sm"
+                    type="number" min="1"
+                    placeholder={t('newWorkout.repsMinPlaceholder')}
+                    value={exercise.repsMin}
+                    onChange={(e) => handleChangeExerciseField(index, 'repsMin', e.target.value)}
+                    disabled={loading}
+                  />
+                  <Form.Control
+                    size="sm"
+                    type="number" min="1"
+                    placeholder={t('newWorkout.repsMaxPlaceholder')}
+                    value={exercise.repsMax}
+                    onChange={(e) => handleChangeExerciseField(index, 'repsMax', e.target.value)}
+                    disabled={loading}
+                  />
+                  <Form.Control
+                    size="sm"
+                    type="number" min="0" step="0.5"
+                    placeholder={t('newWorkout.weightPlaceholder')}
+                    value={exercise.weight}
+                    onChange={(e) => handleChangeExerciseField(index, 'weight', e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="exercise-trash"
+                  onClick={() => handleDeleteExercise(index)}
+                  disabled={loading}
+                  aria-label={t('newWorkout.removeExercise')}
+                >
+                  <Trash size={16} />
+                </button>
               </div>
             ))}
           </div>
