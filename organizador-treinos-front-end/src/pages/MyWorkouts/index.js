@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import NavBar from "../../components/NavBar";
@@ -121,7 +121,6 @@ function MyWorkoutsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
-  const fileInputRef = useRef(null);
   const [importAnalysis, setImportAnalysis] = useState(null);
   const [userActions, setUserActions] = useState({});
   const [importing, setImporting] = useState(false);
@@ -198,46 +197,6 @@ function MyWorkoutsPage() {
     } catch (err) {
       setWorkouts(workouts);
       setError(err.response?.data?.message || err.message || t("myWorkouts.errorReordering"));
-    }
-  };
-
-  const handleImportFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (!file) return;
-
-    let parsed;
-    try {
-      parsed = JSON.parse(await file.text());
-    } catch {
-      setError(t("myWorkouts.invalidJson"));
-      return;
-    }
-
-    if (parsed.version !== 1 || !Array.isArray(parsed.workouts)) {
-      setError(t("myWorkouts.unsupportedVersion"));
-      return;
-    }
-
-    if (parsed.workouts.length === 0) {
-      setError(t("myWorkouts.noWorkoutsInFile"));
-      return;
-    }
-
-    try {
-      setImporting(true);
-      setError("");
-      const analysis = await workoutService.analyzeImport(parsed.workouts);
-      const defaults = {};
-      analysis.forEach((item, idx) => {
-        defaults[idx] = item.status === "clean" ? "create" : "skip";
-      });
-      setUserActions(defaults);
-      setImportAnalysis(analysis);
-    } catch (err) {
-      setError(typeof err === "string" ? err : t("myWorkouts.errorAnalyzing"));
-    } finally {
-      setImporting(false);
     }
   };
 
