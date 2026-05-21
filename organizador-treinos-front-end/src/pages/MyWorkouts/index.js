@@ -14,7 +14,7 @@ import useAuth from "../../hooks/useAuth";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Trash, PencilSquare, GripVertical, Eye } from "react-bootstrap-icons";
+import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
 
 const PAGE_SIZE = 10;
 
