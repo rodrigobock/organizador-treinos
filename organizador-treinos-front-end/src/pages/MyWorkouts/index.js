@@ -18,7 +18,7 @@ import { Trash, PencilSquare, GripVertical, Eye } from "react-bootstrap-icons";
 
 const PAGE_SIZE = 10;
 
-function SortableWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
+function SortableWorkoutCard({ workout, onView, onDelete, deletingId, user, t }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: workout.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -41,7 +41,8 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
           </span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600 }}>{workout.name}</div>
-            {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>{t("common:public")}</span>}
+            {workout.isPublic && <span className="badge bg-info me-1" style={{ fontSize: 10 }}>{t("common:public")}</span>}
+            {user && workout.userId !== user.id && <span className="badge bg-secondary" style={{ fontSize: 10 }}>{t("myWorkouts.sharedBy", { name: workout.ownerName })}</span>}
           </div>
           <button
             onClick={() => onView(workout.id)}
@@ -71,29 +72,8 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
   );
 }
 
-function SharedWorkoutCard({ workout, onView, t }) {
-  return (
-    <Card className="workout-card mb-2">
-      <Card.Body className="d-flex align-items-center gap-2 py-2">
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600 }}>{workout.name}</div>
-          <small className="text-muted">
-            {t("myWorkouts.sharedBy", { name: workout.ownerName })}
-          </small>
-        </div>
-        <button
-          onClick={() => onView(workout.id)}
-          aria-label={t("myWorkouts.editWorkout")}
-          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
-        >
-          <Eye size={17} />
-        </button>
-      </Card.Body>
-    </Card>
-  );
-}
 
-function StaticWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
+function StaticWorkoutCard({ workout, onView, onDelete, deletingId, user, t }) {
   const isDeleting = deletingId === workout.id;
 
   return (
@@ -101,7 +81,8 @@ function StaticWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
       <Card.Body className="d-flex align-items-center gap-2 py-2">
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600 }}>{workout.name}</div>
-          {workout.isPublic && <span className="badge bg-info" style={{ fontSize: 10 }}>{t("common:public")}</span>}
+          {workout.isPublic && <span className="badge bg-info me-1" style={{ fontSize: 10 }}>{t("common:public")}</span>}
+          {user && workout.userId !== user.id && <span className="badge bg-secondary" style={{ fontSize: 10 }}>{t("myWorkouts.sharedBy", { name: workout.ownerName })}</span>}
         </div>
         <button
           onClick={() => onView(workout.id)}
@@ -131,16 +112,13 @@ function StaticWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
 }
 
 function MyWorkoutsPage() {
-  const { signed, loading: authLoading } = useAuth();
+  const { signed, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation("workouts");
 
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const [sharedWorkouts, setSharedWorkouts] = useState([]);
-  const [sharedError, setSharedError] = useState("");
 
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -178,11 +156,8 @@ function MyWorkoutsPage() {
 
     if (signed) {
       loadWorkouts(currentPage);
-      workoutService.getSharedWorkouts()
-        .then(setSharedWorkouts)
-        .catch(() => setSharedError(t("myWorkouts.errorLoadingShared")));
     }
-  }, [signed, authLoading, navigate, currentPage, loadWorkouts, t]);
+  }, [signed, authLoading, navigate, currentPage, loadWorkouts]);
 
   const handlePageChange = (page) => {
     if (page < 0 || page >= totalPages) return;
@@ -362,6 +337,7 @@ function MyWorkoutsPage() {
                 onView={handleViewWorkout}
                 onDelete={handleDeleteWorkout}
                 deletingId={deletingId}
+                user={user}
                 t={t}
               />
             ))}
@@ -377,6 +353,7 @@ function MyWorkoutsPage() {
                   onView={handleViewWorkout}
                   onDelete={handleDeleteWorkout}
                   deletingId={deletingId}
+                  user={user}
                   t={t}
                 />
               ))}
@@ -384,25 +361,6 @@ function MyWorkoutsPage() {
           </DndContext>
         )}
 
-        {sharedError && (
-          <div className="alert alert-warning mt-3" role="alert">
-            {sharedError}
-          </div>
-        )}
-
-        {sharedWorkouts.length > 0 && (
-          <div className="mt-4">
-            <h2 className="h5 mb-3">{t("myWorkouts.sharedWithMe")}</h2>
-            {sharedWorkouts.map((workout) => (
-              <SharedWorkoutCard
-                key={workout.id}
-                workout={workout}
-                onView={handleViewWorkout}
-                t={t}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
       <Modal show={importAnalysis !== null} onHide={() => setImportAnalysis(null)} size="lg">

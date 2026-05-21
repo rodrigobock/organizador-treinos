@@ -49,6 +49,9 @@ public class WorkoutShare {
     @Column(name = "last_accessed_at")
     private LocalDateTime lastAccessedAt;
 
+    @Column(name = "position", nullable = false)
+    private Integer position = 0;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

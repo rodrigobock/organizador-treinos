@@ -177,6 +177,11 @@ public class WorkoutShareService {
         share.setWorkout(workout);
         share.setSharedWithUser(target);
         share.setPermission(permission);
+
+        long ownedCount = workoutRepository.countByUser(target);
+        long sharedCount = workoutShareRepository.findBySharedWithUser(target).size();
+        share.setPosition((int) (ownedCount + sharedCount));
+
         workoutShareRepository.persist(share);
     }
 }

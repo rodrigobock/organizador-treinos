@@ -87,17 +87,41 @@ public class WorkoutService {
         return toResponse(workout);
     }
 
-    public List<WorkoutResponse> getUserWorkouts(User user) {
-        return workoutRepository.findByUserOrderedByPosition(user).stream()
-            .map(this::toResponse)
+    private List<WorkoutResponse> getUnifiedUserWorkouts(User user) {
+        List<Workout> owned = workoutRepository.findByUser(user);
+        List<WorkoutShare> shared = workoutShareRepository.findBySharedWithUser(user);
+
+        class OrderedWorkout {
+            final Workout workout;
+            final int position;
+            OrderedWorkout(Workout w, int p) { this.workout = w; this.position = p; }
+        }
+
+        List<OrderedWorkout> combined = new ArrayList<>();
+        for (Workout w : owned) {
+            combined.add(new OrderedWorkout(w, w.getPosition()));
+        }
+        for (WorkoutShare s : shared) {
+            combined.add(new OrderedWorkout(s.getWorkout(), s.getPosition()));
+        }
+
+        combined.sort((a, b) -> Integer.compare(a.position, b.position));
+
+        return combined.stream()
+            .map(o -> toResponse(o.workout))
             .collect(Collectors.toList());
     }
 
+    public List<WorkoutResponse> getUserWorkouts(User user) {
+        return getUnifiedUserWorkouts(user);
+    }
+
     public PagedResponse<WorkoutResponse> getUserWorkoutsPaged(User user, int page, int size) {
-        List<WorkoutResponse> content = workoutRepository.findByUserOrderedByPositionPaged(user, page, size).stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
-        long total = workoutRepository.countByUser(user);
+        List<WorkoutResponse> all = getUnifiedUserWorkouts(user);
+        int start = Math.min(page * size, all.size());
+        int end = Math.min(start + size, all.size());
+        List<WorkoutResponse> content = all.subList(start, end);
+        long total = all.size();
         return new PagedResponse<>(content, page, size, total);
     }
 
@@ -150,7 +174,16 @@ public class WorkoutService {
             .firstResultOptional().orElseThrow(() -> new NotFoundException("Workout not found"));
 
         if (!workout.getUser().getId().equals(user.getId())) {
-            throw new ForbiddenException("Only the owner can delete this workout");
+            Optional<WorkoutShare> shareOpt = workoutShareRepository.findByWorkoutAndUser(workout, user);
+            if (shareOpt.isPresent()) {
+                if (workoutId.equals(user.getCurrentWorkoutId())) {
+                    advanceCurrentWorkout(userId, workoutId);
+                }
+                workoutShareRepository.deleteByWorkoutAndUser(workout, user);
+                return;
+            } else {
+                throw new ForbiddenException("Only the owner can delete this workout");
+            }
         }
 
         if (workoutId.equals(user.getCurrentWorkoutId())) {
@@ -162,25 +195,37 @@ public class WorkoutService {
 
     public void reorderWorkouts(UUID userId, List<UUID> workoutIds) {
         User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
-        List<Workout> owned = workoutRepository.findByUserOrderedByPosition(user);
-        Set<UUID> ownedIds = owned.stream().map(Workout::getId).collect(Collectors.toSet());
+        List<Workout> owned = workoutRepository.findByUser(user);
+        List<WorkoutShare> shared = workoutShareRepository.findBySharedWithUser(user);
 
-        if (!ownedIds.equals(new HashSet<>(workoutIds)) || workoutIds.size() != owned.size()) {
+        Set<UUID> allIds = new HashSet<>();
+        owned.forEach(w -> allIds.add(w.getId()));
+        shared.forEach(s -> allIds.add(s.getWorkout().getId()));
+
+        if (!allIds.equals(new HashSet<>(workoutIds)) || workoutIds.size() != allIds.size()) {
             throw new BadRequestException("workoutIds must match exactly the user's workouts");
         }
 
         for (int i = 0; i < workoutIds.size(); i++) {
             UUID id = workoutIds.get(i);
-            Workout w = owned.stream().filter(o -> o.getId().equals(id)).findFirst().get();
-            w.setPosition(i);
-            workoutRepository.persist(w);
+            Optional<Workout> wOpt = owned.stream().filter(o -> o.getId().equals(id)).findFirst();
+            if (wOpt.isPresent()) {
+                Workout w = wOpt.get();
+                w.setPosition(i);
+                workoutRepository.persist(w);
+            } else {
+                WorkoutShare s = shared.stream().filter(sh -> sh.getWorkout().getId().equals(id)).findFirst().get();
+                s.setPosition(i);
+                // Note: using Entity Manager persist/merge through repository might be needed, let's just use persist.
+                workoutShareRepository.persist(s);
+            }
         }
     }
 
     public void advanceCurrentWorkout(UUID userId, UUID completedWorkoutId) {
         User user = userRepository.find("id", userId).firstResultOptional().orElseThrow(() -> new NotFoundException("User not found"));
-        List<Workout> ordered = workoutRepository.findByUserOrderedByPosition(user);
-        List<Workout> remaining = ordered.stream()
+        List<WorkoutResponse> ordered = getUnifiedUserWorkouts(user);
+        List<WorkoutResponse> remaining = ordered.stream()
             .filter(w -> !w.getId().equals(completedWorkoutId))
             .collect(Collectors.toList());
 
@@ -196,7 +241,7 @@ public class WorkoutService {
             }
             int nextIndex = currentIndex + 1;
             if (nextIndex >= ordered.size()) nextIndex = 0;
-            Workout next = ordered.get(nextIndex);
+            WorkoutResponse next = ordered.get(nextIndex);
             if (next.getId().equals(completedWorkoutId)) {
                 next = remaining.get(0);
             }
