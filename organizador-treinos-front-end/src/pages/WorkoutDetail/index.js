@@ -13,6 +13,7 @@ import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
 import exerciseService from "../../services/exerciseService";
+import trainerService from "../../services/trainerService";
 import useAuth from "../../hooks/useAuth";
 import { PlusCircle, Trash } from "react-bootstrap-icons";
 import "./styles.css";
@@ -183,19 +184,20 @@ function WorkoutDetailPage() {
     }, 300);
   };
 
-  const [shareEmails, setShareEmails] = useState("");
   const [sharePermission, setSharePermission] = useState("READ");
   const [sharing, setSharing] = useState(false);
   const [shareResult, setShareResult] = useState(null);
+
+  const [linkedStudents, setLinkedStudents] = useState([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
   const isOwner = workout && user && workout.userId === user.id;
 
   const handleShare = async (e) => {
     e.preventDefault();
-    const emails = shareEmails
-      .split(/[,;\s]+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+    const emails = linkedStudents
+      .filter(s => selectedStudentIds.includes(s.id))
+      .map(s => s.email);
 
     if (emails.length === 0) return;
 
@@ -204,7 +206,7 @@ function WorkoutDetailPage() {
       setShareResult(null);
       const result = await workoutService.bulkShare(id, emails, sharePermission);
       setShareResult(result);
-      setShareEmails("");
+      setSelectedStudentIds([]);
     } catch (err) {
       setError(err.response?.data?.message || err.message || t("workoutDetail.errorSharing"));
     } finally {
@@ -246,6 +248,12 @@ function WorkoutDetailPage() {
       mounted = false;
     };
   }, [id, signed, navigate, t]);
+
+  useEffect(() => {
+    if (isOwner && user?.role === 'PERSONAL_TRAINER') {
+      trainerService.getStudents().then(setLinkedStudents).catch(() => {});
+    }
+  }, [isOwner, user]);
 
   const handleAddExercise = async () => {
     if (!newExerciseName.trim()) {
@@ -612,17 +620,33 @@ function WorkoutDetailPage() {
 
               <Form onSubmit={handleShare}>
                 <Form.Group className="mb-2">
-                  <Form.Label>{t("workoutDetail.shareEmailsLabel")}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder={t("workoutDetail.shareEmailsPlaceholder")}
-                    value={shareEmails}
-                    onChange={(e) => setShareEmails(e.target.value)}
-                    disabled={sharing}
-                  />
-                  <Form.Text className="text-muted">
-                    {t("workoutDetail.shareEmailsHint")}
-                  </Form.Text>
+                  <Form.Label>{t("workoutDetail.shareStudentsLabel")}</Form.Label>
+                  {linkedStudents.length === 0 ? (
+                    <p className="text-muted" style={{ fontSize: "0.875rem" }}>
+                      {t("workoutDetail.shareNoStudents")}
+                    </p>
+                  ) : (
+                    <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid var(--border, #dee2e6)", borderRadius: 6, padding: "8px 12px" }}>
+                      {linkedStudents.map((student) => (
+                        <Form.Check
+                          key={student.id}
+                          type="checkbox"
+                          id={`share-student-${student.id}`}
+                          label={`${student.name} (${student.email})`}
+                          checked={selectedStudentIds.includes(student.id)}
+                          onChange={() => {
+                            setSelectedStudentIds(prev =>
+                              prev.includes(student.id)
+                                ? prev.filter(sid => sid !== student.id)
+                                : [...prev, student.id]
+                            );
+                          }}
+                          disabled={sharing}
+                          className="mb-1"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </Form.Group>
 
                 <Form.Group className="mb-3">
@@ -641,7 +665,7 @@ function WorkoutDetailPage() {
                 <Button
                   Text={sharing ? t("workoutDetail.sharing") : t("workoutDetail.shareButton")}
                   onClick={handleShare}
-                  disabled={sharing || !shareEmails.trim()}
+                  disabled={sharing || selectedStudentIds.length === 0}
                 />
               </Form>
             </Card.Body>

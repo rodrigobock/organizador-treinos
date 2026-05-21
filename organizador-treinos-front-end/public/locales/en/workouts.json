@@ -49,6 +49,9 @@
     "errorImporting": "Error importing workouts",
     "editWorkout": "Edit workout",
     "deleteWorkout": "Delete workout",
+    "sharedWithMe": "Workouts Shared With Me",
+    "sharedBy": "Shared by {{name}}",
+    "errorLoadingShared": "Error loading shared workouts",
     "import": {
       "title": "Import Workouts",
       "workoutColumn": "Workout",
@@ -189,7 +192,9 @@
     "shareResultShared": "{{count}} shared successfully.",
     "shareResultAlready": "{{count}} already had access.",
     "shareResultNotFound": "{{count}} email(s) not found",
-    "errorSharing": "Error sharing workout"
+    "errorSharing": "Error sharing workout",
+    "shareStudentsLabel": "Select Students",
+    "shareNoStudents": "No linked students. Link students on the Account page."
   },
   "sharedByMe": {
     "title": "My Shares",

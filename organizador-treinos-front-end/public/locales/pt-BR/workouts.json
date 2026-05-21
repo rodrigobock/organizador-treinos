@@ -49,6 +49,9 @@
     "errorImporting": "Erro ao importar treinos",
     "editWorkout": "Editar treino",
     "deleteWorkout": "Excluir treino",
+    "sharedWithMe": "Treinos Compartilhados Comigo",
+    "sharedBy": "Compartilhado por {{name}}",
+    "errorLoadingShared": "Erro ao carregar treinos compartilhados",
     "import": {
       "title": "Importar Treinos",
       "workoutColumn": "Treino",
@@ -189,7 +192,9 @@
     "shareResultShared": "{{count}} compartilhado(s) com sucesso.",
     "shareResultAlready": "{{count}} já tinha(m) acesso.",
     "shareResultNotFound": "{{count}} e-mail(s) não encontrado(s)",
-    "errorSharing": "Erro ao compartilhar treino"
+    "errorSharing": "Erro ao compartilhar treino",
+    "shareStudentsLabel": "Selecionar Alunos",
+    "shareNoStudents": "Nenhum aluno vinculado. Vincule alunos na página de Conta."
   },
   "sharedByMe": {
     "title": "Meus Compartilhamentos",

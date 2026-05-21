@@ -14,7 +14,7 @@ import useAuth from "../../hooks/useAuth";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
+import { Trash, PencilSquare, GripVertical, Eye } from "react-bootstrap-icons";
 
 const PAGE_SIZE = 10;
 
@@ -71,6 +71,28 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
   );
 }
 
+function SharedWorkoutCard({ workout, onView, t }) {
+  return (
+    <Card className="workout-card mb-2">
+      <Card.Body className="d-flex align-items-center gap-2 py-2">
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600 }}>{workout.name}</div>
+          <small className="text-muted">
+            {t("myWorkouts.sharedBy", { name: workout.ownerName })}
+          </small>
+        </div>
+        <button
+          onClick={() => onView(workout.id)}
+          aria-label={t("myWorkouts.editWorkout")}
+          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "var(--text-muted, #555)" }}
+        >
+          <Eye size={17} />
+        </button>
+      </Card.Body>
+    </Card>
+  );
+}
+
 function StaticWorkoutCard({ workout, onView, onDelete, deletingId, t }) {
   const isDeleting = deletingId === workout.id;
 
@@ -117,6 +139,9 @@ function MyWorkoutsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [sharedWorkouts, setSharedWorkouts] = useState([]);
+  const [sharedError, setSharedError] = useState("");
+
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
@@ -153,8 +178,11 @@ function MyWorkoutsPage() {
 
     if (signed) {
       loadWorkouts(currentPage);
+      workoutService.getSharedWorkouts()
+        .then(setSharedWorkouts)
+        .catch(() => setSharedError(t("myWorkouts.errorLoadingShared")));
     }
-  }, [signed, authLoading, navigate, currentPage, loadWorkouts]);
+  }, [signed, authLoading, navigate, currentPage, loadWorkouts, t]);
 
   const handlePageChange = (page) => {
     if (page < 0 || page >= totalPages) return;
@@ -354,6 +382,26 @@ function MyWorkoutsPage() {
               ))}
             </SortableContext>
           </DndContext>
+        )}
+
+        {sharedError && (
+          <div className="alert alert-warning mt-3" role="alert">
+            {sharedError}
+          </div>
+        )}
+
+        {sharedWorkouts.length > 0 && (
+          <div className="mt-4">
+            <h2 className="h5 mb-3">{t("myWorkouts.sharedWithMe")}</h2>
+            {sharedWorkouts.map((workout) => (
+              <SharedWorkoutCard
+                key={workout.id}
+                workout={workout}
+                onView={handleViewWorkout}
+                t={t}
+              />
+            ))}
+          </div>
         )}
       </div>
 

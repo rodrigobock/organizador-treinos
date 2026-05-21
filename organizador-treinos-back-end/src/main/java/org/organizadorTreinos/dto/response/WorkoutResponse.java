@@ -15,16 +15,18 @@ public class WorkoutResponse {
     private UUID id;
     private String name;
     private UUID userId;
+    private String ownerName;
     private Boolean isPublic;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ExerciseResponse> exercises;
 
-    public WorkoutResponse(UUID id, String name, UUID userId, Boolean isPublic,
+    public WorkoutResponse(UUID id, String name, UUID userId, String ownerName, Boolean isPublic,
                           LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.userId = userId;
+        this.ownerName = ownerName;
         this.isPublic = isPublic;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
