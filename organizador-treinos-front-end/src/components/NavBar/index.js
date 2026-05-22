@@ -45,7 +45,7 @@ function NavBar() {
 
           {/* Center: Nav links (hidden on mobile) */}
           <S.NavLinksCenter>
-            <S.NavLink href="/home">{t("navbar.dashboard")}</S.NavLink>
+            <S.NavLink href="/home">{user?.role === 'PERSONAL_TRAINER' ? 'Dashboard' : t("navbar.dashboard")}</S.NavLink>
             <S.NavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.NavLink>
             {user?.role === 'PERSONAL_TRAINER' && (
               <S.NavLink href="/shared-by-me">{t("navbar.sharedByMe")}</S.NavLink>
@@ -87,7 +87,7 @@ function NavBar() {
             </S.MobileMenuButton>
 
             <S.MobileNavContent isOpen={mobileMenuOpen}>
-              <S.MobileNavLink href="/home">{t("navbar.dashboard")}</S.MobileNavLink>
+              <S.MobileNavLink href="/home">{user?.role === 'PERSONAL_TRAINER' ? 'Dashboard' : t("navbar.dashboard")}</S.MobileNavLink>
               <S.MobileNavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.MobileNavLink>
               {user?.role === 'PERSONAL_TRAINER' && (
                 <S.MobileNavLink href="/shared-by-me">{t("navbar.sharedByMe")}</S.MobileNavLink>
