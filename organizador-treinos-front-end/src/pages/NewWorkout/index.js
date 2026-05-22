@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import NavBar from "../../components/NavBar";
-import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { Trash } from 'react-bootstrap-icons';
 import workoutService from '../../services/workoutService';
@@ -102,7 +101,8 @@ function NewWorkoutPage() {
     <>
       <NavBar />
       <div className="container" style={{ marginTop: "20px" }}>
-        <h2 className="mb-4">{t('newWorkout.title')}</h2>
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+        <h1 className="mb-4" style={{ fontSize: 24, fontWeight: 700 }}>{t('newWorkout.title')}</h1>
 
         {error && (
           <div className="alert alert-danger" role="alert">
@@ -190,34 +190,70 @@ function NewWorkoutPage() {
             ))}
           </div>
 
-          <div className="d-flex gap-2 mb-5">
-            <Button
-              variant="secondary"
-              onClick={handleAddExercise}
-              disabled={loading}
-            >
-              {t('newWorkout.addExercise')}
-            </Button>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
+            {exercises.filter(ex => ex.exerciseName.trim()).length} {exercises.filter(ex => ex.exerciseName.trim()).length === 1 ? 'exercício adicionado' : 'exercícios adicionados'}
           </div>
 
-          <div className="d-flex gap-2">
-            <Button
-              variant="success"
+          <div className="d-flex gap-2 mb-5">
+            <button
+              type="button"
+              onClick={handleAddExercise}
+              disabled={loading}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 6,
+                border: "1px solid var(--accent)",
+                background: "transparent",
+                color: "var(--accent)",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {t('newWorkout.addExercise')}
+            </button>
+          </div>
+
+          <div className="d-flex gap-2" style={{ marginTop: 32 }}>
+            <button
               type="submit"
               className="flex-grow-1"
               disabled={loading || !workoutName.trim() || exercises.every(ex => !ex.exerciseName.trim())}
+              style={{
+                padding: "10px 20px",
+                borderRadius: 6,
+                border: "none",
+                background: loading ? "var(--text-muted)" : "var(--btn-primary-bg)",
+                color: "var(--btn-primary-text)",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: (loading || !workoutName.trim()) ? 0.6 : 1,
+                transition: "opacity 0.15s",
+              }}
             >
               {loading ? t('newWorkout.saving') : t('newWorkout.saveWorkout')}
-            </Button>
-            <Button
-              variant="outline-secondary"
+            </button>
+            <button
+              type="button"
               onClick={() => navigate('/myworkouts')}
               disabled={loading}
+              style={{
+                padding: "10px 16px",
+                borderRadius: 6,
+                border: "1px solid var(--border)",
+                background: "transparent",
+                color: "var(--text-muted)",
+                fontSize: 14,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
             >
               {t('newWorkout.cancel')}
-            </Button>
+            </button>
           </div>
         </Form>
+        </div>
       </div>
     </>
   );

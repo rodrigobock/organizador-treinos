@@ -132,6 +132,7 @@ const ResetPassword = () => {
             Text={loading ? t("resetPassword.submitLoading") : t("resetPassword.submit")}
             onClick={handleSubmit}
             disabled={loading}
+            size="lg"
           />
 
           <C.BackLink>

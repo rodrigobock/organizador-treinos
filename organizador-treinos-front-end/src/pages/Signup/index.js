@@ -175,6 +175,7 @@ const Signup = () => {
             Text={loading ? t("signup.submitLoading") : t("signup.submit")}
             onClick={handleSignup}
             disabled={loading}
+            size="lg"
           />
 
           <C.SigninLink>

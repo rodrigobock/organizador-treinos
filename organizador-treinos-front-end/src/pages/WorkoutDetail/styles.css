@@ -62,7 +62,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 /* Layout do formulário de adicionar exercício */
@@ -127,6 +127,27 @@
   .wd-add-row .wd-exercise-nums .form-control:nth-child(2) { grid-column: 3; grid-row: 1; min-width: 0; }
   .wd-add-row .wd-exercise-nums .form-control:nth-child(3) { grid-column: 4; grid-row: 1; min-width: 0; }
   .wd-add-row .wd-exercise-nums .form-control:nth-child(4) { grid-column: 5; grid-row: 1; min-width: 0; }
+}
+
+.wd-num-headers {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .wd-num-headers {
+    display: grid;
+    grid-template-columns: auto 1fr 65px 80px 80px 70px auto;
+    grid-template-rows: auto;
+    gap: 8px;
+    padding: 0 0 4px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .wd-num-header-name { grid-column: 2; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .wd-num-header-sets { grid-column: 3; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+  .wd-num-header-rmin { grid-column: 4; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+  .wd-num-header-rmax { grid-column: 5; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
+  .wd-num-header-weight { grid-column: 6; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; }
 }
 
 .exercise-history .btn-link {

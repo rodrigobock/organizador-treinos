@@ -8,6 +8,16 @@ import authService from "../../services/authService";
 import userService from "../../services/userService";
 import trainerService from "../../services/trainerService";
 
+const labelStyle = {
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: "0.06em",
+  color: "var(--text-muted)",
+  display: "block",
+  marginBottom: 6,
+};
+
 function AccountPage() {
   const { user, updateUser, signout } = useAuth();
   const navigate = useNavigate();
@@ -220,6 +230,7 @@ function AccountPage() {
   };
 
   const handleUnlinkStudent = async (studentId) => {
+    if (!window.confirm(t("trainer.unlinkConfirm", "Deseja desvincular este aluno?"))) return;
     try {
       await trainerService.unlinkStudent(studentId);
       setStudents(prev => prev.filter(s => s.id !== studentId));
@@ -242,7 +253,7 @@ function AccountPage() {
           <div style={{ marginBottom: 24 }}>
             <h1
               style={{
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: 700,
                 color: "var(--text-primary)",
                 marginBottom: 4,
@@ -265,17 +276,7 @@ function AccountPage() {
           >
             <form onSubmit={handleSave}>
               <div style={{ marginBottom: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "var(--text-muted)",
-                    marginBottom: 6,
-                  }}
-                >
+                <label style={labelStyle}>
                   {t("nameLabel")}
                 </label>
                 <input
@@ -301,17 +302,7 @@ function AccountPage() {
               </div>
 
               <div style={{ marginBottom: 24 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "var(--text-muted)",
-                    marginBottom: 6,
-                  }}
-                >
+                <label style={labelStyle}>
                   {t("emailLabel")}
                 </label>
                 <input
@@ -406,17 +397,7 @@ function AccountPage() {
 
             <form onSubmit={handleChangePassword}>
               <div style={{ marginBottom: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "var(--text-muted)",
-                    marginBottom: 6,
-                  }}
-                >
+                <label style={labelStyle}>
                   {t("changePassword.currentPassword")}
                 </label>
                 <div style={{ position: "relative" }}>
@@ -445,17 +426,7 @@ function AccountPage() {
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "var(--text-muted)",
-                    marginBottom: 6,
-                  }}
-                >
+                <label style={labelStyle}>
                   {t("changePassword.newPassword")}
                 </label>
                 <div style={{ position: "relative" }}>
@@ -484,17 +455,7 @@ function AccountPage() {
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "var(--text-muted)",
-                    marginBottom: 6,
-                  }}
-                >
+                <label style={labelStyle}>
                   {t("changePassword.confirmNewPassword")}
                 </label>
                 <div style={{ position: "relative" }}>
@@ -614,6 +575,8 @@ function AccountPage() {
               {studentError && <p style={{ color: "var(--accent-alt)", fontSize: 13, marginBottom: 8 }}>{studentError}</p>}
               {studentSuccess && <p style={{ color: "var(--success)", fontSize: 13, marginBottom: 8 }}>{studentSuccess}</p>}
 
+              <hr style={{ borderColor: "var(--border)", margin: "16px 0" }} />
+
               {studentsLoading ? (
                 <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("trainer.loading")}</p>
               ) : students.length === 0 ? (
@@ -641,18 +604,18 @@ function AccountPage() {
 
           <div
             style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
               borderRadius: 12,
-              padding: 24,
-              marginTop: 24,
+              padding: 20,
+              background: "rgba(239, 68, 68, 0.04)",
+              marginTop: 32,
             }}
           >
             <h2
               style={{
                 fontSize: 16,
                 fontWeight: 700,
-                color: "var(--text-primary)",
+                color: "#ef4444",
                 marginBottom: 8,
                 marginTop: 0,
               }}
@@ -698,17 +661,7 @@ function AccountPage() {
           <p style={{ color: "#dc3545", fontSize: 14, marginBottom: 16 }}>
             {t("dangerZone.modal.warning")}
           </p>
-          <label
-            style={{
-              display: "block",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              marginBottom: 6,
-            }}
-          >
+          <label style={labelStyle}>
             {t("dangerZone.modal.passwordLabel")}
           </label>
           <div style={{ position: "relative" }}>

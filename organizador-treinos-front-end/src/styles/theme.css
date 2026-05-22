@@ -12,6 +12,22 @@
   --nav-active-color: #f59e0b;
   --btn-primary-bg:   linear-gradient(135deg, #f59e0b, #f97316);
   --btn-primary-text: #000000;
+
+  /* Typography tokens */
+  --font-xs: 11px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-md: 16px;
+  --font-lg: 20px;
+  --font-xl: 24px;
+
+  /* Spacing tokens */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
 }
 
 [data-theme="light"] {
@@ -28,6 +44,22 @@
   --nav-active-color: #6366f1;
   --btn-primary-bg:   linear-gradient(135deg, #6366f1, #8b5cf6);
   --btn-primary-text: #ffffff;
+
+  /* Typography tokens */
+  --font-xs: 11px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-md: 16px;
+  --font-lg: 20px;
+  --font-xl: 24px;
+
+  /* Spacing tokens */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
 }
 
 body {
@@ -147,4 +179,15 @@ body {
 
 [data-theme="dark"] .navbar-toggler-icon {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Focus visible global */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Remove outline padrão feio mas mantém focus-visible */
+*:focus:not(:focus-visible) {
+  outline: none;
 }

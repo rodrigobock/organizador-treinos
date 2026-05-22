@@ -112,6 +112,7 @@ const ForgotPassword = () => {
                 }
                 onClick={handleSubmit}
                 disabled={loading}
+                size="lg"
               />
 
               <C.BackLink>

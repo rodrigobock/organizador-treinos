@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 
 export const NavbarContainer = styled.nav`
   background-color: var(--bg-surface);
@@ -18,7 +19,7 @@ export const NavbarContent = styled.div`
   }
 `;
 
-export const NavbarBrand = styled.a`
+export const NavbarBrand = styled(Link)`
   color: var(--text-primary);
   font-weight: 700;
   font-size: 15px;
@@ -47,14 +48,18 @@ export const NavLinksCenter = styled.div`
   }
 `;
 
-export const NavLink = styled.a`
-  color: var(--text-muted);
+export const NavLink = styled(Link)`
+  color: ${props => props.$isActive ? 'var(--nav-active-color)' : 'var(--text-muted)'};
+  font-weight: ${props => props.$isActive ? '600' : '400'};
   font-size: 13px;
   text-decoration: none;
   transition: color 0.15s;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background-color: ${props => props.$isActive ? 'var(--nav-active-bg)' : 'transparent'};
 
   &:hover {
-    color: var(--text-primary);
+    color: ${props => props.$isActive ? 'var(--nav-active-color)' : 'var(--text-primary)'};
     text-decoration: none;
   }
 `;
@@ -87,9 +92,18 @@ export const ThemeToggle = styled.button`
   }
 `;
 
+export const UserAvatarWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+`;
+
 export const UserAvatar = styled.div`
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--nav-active-bg);
   color: var(--accent);
@@ -97,7 +111,7 @@ export const UserAvatar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
 `;
@@ -174,16 +188,18 @@ export const MobileNavContent = styled.div`
   }
 `;
 
-export const MobileNavLink = styled.a`
-  color: var(--text-muted);
+export const MobileNavLink = styled(Link)`
+  color: ${props => props.$isActive ? 'var(--nav-active-color)' : 'var(--text-muted)'};
+  font-weight: ${props => props.$isActive ? '600' : '400'};
   font-size: 13px;
   text-decoration: none;
   padding: 10px 16px;
   transition: all 0.15s;
   display: block;
+  background-color: ${props => props.$isActive ? 'var(--nav-active-bg)' : 'transparent'};
 
   &:hover {
-    color: var(--text-primary);
+    color: ${props => props.$isActive ? 'var(--nav-active-color)' : 'var(--text-primary)'};
     background-color: var(--nav-active-bg);
     text-decoration: none;
   }

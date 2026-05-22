@@ -34,24 +34,26 @@ function NavBar() {
 
   const firstName = user?.name?.split(" ")[0] || "";
 
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + "/");
+
   return (
     <S.NavbarContainer>
       <Container>
         <S.NavbarContent>
           {/* Left: Brand only */}
-          <S.NavbarBrand href="/home">
+          <S.NavbarBrand to="/home">
             {t("brand")}
           </S.NavbarBrand>
 
           {/* Center: Nav links (hidden on mobile) */}
           <S.NavLinksCenter>
-            <S.NavLink href="/home">{user?.role === 'PERSONAL_TRAINER' ? 'Dashboard' : t("navbar.dashboard")}</S.NavLink>
-            <S.NavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.NavLink>
+            <S.NavLink to="/home" $isActive={isActive("/home")}>{user?.role === 'PERSONAL_TRAINER' ? 'Dashboard' : t("navbar.dashboard")}</S.NavLink>
+            <S.NavLink to="/myworkouts" $isActive={isActive("/myworkouts")}>{t("navbar.myWorkouts")}</S.NavLink>
             {user?.role === 'PERSONAL_TRAINER' && (
-              <S.NavLink href="/shared-by-me">{t("navbar.sharedByMe")}</S.NavLink>
+              <S.NavLink to="/shared-by-me" $isActive={isActive("/shared-by-me")}>{t("navbar.sharedByMe")}</S.NavLink>
             )}
-            <S.NavLink href="/templates">{t("navbar.templates")}</S.NavLink>
-            <S.NavLink href="/account">{t("navbar.account")}</S.NavLink>
+            <S.NavLink to="/templates" $isActive={isActive("/templates")}>{t("navbar.templates")}</S.NavLink>
+            <S.NavLink to="/account" $isActive={isActive("/account")}>{t("navbar.account")}</S.NavLink>
           </S.NavLinksCenter>
 
           {/* Right: Language + Theme toggle + user + logout */}
@@ -65,7 +67,9 @@ function NavBar() {
               {theme === "dark" ? "☀️" : "🌙"}
             </S.ThemeToggle>
 
-            <S.UserAvatar>{initials}</S.UserAvatar>
+            <S.UserAvatarWrapper>
+              <S.UserAvatar>{initials}</S.UserAvatar>
+            </S.UserAvatarWrapper>
 
             {firstName && (
               <S.UserName>{firstName}</S.UserName>
@@ -87,13 +91,13 @@ function NavBar() {
             </S.MobileMenuButton>
 
             <S.MobileNavContent isOpen={mobileMenuOpen}>
-              <S.MobileNavLink href="/home">{user?.role === 'PERSONAL_TRAINER' ? 'Dashboard' : t("navbar.dashboard")}</S.MobileNavLink>
-              <S.MobileNavLink href="/myworkouts">{t("navbar.myWorkouts")}</S.MobileNavLink>
+              <S.MobileNavLink to="/home" $isActive={isActive("/home")}>{user?.role === 'PERSONAL_TRAINER' ? 'Dashboard' : t("navbar.dashboard")}</S.MobileNavLink>
+              <S.MobileNavLink to="/myworkouts" $isActive={isActive("/myworkouts")}>{t("navbar.myWorkouts")}</S.MobileNavLink>
               {user?.role === 'PERSONAL_TRAINER' && (
-                <S.MobileNavLink href="/shared-by-me">{t("navbar.sharedByMe")}</S.MobileNavLink>
+                <S.MobileNavLink to="/shared-by-me" $isActive={isActive("/shared-by-me")}>{t("navbar.sharedByMe")}</S.MobileNavLink>
               )}
-              <S.MobileNavLink href="/templates">{t("navbar.templates")}</S.MobileNavLink>
-              <S.MobileNavLink href="/account">{t("navbar.account")}</S.MobileNavLink>
+              <S.MobileNavLink to="/templates" $isActive={isActive("/templates")}>{t("navbar.templates")}</S.MobileNavLink>
+              <S.MobileNavLink to="/account" $isActive={isActive("/account")}>{t("navbar.account")}</S.MobileNavLink>
               <S.MobileLogoutButton onClick={handleLogout}>
                 {t("navbar.logout")}
               </S.MobileLogoutButton>

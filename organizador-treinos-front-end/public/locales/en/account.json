@@ -36,6 +36,7 @@
     "noStudents": "No students linked yet.",
     "loading": "Loading students...",
     "unlink": "Unlink",
+    "unlinkConfirm": "Do you want to unlink this student?",
     "errorLinking": "Error linking student",
     "errorUnlinking": "Error unlinking student"
   },

@@ -133,6 +133,7 @@ const Signin = () => {
             }
             onClick={handleLogin}
             disabled={loading}
+            size="lg"
           />
 
           <C.FooterLinks>

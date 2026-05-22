@@ -57,9 +57,9 @@ function TemplateCard({ template, onImport, importing, signed, t }) {
         )}
 
         <ul className="list-unstyled mb-3" style={{ fontSize: "0.85rem" }}>
-          {template.exercises.map((exercise) => (
+          {template.exercises.map((exercise, idx) => (
             <li key={exercise.id} style={{ padding: "2px 0", color: "var(--text-primary)" }}>
-              <span style={{ color: "var(--text-muted)" }}>•</span>{" "}
+              <span style={{ color: "var(--text-muted)", minWidth: 16, display: "inline-block" }}>{idx + 1}.</span>{" "}
               {exercise.name}
               {(exercise.sets || exercise.reps) && (
                 <span style={{ color: "var(--text-muted)", marginLeft: 4 }}>
@@ -136,7 +136,7 @@ function TemplatesPage() {
       setError("");
       await templateService.importTemplate(templateId);
       setSuccessMessage(t("templates.importSuccess"));
-      setTimeout(() => navigate("/myworkouts"), 1500);
+      setTimeout(() => navigate("/myworkouts"), 2500);
     } catch (err) {
       setError(err.message || t("templates.errorImporting"));
     } finally {
@@ -161,8 +161,9 @@ function TemplatesPage() {
     <>
       <NavBar />
       <div className="container" style={{ marginTop: "20px", marginBottom: "40px" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
         <div className="d-flex justify-content-between align-items-center mb-2">
-          <h1>{t("templates.title")}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>{t("templates.title")}</h1>
           {signed && (
             <Button Text={t("templates.myWorkouts")} onClick={() => navigate("/myworkouts")} size="sm" />
           )}
@@ -174,16 +175,40 @@ function TemplatesPage() {
 
         <div className="d-flex gap-2 flex-wrap mb-4">
           <button
-            className={`btn btn-sm ${activeCategory === null ? "btn-dark" : "btn-outline-secondary"}`}
+            className="btn btn-sm"
             onClick={() => setActiveCategory(null)}
+            style={activeCategory === null ? {
+              background: "var(--accent)",
+              color: "var(--btn-primary-text, #000)",
+              border: "1px solid var(--accent)",
+              borderRadius: 6,
+              fontWeight: 600,
+            } : {
+              background: "transparent",
+              color: "var(--text-muted)",
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+            }}
           >
             {t("templates.allCategories")}
           </button>
           {CATEGORY_OPTIONS.map((cat) => (
             <button
               key={cat}
-              className={`btn btn-sm ${activeCategory === cat ? "btn-dark" : "btn-outline-secondary"}`}
+              className="btn btn-sm"
               onClick={() => handleCategoryFilter(cat)}
+              style={activeCategory === cat ? {
+                background: "var(--accent)",
+                color: "var(--btn-primary-text, #000)",
+                border: "1px solid var(--accent)",
+                borderRadius: 6,
+                fontWeight: 600,
+              } : {
+                background: "transparent",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border)",
+                borderRadius: 6,
+              }}
             >
               {t(`templates.categories.${cat}`, { defaultValue: cat })}
             </button>
@@ -224,6 +249,7 @@ function TemplatesPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </>
   );

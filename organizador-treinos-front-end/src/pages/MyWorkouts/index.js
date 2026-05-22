@@ -31,16 +31,30 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, user, t })
   return (
     <div ref={setNodeRef} style={style}>
       <Card className="workout-card mb-2" style={{ opacity: isDeleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
-        <Card.Body className="d-flex align-items-center gap-2 py-2">
+        <Card.Body className="d-flex align-items-center gap-2 py-3">
           <span
             {...attributes}
             {...listeners}
-            style={{ cursor: isDeleting ? "not-allowed" : "grab", color: "var(--text-muted, #888)", flexShrink: 0 }}
+            style={{
+              cursor: isDeleting ? "not-allowed" : "grab",
+              padding: "4px 6px",
+              color: "var(--text-muted)",
+              borderRadius: 4,
+              transition: "background 0.15s",
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
             <GripVertical size={18} />
           </span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600 }}>{workout.name}</div>
+            {workout.exercises != null && (
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                {workout.exercises.length || 0} {workout.exercises.length === 1 ? t("myWorkouts.exerciseSingular", "exercicio") : t("myWorkouts.exercisePlural", "exercicios")}
+              </div>
+            )}
             {workout.isPublic && <span className="badge bg-info me-1" style={{ fontSize: 10 }}>{t("common:public")}</span>}
             {user && workout.userId !== user.id && <span className="badge bg-secondary" style={{ fontSize: 10 }}>{t("myWorkouts.sharedBy", { name: workout.ownerName })}</span>}
           </div>
@@ -78,9 +92,14 @@ function StaticWorkoutCard({ workout, onView, onDelete, deletingId, user, t }) {
 
   return (
     <Card className="workout-card mb-2" style={{ opacity: isDeleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
-      <Card.Body className="d-flex align-items-center gap-2 py-2">
+      <Card.Body className="d-flex align-items-center gap-2 py-3">
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600 }}>{workout.name}</div>
+          {workout.exercises != null && (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+              {workout.exercises.length || 0} {workout.exercises.length === 1 ? t("myWorkouts.exerciseSingular", "exercicio") : t("myWorkouts.exercisePlural", "exercicios")}
+            </div>
+          )}
           {workout.isPublic && <span className="badge bg-info me-1" style={{ fontSize: 10 }}>{t("common:public")}</span>}
           {user && workout.userId !== user.id && <span className="badge bg-secondary" style={{ fontSize: 10 }}>{t("myWorkouts.sharedBy", { name: workout.ownerName })}</span>}
         </div>
@@ -298,8 +317,9 @@ function MyWorkoutsPage() {
     <>
       <NavBar />
       <div className="container" style={{ marginTop: "20px" }}>
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>{t("myWorkouts.title")}</h1>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>{t("myWorkouts.title")}</h1>
           <div className="d-flex gap-2">
             <Button
               Text={t("myWorkouts.newWorkout")}
@@ -361,6 +381,7 @@ function MyWorkoutsPage() {
           </DndContext>
         )}
 
+        </div>
       </div>
 
       <Modal show={importAnalysis !== null} onHide={() => setImportAnalysis(null)} size="lg">
@@ -368,9 +389,9 @@ function MyWorkoutsPage() {
           <Modal.Title>{t("myWorkouts.import.title")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Table bordered hover>
+          <Table bordered hover style={{ color: "var(--text-primary)" }}>
             <thead>
-              <tr>
+              <tr style={{ background: "var(--bg-card)" }}>
                 <th>{t("myWorkouts.import.workoutColumn")}</th>
                 <th>{t("myWorkouts.import.exercisesColumn")}</th>
                 <th>{t("myWorkouts.import.statusColumn")}</th>
@@ -414,7 +435,24 @@ function MyWorkoutsPage() {
           </Table>
         </Modal.Body>
         <Modal.Footer>
-          <Button Text={t("common:cancel")} onClick={() => setImportAnalysis(null)} />
+          <button
+            type="button"
+            onClick={() => setImportAnalysis(null)}
+            style={{
+              border: "1px solid var(--border)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              padding: "10px 20px",
+              fontSize: 14,
+              fontWeight: 600,
+              borderRadius: 6,
+              cursor: "pointer",
+              fontFamily: "'Outfit', -apple-system, sans-serif",
+              transition: "opacity 0.15s",
+            }}
+          >
+            {t("common:cancel")}
+          </button>
           <Button
             Text={
               importing ? (

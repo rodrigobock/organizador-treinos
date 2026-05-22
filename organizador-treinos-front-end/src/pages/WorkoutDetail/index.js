@@ -121,7 +121,25 @@ function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) 
                 <button
                   key={d}
                   type="button"
-                  className={`btn btn-sm ${difficulty === d ? "btn-dark" : "btn-outline-secondary"}`}
+                  className="btn btn-sm"
+                  style={difficulty === d ? {
+                    background: "var(--accent)",
+                    color: "var(--btn-primary-text, #000)",
+                    border: "1px solid var(--accent)",
+                    borderRadius: 6,
+                    padding: "4px 12px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  } : {
+                    background: "transparent",
+                    color: "var(--text-muted)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 6,
+                    padding: "4px 12px",
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
                   onClick={() => setDifficulty(prev => prev === d ? "" : d)}
                   disabled={saving}
                 >
@@ -132,12 +150,22 @@ function LogExecutionModal({ show, exercise, workoutId, onClose, onLogged, t }) 
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            Text={t("workoutDetail.logModal.cancel")}
+          <button
+            type="button"
             onClick={onClose}
             disabled={saving}
-            size="sm"
-          />
+            style={{
+              padding: "8px 16px",
+              borderRadius: 6,
+              border: "1px solid var(--border)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            {t("workoutDetail.logModal.cancel")}
+          </button>
           <Button
             Text={saving
               ? t("workoutDetail.logModal.saving")
@@ -372,10 +400,10 @@ function WorkoutDetailPage() {
   return (
     <>
       <NavBar />
-      <div className="container" style={{ marginTop: "20px" }}>
+      <div className="container" style={{ marginTop: "20px", maxWidth: 960, margin: "20px auto 0" }}>
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h1>{workout.name}</h1>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{workout.name}</h1>
             {workout.isPublic && (
               <span className="badge bg-info">{t("common:public")}</span>
             )}
@@ -398,6 +426,15 @@ function WorkoutDetailPage() {
           <Card.Body>
             {workout.exercises && workout.exercises.length > 0 ? (
               <div className="exercises-list">
+                <div className="wd-num-headers">
+                  <span></span>
+                  <span className="wd-num-header-name">{t("workoutDetail.exerciseLabel", "Exercício")}</span>
+                  <span className="wd-num-header-sets">{t("workoutDetail.setsPlaceholder")}</span>
+                  <span className="wd-num-header-rmin">{t("workoutDetail.repsMinPlaceholder")}</span>
+                  <span className="wd-num-header-rmax">{t("workoutDetail.repsMaxPlaceholder")}</span>
+                  <span className="wd-num-header-weight">{t("workoutDetail.weightPlaceholder")}</span>
+                  <span></span>
+                </div>
                 {workout.exercises.map((exercise) => (
                   <div key={exercise.id} className="exercise-item mb-2 p-2 border rounded">
                     <div className="wd-exercise-row">
@@ -475,7 +512,7 @@ function WorkoutDetailPage() {
                           onClick={() => setLogModalExercise(exercise)}
                           aria-label={t("workoutDetail.logExecution")}
                           title={t("workoutDetail.logExecution")}
-                          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#0d6efd" }}
+                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#0d6efd", minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}
                         >
                           <PlusCircle size={16} />
                         </button>
@@ -483,7 +520,7 @@ function WorkoutDetailPage() {
                           type="button"
                           onClick={() => handleDeleteExercise(exercise.id)}
                           aria-label={t("workoutDetail.deleteExercise")}
-                          style={{ background: "none", border: "none", padding: "4px 6px", cursor: "pointer", color: "#dc3545" }}
+                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#dc3545", minWidth: 36, minHeight: 36, display: "flex", alignItems: "center", justifyContent: "center" }}
                         >
                           <Trash size={16} />
                         </button>
@@ -500,8 +537,16 @@ function WorkoutDetailPage() {
 
             <hr />
 
-            <div className="mb-3">
-              <Form.Label>{t("workoutDetail.addNewExercise")}</Form.Label>
+            <div style={{
+              background: "var(--bg-surface)",
+              borderRadius: 8,
+              padding: "16px",
+              marginTop: 8,
+              border: "1px solid var(--border)"
+            }}>
+              <Form.Label style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                {t("workoutDetail.addNewExercise")}
+              </Form.Label>
               <div className="wd-add-row mb-2">
                 <div className="wd-add-name">
                   <Form.Control
@@ -577,6 +622,7 @@ function WorkoutDetailPage() {
                 Text={addingExercise ? t("workoutDetail.adding") : t("workoutDetail.addButton")}
                 onClick={handleAddExercise}
                 disabled={addingExercise || !newExerciseName.trim()}
+                size="sm"
               />
             </div>
           </Card.Body>

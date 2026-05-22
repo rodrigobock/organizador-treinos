@@ -36,6 +36,7 @@
     "noStudents": "Nenhum aluno vinculado ainda.",
     "loading": "Carregando alunos...",
     "unlink": "Desvincular",
+    "unlinkConfirm": "Deseja desvincular este aluno?",
     "errorLinking": "Erro ao vincular aluno",
     "errorUnlinking": "Erro ao desvincular aluno"
   },

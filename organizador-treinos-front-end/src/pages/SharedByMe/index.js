@@ -94,9 +94,9 @@ function SharedByMePage() {
   return (
     <>
       <NavBar />
-      <div className="container" style={{ marginTop: "20px" }}>
+      <div className="container" style={{ maxWidth: 960, marginLeft: "auto", marginRight: "auto", marginTop: "20px" }}>
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>{t("sharedByMe.title")}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>{t("sharedByMe.title")}</h1>
           <Button
             Text={t("sharedByMe.back")}
             onClick={() => navigate("/myworkouts")}
@@ -128,70 +128,104 @@ function SharedByMePage() {
             <Card key={item.workoutId} className="mb-4">
               <Card.Header className="d-flex justify-content-between align-items-center">
                 <Card.Title className="mb-0">
-                  <a
-                    href={`/workout/${item.workoutId}`}
-                    style={{ textDecoration: "none", color: "inherit" }}
+                  <span
+                    style={{ cursor: "pointer", color: "var(--text-primary)", fontWeight: 600 }}
+                    onClick={() => navigate(`/workout/${item.workoutId}`)}
                   >
                     {item.workoutName}
-                  </a>
+                  </span>
                 </Card.Title>
                 <Badge bg="secondary">
                   {t("sharedByMe.peopleCount", { count: item.shares.length })}
                 </Badge>
               </Card.Header>
               <Card.Body className="p-0">
-                <Table hover responsive className="mb-0" style={{ background: "var(--bg-card)", color: "var(--text-primary)", marginBottom: 0 }}>
-                  <colgroup>
-                    <col style={{ width: "40%" }} />
-                    <col style={{ width: "25%" }} />
-                    <col style={{ width: "25%" }} />
-                    <col style={{ width: "10%" }} />
-                  </colgroup>
-                  <thead style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                    <tr>
-                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>{t("sharedByMe.colPerson")}</th>
-                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>{t("sharedByMe.colSharedAt")}</th>
-                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>{t("sharedByMe.colLastAccess")}</th>
-                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {item.shares.map(share => {
-                      const revokeKey = `${item.workoutId}-${share.userId}`;
-                      return (
-                        <tr key={share.userId} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                          <td style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                            <div style={{ fontWeight: 500 }}>{share.name}</div>
-                            <small style={{ color: "var(--text-muted)" }}>{share.email}</small>
-                          </td>
-                          <td style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                            <small>{formatDate(share.sharedAt)}</small>
-                          </td>
-                          <td style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
-                            <small>
-                              {share.lastAccessedAt
-                                ? formatDate(share.lastAccessedAt)
-                                : <span style={{ color: "var(--text-muted)" }}>{t("sharedByMe.neverAccessed")}</span>
-                              }
-                            </small>
-                          </td>
-                          <td className="text-end" style={{ background: "var(--bg-card)", whiteSpace: "nowrap", paddingRight: "1rem" }}>
-                            <button
-                              className="btn btn-outline-danger btn-sm"
-                              style={{ fontSize: "0.75rem", padding: "2px 8px" }}
-                              onClick={() => handleRevoke(item.workoutId, share.userId, share.email)}
-                              disabled={revokingKey === revokeKey}
-                            >
-                              {revokingKey === revokeKey
-                                ? t("sharedByMe.revoking")
-                                : t("sharedByMe.revoke")}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
+                {/* Desktop: tabela */}
+                <div className="d-none d-md-block">
+                  <Table hover responsive className="mb-0" style={{ background: "var(--bg-card)", color: "var(--text-primary)", marginBottom: 0 }}>
+                    <colgroup>
+                      <col style={{ width: "40%" }} />
+                      <col style={{ width: "25%" }} />
+                      <col style={{ width: "25%" }} />
+                      <col style={{ width: "10%" }} />
+                    </colgroup>
+                    <thead style={{ background: "var(--bg-surface)" }}>
+                      <tr>
+                        <th>{t("sharedByMe.colPerson")}</th>
+                        <th>{t("sharedByMe.colSharedAt")}</th>
+                        <th>{t("sharedByMe.colLastAccess")}</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {item.shares.map(share => {
+                        const revokeKey = `${item.workoutId}-${share.userId}`;
+                        return (
+                          <tr key={share.userId}>
+                            <td>
+                              <div style={{ fontWeight: 500, color: "var(--text-primary)" }}>{share.name}</div>
+                              <small style={{ color: "var(--text-muted)" }}>{share.email}</small>
+                            </td>
+                            <td style={{ color: "var(--text-primary)" }}><small>{formatDate(share.sharedAt)}</small></td>
+                            <td style={{ color: "var(--text-primary)" }}>
+                              <small>
+                                {share.lastAccessedAt
+                                  ? formatDate(share.lastAccessedAt)
+                                  : <span style={{ color: "var(--text-muted)" }}>{t("sharedByMe.neverAccessed")}</span>
+                                }
+                              </small>
+                            </td>
+                            <td className="text-end" style={{ whiteSpace: "nowrap", paddingRight: "1rem" }}>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                style={{ fontSize: "0.8rem", padding: "6px 12px" }}
+                                onClick={() => handleRevoke(item.workoutId, share.userId, share.email)}
+                                disabled={revokingKey === revokeKey}
+                              >
+                                {revokingKey === revokeKey ? t("sharedByMe.revoking") : t("sharedByMe.revoke")}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* Mobile: cards */}
+                <div className="d-md-none">
+                  {item.shares.map(share => {
+                    const revokeKey = `${item.workoutId}-${share.userId}`;
+                    return (
+                      <div key={share.userId} style={{
+                        padding: "12px 16px",
+                        borderBottom: "1px solid var(--border)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{share.name}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{share.email}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+                            {t("sharedByMe.colSharedAt")}: {formatDate(share.sharedAt)}
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                            {t("sharedByMe.colLastAccess")}: {share.lastAccessedAt ? formatDate(share.lastAccessedAt) : t("sharedByMe.neverAccessed")}
+                          </div>
+                        </div>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          style={{ fontSize: "0.8rem", padding: "6px 12px", flexShrink: 0 }}
+                          onClick={() => handleRevoke(item.workoutId, share.userId, share.email)}
+                          disabled={revokingKey === revokeKey}
+                        >
+                          {revokingKey === revokeKey ? t("sharedByMe.revoking") : t("sharedByMe.revoke")}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </Card.Body>
             </Card>
           ))
