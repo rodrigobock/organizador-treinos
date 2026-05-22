@@ -181,6 +181,38 @@ body {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
+/* Tables */
+[data-theme="dark"] .table {
+  --bs-table-bg: var(--bg-card);
+  --bs-table-striped-bg: var(--bg-surface);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--border);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .table thead th,
+[data-theme="dark"] .table thead td {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .table tbody tr {
+  background-color: var(--bg-card);
+}
+
+[data-theme="dark"] .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+  border-color: var(--border) !important;
+}
+
 /* Focus visible global */
 *:focus-visible {
   outline: 2px solid var(--accent);

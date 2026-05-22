@@ -142,14 +142,14 @@ function SharedByMePage() {
               <Card.Body className="p-0">
                 {/* Desktop: tabela */}
                 <div className="d-none d-md-block">
-                  <Table hover responsive className="mb-0" style={{ background: "var(--bg-card)", color: "var(--text-primary)", marginBottom: 0 }}>
+                  <Table hover responsive className="mb-0">
                     <colgroup>
                       <col style={{ width: "40%" }} />
                       <col style={{ width: "25%" }} />
                       <col style={{ width: "25%" }} />
                       <col style={{ width: "10%" }} />
                     </colgroup>
-                    <thead style={{ background: "var(--bg-surface)" }}>
+                    <thead>
                       <tr>
                         <th>{t("sharedByMe.colPerson")}</th>
                         <th>{t("sharedByMe.colSharedAt")}</th>
