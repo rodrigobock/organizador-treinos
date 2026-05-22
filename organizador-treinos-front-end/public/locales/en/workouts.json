@@ -97,6 +97,13 @@
     "title": "Workout Library",
     "subtitle": "Choose a pre-built template and add it to your workouts with a single click.",
     "allCategories": "All",
+    "allGenders": "All",
+    "allMuscles": "All muscle groups",
+    "allEquipment": "All equipment",
+    "filterCategory": "Category",
+    "filterGender": "Gender",
+    "filterMuscle": "Muscle Group",
+    "filterEquipment": "Equipment",
     "useTemplate": "Use this workout",
     "loginToUse": "Sign in to use",
     "loginPrompt": "Sign in or create an account to import templates into your workouts.",
@@ -112,12 +119,37 @@
       "INTERMEDIATE": "Intermediate",
       "ADVANCED": "Advanced",
       "FUNCTIONAL": "Functional",
-      "CALISTHENICS": "Calisthenics"
+      "CALISTHENICS": "Calisthenics",
+      "HYPERTROPHY": "Hypertrophy",
+      "STRENGTH": "Strength",
+      "CARDIO": "Cardio",
+      "MOBILITY": "Mobility"
     },
     "genders": {
       "MALE": "Male",
       "FEMALE": "Female",
       "UNISEX": "Unisex"
+    },
+    "muscleGroups": {
+      "FULL_BODY": "Full Body",
+      "UPPER_BODY": "Upper Body",
+      "LOWER_BODY": "Lower Body",
+      "CHEST": "Chest",
+      "BACK": "Back",
+      "LEGS": "Legs",
+      "SHOULDERS": "Shoulders",
+      "ARMS": "Arms",
+      "GLUTES": "Glutes",
+      "CORE": "Core / Abs"
+    },
+    "equipment": {
+      "BODYWEIGHT": "Bodyweight",
+      "RESISTANCE_BANDS": "Resistance Bands",
+      "DUMBBELLS": "Dumbbells",
+      "BARBELL": "Barbell",
+      "MACHINES": "Machines",
+      "KETTLEBELL": "Kettlebell",
+      "FULL_GYM": "Full Gym"
     }
   },
   "workoutDetail": {

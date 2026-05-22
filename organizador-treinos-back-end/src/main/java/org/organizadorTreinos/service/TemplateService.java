@@ -7,8 +7,10 @@ import jakarta.ws.rs.NotFoundException;
 import org.organizadorTreinos.dto.response.TemplateExerciseResponse;
 import org.organizadorTreinos.dto.response.WorkoutResponse;
 import org.organizadorTreinos.dto.response.WorkoutTemplateResponse;
+import org.organizadorTreinos.entity.EquipmentRequired;
 import org.organizadorTreinos.entity.Exercise;
 import org.organizadorTreinos.entity.Gender;
+import org.organizadorTreinos.entity.MuscleGroup;
 import org.organizadorTreinos.entity.TemplateCategory;
 import org.organizadorTreinos.entity.TemplateExercise;
 import org.organizadorTreinos.entity.User;
@@ -48,28 +50,27 @@ public class TemplateService {
 
     @Transactional(Transactional.TxType.SUPPORTS)
     public List<WorkoutTemplateResponse> listByCategory(String category) {
-        try {
-            TemplateCategory cat = TemplateCategory.valueOf(category.toUpperCase());
-            return templateRepository.findByCategory(cat).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-        } catch (IllegalArgumentException e) {
-            return List.of();
-        }
+        TemplateCategory cat = parseEnum(TemplateCategory.class, category);
+        if (cat == null) return listAll();
+        return templateRepository.findByCategory(cat).stream()
+            .map(this::toResponse)
+            .collect(Collectors.toList());
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<WorkoutTemplateResponse> listByGender(String gender) {
-        try {
-            Gender g = Gender.valueOf(gender.toUpperCase());
-            return templateRepository.findAllForGender(g).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-        } catch (IllegalArgumentException e) {
-            return templateRepository.findAllOrdered().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-        }
+    public List<WorkoutTemplateResponse> listWithFilters(
+            String categoryStr, String genderStr,
+            String muscleGroupStr, String equipmentStr) {
+
+        TemplateCategory category = parseEnum(TemplateCategory.class, categoryStr);
+        Gender gender = parseEnum(Gender.class, genderStr);
+        MuscleGroup muscleGroup = parseEnum(MuscleGroup.class, muscleGroupStr);
+        EquipmentRequired equipment = parseEnum(EquipmentRequired.class, equipmentStr);
+
+        return templateRepository.findWithFilters(category, gender, muscleGroup, equipment)
+            .stream()
+            .map(this::toResponse)
+            .collect(Collectors.toList());
     }
 
     public WorkoutResponse importTemplate(Long templateId, UUID userId) {
@@ -132,8 +133,21 @@ public class TemplateService {
             template.getDescription(),
             template.getCategory().name(),
             template.getGender().name(),
+            template.getMuscleGroup() != null ? template.getMuscleGroup().name() : null,
+            template.getEquipmentRequired() != null ? template.getEquipmentRequired().name() : null,
+            template.getEstimatedDuration(),
+            template.getWeeklyFrequency(),
             exercises,
             template.getCreatedAt()
         );
+    }
+
+    private <T extends Enum<T>> T parseEnum(Class<T> clazz, String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return Enum.valueOf(clazz, value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

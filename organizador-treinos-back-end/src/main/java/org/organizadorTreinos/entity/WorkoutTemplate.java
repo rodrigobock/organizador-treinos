@@ -39,6 +39,20 @@ public class WorkoutTemplate {
     @Column(nullable = false)
     private Gender gender = Gender.UNISEX;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "muscle_group")
+    private MuscleGroup muscleGroup;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "equipment_required")
+    private EquipmentRequired equipmentRequired;
+
+    @Column(name = "estimated_duration")
+    private Integer estimatedDuration;
+
+    @Column(name = "weekly_frequency")
+    private Integer weeklyFrequency;
+
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true,
                fetch = FetchType.LAZY)
     @OrderBy("orderIndex ASC")

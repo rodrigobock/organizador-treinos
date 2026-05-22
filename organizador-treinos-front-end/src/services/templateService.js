@@ -1,11 +1,13 @@
 import api from './api';
 
 const templateService = {
-  getTemplates: async (category, gender) => {
+  getTemplates: async (category, gender, muscleGroup, equipment) => {
     try {
       const params = {};
       if (category) params.category = category;
       if (gender) params.gender = gender;
+      if (muscleGroup) params.muscleGroup = muscleGroup;
+      if (equipment) params.equipment = equipment;
       const response = await api.get('/templates', { params });
       return response.data;
     } catch (error) {

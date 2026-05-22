@@ -97,6 +97,13 @@
     "title": "Biblioteca de Treinos",
     "subtitle": "Escolha um treino pré-montado e adicione aos seus treinos com um clique.",
     "allCategories": "Todos",
+    "allGenders": "Todos",
+    "allMuscles": "Todos os grupos",
+    "allEquipment": "Todo equipamento",
+    "filterCategory": "Categoria",
+    "filterGender": "Gênero",
+    "filterMuscle": "Grupo Muscular",
+    "filterEquipment": "Equipamento",
     "useTemplate": "Usar este treino",
     "loginToUse": "Faça login para usar",
     "loginPrompt": "Faça login ou crie uma conta para importar templates para os seus treinos.",
@@ -112,12 +119,37 @@
       "INTERMEDIATE": "Intermediário",
       "ADVANCED": "Avançado",
       "FUNCTIONAL": "Funcional",
-      "CALISTHENICS": "Calistenia"
+      "CALISTHENICS": "Calistenia",
+      "HYPERTROPHY": "Hipertrofia",
+      "STRENGTH": "Força",
+      "CARDIO": "Cardio",
+      "MOBILITY": "Mobilidade"
     },
     "genders": {
       "MALE": "Masculino",
       "FEMALE": "Feminino",
       "UNISEX": "Unissex"
+    },
+    "muscleGroups": {
+      "FULL_BODY": "Corpo Inteiro",
+      "UPPER_BODY": "Superior",
+      "LOWER_BODY": "Inferior",
+      "CHEST": "Peito",
+      "BACK": "Costas",
+      "LEGS": "Pernas",
+      "SHOULDERS": "Ombros",
+      "ARMS": "Braços",
+      "GLUTES": "Glúteos",
+      "CORE": "Core / Abdômen"
+    },
+    "equipment": {
+      "BODYWEIGHT": "Peso corporal",
+      "RESISTANCE_BANDS": "Elástico",
+      "DUMBBELLS": "Halteres",
+      "BARBELL": "Barra",
+      "MACHINES": "Máquinas",
+      "KETTLEBELL": "Kettlebell",
+      "FULL_GYM": "Academia completa"
     }
   },
   "workoutDetail": {

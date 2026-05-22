@@ -5,5 +5,9 @@ public enum TemplateCategory {
     INTERMEDIATE,
     ADVANCED,
     FUNCTIONAL,
-    CALISTHENICS
+    CALISTHENICS,
+    HYPERTROPHY,
+    STRENGTH,
+    CARDIO,
+    MOBILITY
 }

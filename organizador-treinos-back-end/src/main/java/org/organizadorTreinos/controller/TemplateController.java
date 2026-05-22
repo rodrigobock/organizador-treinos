@@ -32,16 +32,13 @@ public class TemplateController {
 
     @GET
     @PermitAll
-    public Response listTemplates(@QueryParam("category") String category,
-                                   @QueryParam("gender") String gender) {
-        List<WorkoutTemplateResponse> templates;
-        if (category != null && !category.isBlank()) {
-            templates = templateService.listByCategory(category);
-        } else if (gender != null && !gender.isBlank()) {
-            templates = templateService.listByGender(gender);
-        } else {
-            templates = templateService.listAll();
-        }
+    public Response listTemplates(
+            @QueryParam("category") String category,
+            @QueryParam("gender") String gender,
+            @QueryParam("muscleGroup") String muscleGroup,
+            @QueryParam("equipment") String equipment) {
+        List<WorkoutTemplateResponse> templates =
+            templateService.listWithFilters(category, gender, muscleGroup, equipment);
         return Response.ok(templates).build();
     }
 

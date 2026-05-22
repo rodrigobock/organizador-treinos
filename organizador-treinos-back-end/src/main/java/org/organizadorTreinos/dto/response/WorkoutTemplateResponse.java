@@ -16,6 +16,10 @@ public class WorkoutTemplateResponse {
     private String description;
     private String category;
     private String gender;
+    private String muscleGroup;
+    private String equipmentRequired;
+    private Integer estimatedDuration;
+    private Integer weeklyFrequency;
     private List<TemplateExerciseResponse> exercises;
     private LocalDateTime createdAt;
 }
