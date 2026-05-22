@@ -1,3 +1,6 @@
+--liquibase formatted sql
+--changeset organizador-treinos:20
+
 ALTER TABLE workout_shares ADD COLUMN position INTEGER NOT NULL DEFAULT 0;
 
 WITH max_positions AS (
