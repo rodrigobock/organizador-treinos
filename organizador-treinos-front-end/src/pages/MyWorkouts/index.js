@@ -10,15 +10,16 @@ import Form from "react-bootstrap/Form";
 import Pagination from "react-bootstrap/Pagination";
 import Spinner from "react-bootstrap/Spinner";
 import workoutService from "../../services/workoutService";
+import trainerService from "../../services/trainerService";
 import useAuth from "../../hooks/useAuth";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Trash, PencilSquare, GripVertical } from "react-bootstrap-icons";
+import { Trash, PencilSquare, GripVertical, PersonPlusFill } from "react-bootstrap-icons";
 
 const PAGE_SIZE = 10;
 
-function SortableWorkoutCard({ workout, onView, onDelete, deletingId, user, t }) {
+function SortableWorkoutCard({ workout, onView, onDelete, onShare, deletingId, user, studentCount, t }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: workout.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -27,6 +28,8 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, user, t })
   };
 
   const isDeleting = deletingId === workout.id;
+  const isTrainer = user?.role === "PERSONAL_TRAINER";
+  const isOwner = user && workout.userId === user.id;
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -58,6 +61,17 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, user, t })
             {workout.isPublic && <span className="badge bg-info me-1" style={{ fontSize: 10 }}>{t("common:public")}</span>}
             {user && workout.userId !== user.id && <span className="badge bg-secondary" style={{ fontSize: 10 }}>{t("myWorkouts.sharedBy", { name: workout.ownerName })}</span>}
           </div>
+          {isTrainer && isOwner && (
+            <button
+              onClick={() => onShare(workout)}
+              aria-label="Compartilhar treino"
+              disabled={isDeleting || studentCount === 0}
+              title={studentCount === 0 ? "Nenhum aluno vinculado" : "Compartilhar com aluno"}
+              style={{ background: "none", border: "none", padding: "4px 6px", cursor: (isDeleting || studentCount === 0) ? "not-allowed" : "pointer", color: studentCount === 0 ? "var(--text-muted)" : "var(--accent, #f59e0b)", opacity: studentCount === 0 ? 0.4 : 1 }}
+            >
+              <PersonPlusFill size={17} />
+            </button>
+          )}
           <button
             onClick={() => onView(workout.id)}
             aria-label={t("myWorkouts.editWorkout")}
@@ -87,8 +101,10 @@ function SortableWorkoutCard({ workout, onView, onDelete, deletingId, user, t })
 }
 
 
-function StaticWorkoutCard({ workout, onView, onDelete, deletingId, user, t }) {
+function StaticWorkoutCard({ workout, onView, onDelete, onShare, deletingId, user, studentCount, t }) {
   const isDeleting = deletingId === workout.id;
+  const isTrainer = user?.role === "PERSONAL_TRAINER";
+  const isOwner = user && workout.userId === user.id;
 
   return (
     <Card className="workout-card mb-2" style={{ opacity: isDeleting ? 0.5 : 1, transition: "opacity 0.2s" }}>
@@ -103,6 +119,16 @@ function StaticWorkoutCard({ workout, onView, onDelete, deletingId, user, t }) {
           {workout.isPublic && <span className="badge bg-info me-1" style={{ fontSize: 10 }}>{t("common:public")}</span>}
           {user && workout.userId !== user.id && <span className="badge bg-secondary" style={{ fontSize: 10 }}>{t("myWorkouts.sharedBy", { name: workout.ownerName })}</span>}
         </div>
+        {isTrainer && isOwner && (
+          <button
+            onClick={() => onShare(workout)}
+            aria-label="Compartilhar treino"
+            disabled={isDeleting}
+            style={{ background: "none", border: "none", padding: "4px 6px", cursor: isDeleting ? "not-allowed" : "pointer", color: "var(--accent, #f59e0b)" }}
+          >
+            <PersonPlusFill size={17} />
+          </button>
+        )}
         <button
           onClick={() => onView(workout.id)}
           aria-label={t("myWorkouts.editWorkout")}
@@ -148,6 +174,13 @@ function MyWorkoutsPage() {
   const [importing, setImporting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
+  const [shareModal, setShareModal] = useState(null); // { workout, students, initialSharedIds }
+  const [shareSelected, setShareSelected] = useState(new Set());
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareSaving, setShareSaving] = useState(false);
+  const [shareError, setShareError] = useState("");
+  const [studentCount, setStudentCount] = useState(null); // null = not loaded yet
+
   const sensors = useSensors(useSensor(PointerSensor));
 
   const isPaginated = totalPages > 1;
@@ -175,8 +208,11 @@ function MyWorkoutsPage() {
 
     if (signed) {
       loadWorkouts(currentPage);
+      if (user?.role === "PERSONAL_TRAINER") {
+        trainerService.getStudents().then(s => setStudentCount(s.length)).catch(() => setStudentCount(0));
+      }
     }
-  }, [signed, authLoading, navigate, currentPage, loadWorkouts]);
+  }, [signed, authLoading, navigate, currentPage, loadWorkouts, user?.role]);
 
   const handlePageChange = (page) => {
     if (page < 0 || page >= totalPages) return;
@@ -219,6 +255,65 @@ function MyWorkoutsPage() {
     } catch (err) {
       setWorkouts(workouts);
       setError(err.response?.data?.message || err.message || t("myWorkouts.errorReordering"));
+    }
+  };
+
+  const handleOpenShare = async (workout) => {
+    setShareError("");
+    setShareLoading(true);
+    setShareModal({ workout, students: [], initialSharedIds: new Set() });
+    setShareSelected(new Set());
+    try {
+      const [students, sharedByMe] = await Promise.all([
+        trainerService.getStudents(),
+        workoutService.getSharedByMe(),
+      ]);
+      const workoutShares = sharedByMe.find(s => s.workoutId === workout.id);
+      const sharedUserIds = new Set(workoutShares ? workoutShares.shares.map(s => s.userId) : []);
+      setShareModal({ workout, students, initialSharedIds: sharedUserIds });
+      setShareSelected(new Set(sharedUserIds));
+    } catch (err) {
+      setShareError(err.message || "Erro ao carregar dados de compartilhamento");
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleCloseShare = () => {
+    setShareModal(null);
+    setShareSelected(new Set());
+    setShareError("");
+  };
+
+  const handleToggleStudent = (studentId) => {
+    setShareSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+
+  const handleSaveShare = async () => {
+    if (!shareModal) return;
+    const { workout, students, initialSharedIds } = shareModal;
+    const toAdd = students.filter(s => shareSelected.has(s.id) && !initialSharedIds.has(s.id));
+    const toRemove = students.filter(s => !shareSelected.has(s.id) && initialSharedIds.has(s.id));
+
+    try {
+      setShareSaving(true);
+      setShareError("");
+      if (toAdd.length > 0) {
+        await workoutService.bulkShare(workout.id, toAdd.map(s => s.email), "READ");
+      }
+      for (const s of toRemove) {
+        await workoutService.revokeShare(workout.id, s.id);
+      }
+      handleCloseShare();
+    } catch (err) {
+      setShareError(err.message || "Erro ao salvar compartilhamento");
+    } finally {
+      setShareSaving(false);
     }
   };
 
@@ -356,8 +451,10 @@ function MyWorkoutsPage() {
                 workout={workout}
                 onView={handleViewWorkout}
                 onDelete={handleDeleteWorkout}
+                onShare={handleOpenShare}
                 deletingId={deletingId}
                 user={user}
+                studentCount={studentCount}
                 t={t}
               />
             ))}
@@ -372,8 +469,10 @@ function MyWorkoutsPage() {
                   workout={workout}
                   onView={handleViewWorkout}
                   onDelete={handleDeleteWorkout}
+                  onShare={handleOpenShare}
                   deletingId={deletingId}
                   user={user}
+                  studentCount={studentCount}
                   t={t}
                 />
               ))}
@@ -383,6 +482,93 @@ function MyWorkoutsPage() {
 
         </div>
       </div>
+
+      <Modal show={!!shareModal} onHide={handleCloseShare} centered>
+        <Modal.Header closeButton>
+          <Modal.Title style={{ fontSize: 16 }}>
+            Compartilhar treino{shareModal ? `: ${shareModal.workout.name}` : ""}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {shareError && (
+            <div className="alert alert-danger py-2 small mb-3">{shareError}</div>
+          )}
+          {shareLoading ? (
+            <div className="d-flex justify-content-center py-4">
+              <Spinner animation="border" size="sm" />
+            </div>
+          ) : shareModal && shareModal.students.length === 0 && !shareError ? (
+            <p className="text-muted text-center py-3 mb-0" style={{ fontSize: 14 }}>
+              Nenhum aluno vinculado. Adicione alunos na página de Compartilhamentos.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {(shareModal?.students || []).map(student => {
+                const checked = shareSelected.has(student.id);
+                return (
+                  <label
+                    key={student.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      border: `1px solid ${checked ? "var(--accent)" : "var(--border)"}`,
+                      background: checked ? "var(--nav-active-bg)" : "var(--bg-surface)",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <Form.Check
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleToggleStudent(student.id)}
+                      style={{ margin: 0 }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{student.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{student.email}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <button
+            type="button"
+            onClick={handleCloseShare}
+            disabled={shareSaving}
+            style={{
+              border: "1px solid var(--border)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              padding: "10px 20px",
+              fontSize: 14,
+              fontWeight: 600,
+              borderRadius: 6,
+              cursor: "pointer",
+              fontFamily: "'Outfit', -apple-system, sans-serif",
+            }}
+          >
+            Cancelar
+          </button>
+          <Button
+            Text={
+              shareSaving ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
+                  Salvando...
+                </span>
+              ) : "Salvar"
+            }
+            onClick={handleSaveShare}
+            disabled={shareSaving || shareLoading || (shareModal && shareModal.students.length === 0)}
+          />
+        </Modal.Footer>
+      </Modal>
 
       <Modal show={importAnalysis !== null} onHide={() => setImportAnalysis(null)} size="lg">
         <Modal.Header closeButton>
