@@ -140,46 +140,45 @@ function SharedByMePage() {
                 </Badge>
               </Card.Header>
               <Card.Body className="p-0">
-                <Table hover responsive className="mb-0">
-                  <thead>
+                <Table hover responsive className="mb-0" style={{ background: "var(--bg-card)", color: "var(--text-primary)", marginBottom: 0 }}>
+                  <colgroup>
+                    <col style={{ width: "40%" }} />
+                    <col style={{ width: "25%" }} />
+                    <col style={{ width: "25%" }} />
+                    <col style={{ width: "10%" }} />
+                  </colgroup>
+                  <thead style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
                     <tr>
-                      <th>{t("sharedByMe.colPerson")}</th>
-                      <th>{t("sharedByMe.colPermission")}</th>
-                      <th>{t("sharedByMe.colSharedAt")}</th>
-                      <th>{t("sharedByMe.colLastAccess")}</th>
-                      <th></th>
+                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>{t("sharedByMe.colPerson")}</th>
+                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>{t("sharedByMe.colSharedAt")}</th>
+                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>{t("sharedByMe.colLastAccess")}</th>
+                      <th style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {item.shares.map(share => {
                       const revokeKey = `${item.workoutId}-${share.userId}`;
                       return (
-                        <tr key={share.userId}>
-                          <td>
+                        <tr key={share.userId} style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
+                          <td style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
                             <div style={{ fontWeight: 500 }}>{share.name}</div>
-                            <small className="text-muted">{share.email}</small>
+                            <small style={{ color: "var(--text-muted)" }}>{share.email}</small>
                           </td>
-                          <td>
-                            <Badge bg={share.permission === "EDIT" ? "warning" : "info"} text="dark">
-                              {share.permission === "EDIT"
-                                ? t("sharedByMe.permissionEdit")
-                                : t("sharedByMe.permissionRead")}
-                            </Badge>
-                          </td>
-                          <td>
+                          <td style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
                             <small>{formatDate(share.sharedAt)}</small>
                           </td>
-                          <td>
+                          <td style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}>
                             <small>
                               {share.lastAccessedAt
                                 ? formatDate(share.lastAccessedAt)
-                                : <span className="text-muted">{t("sharedByMe.neverAccessed")}</span>
+                                : <span style={{ color: "var(--text-muted)" }}>{t("sharedByMe.neverAccessed")}</span>
                               }
                             </small>
                           </td>
-                          <td className="text-end">
+                          <td className="text-end" style={{ background: "var(--bg-card)", whiteSpace: "nowrap", paddingRight: "1rem" }}>
                             <button
                               className="btn btn-outline-danger btn-sm"
+                              style={{ fontSize: "0.75rem", padding: "2px 8px" }}
                               onClick={() => handleRevoke(item.workoutId, share.userId, share.email)}
                               disabled={revokingKey === revokeKey}
                             >
