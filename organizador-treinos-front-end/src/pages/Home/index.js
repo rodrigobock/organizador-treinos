@@ -1,11 +1,221 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Spinner from "react-bootstrap/Spinner";
 import NavBar from "../../components/NavBar";
 import workoutService from "../../services/workoutService";
 import sessionService from "../../services/sessionService";
+import trainerService from "../../services/trainerService";
 import useAuth from "../../hooks/useAuth";
+
+function formatDate(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function StatCard({ label, value, accent }) {
+  return (
+    <div style={{
+      background: "var(--bg-card)",
+      border: "1px solid var(--border)",
+      borderRadius: 10,
+      padding: "14px 16px",
+    }}>
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: accent ? "var(--accent)" : "var(--text-primary)" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function QuickActionCard({ icon, label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border)",
+        borderRadius: 10,
+        padding: "16px 12px",
+        cursor: "pointer",
+        textAlign: "center",
+        color: "var(--text-primary)",
+        width: "100%",
+        transition: "border-color 0.15s",
+      }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = "var(--accent)"}
+      onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
+    >
+      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
+      <div style={{ fontSize: 12, fontWeight: 600 }}>{label}</div>
+    </button>
+  );
+}
+
+function TrainerDashboard({ user, navigate }) {
+  const [students, setStudents] = useState([]);
+  const [sharedItems, setSharedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Promise.all([trainerService.getStudents(), workoutService.getSharedByMe()])
+      .then(([s, sh]) => { setStudents(s); setSharedItems(sh); })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const studentStats = useMemo(() => {
+    const map = {};
+    sharedItems.forEach(item => {
+      item.shares.forEach(share => {
+        if (!map[share.userId]) map[share.userId] = { workoutCount: 0, lastAccess: null };
+        map[share.userId].workoutCount++;
+        if (share.lastAccessedAt) {
+          const d = new Date(share.lastAccessedAt);
+          if (!map[share.userId].lastAccess || d > map[share.userId].lastAccess) {
+            map[share.userId].lastAccess = d;
+          }
+        }
+      });
+    });
+    return map;
+  }, [sharedItems]);
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const activeCount = students.filter(s => studentStats[s.id]?.lastAccess > sevenDaysAgo).length;
+  const totalWorkoutsShared = new Set(sharedItems.map(i => i.workoutId)).size;
+  const firstName = user?.name?.split(" ")[0] || "";
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "300px" }}>
+        <Spinner animation="border" style={{ color: "var(--accent)" }} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 16px" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+          Olá, {firstName} 👋
+        </h1>
+        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
+          Painel do personal trainer
+        </p>
+      </div>
+
+      {error && (
+        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "var(--accent-alt)", fontSize: 13, marginBottom: 16 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+        <StatCard label="Alunos" value={students.length} />
+        <StatCard label="Treinos compartilhados" value={totalWorkoutsShared} accent />
+        <StatCard label="Ativos (7 dias)" value={activeCount} />
+      </div>
+
+      {/* Quick actions */}
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 10 }}>
+        Ações rápidas
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 28 }}>
+        <QuickActionCard icon="🏋️" label="Meus treinos" onClick={() => navigate("/myworkouts")} />
+        <QuickActionCard icon="📤" label="Compartilhamentos" onClick={() => navigate("/shared-by-me")} />
+        <QuickActionCard icon="➕" label="Novo treino" onClick={() => navigate("/newworkout")} />
+      </div>
+
+      {/* Student list */}
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 10 }}>
+        Meus alunos
+      </div>
+
+      {students.length === 0 ? (
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: "40px 24px", textAlign: "center" }}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>👥</div>
+          <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
+            Nenhum aluno vinculado ainda.
+          </p>
+        </div>
+      ) : (
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+          {students.map((student, idx) => {
+            const stats = studentStats[student.id] || { workoutCount: 0, lastAccess: null };
+            const isActive = stats.lastAccess && stats.lastAccess > sevenDaysAgo;
+            return (
+              <div
+                key={student.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 16px",
+                  borderBottom: idx < students.length - 1 ? "1px solid var(--border)" : "none",
+                }}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 14, fontWeight: 700, color: "var(--accent)", flexShrink: 0,
+                }}>
+                  {student.name.charAt(0).toUpperCase()}
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {student.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {student.email}
+                  </div>
+                </div>
+
+                {/* Treinos */}
+                <div style={{ textAlign: "center", flexShrink: 0, minWidth: 52 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>{stats.workoutCount}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>treinos</div>
+                </div>
+
+                {/* Último acesso */}
+                <div style={{ textAlign: "right", flexShrink: 0, minWidth: 80 }}>
+                  <div style={{ fontSize: 12, color: "var(--text-primary)" }}>
+                    {stats.lastAccess ? formatDate(stats.lastAccess.toISOString()) : "—"}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>último acesso</div>
+                </div>
+
+                {/* Badge ativo */}
+                <div style={{
+                  flexShrink: 0,
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  background: isActive ? "rgba(16,185,129,0.15)" : "rgba(100,116,139,0.15)",
+                  color: isActive ? "var(--success)" : "var(--text-muted)",
+                }}>
+                  {isActive ? "ativo" : "inativo"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function HomePage() {
   const { user, reloadUser } = useAuth();
@@ -99,6 +309,17 @@ function HomePage() {
   const completed = exercises.filter(ex => ex.completed).length;
   const total = exercises.length;
   const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  if (user?.role === "PERSONAL_TRAINER") {
+    return (
+      <>
+        <NavBar />
+        <div style={{ minHeight: "calc(100vh - 56px)", backgroundColor: "var(--bg-primary)" }}>
+          <TrainerDashboard user={user} navigate={navigate} />
+        </div>
+      </>
+    );
+  }
 
   if (loading) {
     return (
