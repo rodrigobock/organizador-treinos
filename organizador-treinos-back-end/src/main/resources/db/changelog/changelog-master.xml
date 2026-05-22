@@ -25,6 +25,6 @@
     <include file="db/changelog/V18__expand_exercise_catalog.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V19__add_advanced_templates.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/V20__add_workout_share_position.sql" relativeToChangelogFile="false"/>
-    <include file="db/changelog/V21__add_exercise_log_notes.sql" relativeToChangelogFile="false"/>
-    <include file="db/changelog/V22__add_workout_template_sharing.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V21__add_gender_coverage_templates.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/V22__add_template_subfilters.sql" relativeToChangelogFile="false"/>
 </databaseChangeLog>
