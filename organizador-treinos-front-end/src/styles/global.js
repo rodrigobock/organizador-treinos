@@ -8,7 +8,6 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    width: 100vw;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
