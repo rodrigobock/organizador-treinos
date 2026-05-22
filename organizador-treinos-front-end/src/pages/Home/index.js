@@ -314,9 +314,7 @@ function HomePage() {
     return (
       <>
         <NavBar />
-        <div style={{ minHeight: "calc(100vh - 56px)", backgroundColor: "var(--bg-primary)" }}>
-          <TrainerDashboard user={user} navigate={navigate} />
-        </div>
+        <TrainerDashboard user={user} navigate={navigate} />
       </>
     );
   }
@@ -327,11 +325,10 @@ function HomePage() {
         <NavBar />
         <div
           style={{
-            minHeight: "calc(100vh - 56px)",
-            backgroundColor: "var(--bg-primary)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            padding: "80px 16px",
           }}
         >
           <div style={{ textAlign: "center" }}>
@@ -352,8 +349,6 @@ function HomePage() {
       <NavBar />
       <div
         style={{
-          minHeight: "calc(100vh - 56px)",
-          backgroundColor: "var(--bg-primary)",
           padding: "24px 16px",
         }}
       >

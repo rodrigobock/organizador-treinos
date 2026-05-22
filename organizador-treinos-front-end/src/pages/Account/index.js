@@ -244,8 +244,6 @@ function AccountPage() {
       <NavBar />
       <div
         style={{
-          minHeight: "calc(100vh - 56px)",
-          backgroundColor: "var(--bg-primary)",
           padding: "32px 16px",
         }}
       >
